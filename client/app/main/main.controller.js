@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webApp')
-	.controller('MainController', function ($scope, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Promotion, Cart, Customer) {
+	.controller('MainController', function ($scope, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Promotion, Cart, Customer, Reward) {
 		var currentUser = Auth.getCurrentUser();
 		$scope.allow_amount = _.range(1,10);
 		$scope.store_select_text = '選擇超商門市';
@@ -31,6 +31,11 @@ angular.module('webApp')
 			$scope.shipping_info.telephone = data.telephone;
 			$scope.getAddress(data.customer_id, data.address_id);
 			$scope.customer_id = data.customer_id;
+			Reward.getByCustomer(data.customer_id).then(function(reward_result) {
+				$scope.rewards_owned_by_customer = reward_result.points;
+			}, function(err) {
+				console.log(err.data);
+			});
 		});
 		
 		$scope.cart = {
@@ -150,39 +155,11 @@ angular.module('webApp')
 
 		$scope.calcCouponSaved = function(couponNum, cart) {
 			Promotion.calcCouponSaved(couponNum, $scope.customer_id, cart).then(function(data) {
-				console.log('calcCouponSaved Success: ');
-				var _categories_to_products_coll = data.categories_to_products;
-				var _products_coll = [{product_id: 149}]; //data.products;
-				var _qualified_products_coll = _.union(_categories_to_products_coll, _products_coll);
-				var _discount_fee = data.setting.discount;   // discount: for type F -> amount to discount; for type P -> amount of pct to discount
-				var _discount_type = data.setting.type;  // type: F -> fix; P -> percentage
-				console.log(_qualified_products_coll);
-
-				// Check If Coupon Content Has Weird Discount
-				if(_discount_type === 'P' && _discount_fee >= 60) {
-					alert('此折購碼優惠折扣異常，請洽客服02-23623827！！');
-					$scope.couponNum = '';
-					return 0;
-				}
-
-				// Directly Apply Coupon If No Any Category or Product Limitation
-				// Or
-				// Apply to those qualified Products
-				if(_qualified_products_coll.length === 0) {
-					console.log('直接計算');
-					$scope.cart.promotion_total = (_discount_type === 'F') ? _discount_fee : Math.round(cart.product_total * _discount_fee / 100);
-				} else {
-					$scope.cart.promotion_total = _.reduce(cart.products, function(coupon_saved_amount, lproduct) {
-						if(_.find(_qualified_products_coll, {'product_id': lproduct.product_id})) {
-							coupon_saved_amount += (_discount_type === 'P') ? Math.round(lproduct.total * _discount_fee / 100) : 0;
-						}
-						return coupon_saved_amount;
-					}, 0);
-				}
-				console.log($scope.cart.promotion_total);
+				$scope.cart.promotion_total = data.promotion_total;
 			}, function(err) {
-				console.log('calcCouponSaved Error: ');
-				console.log(err.data);
+				$scope.cart.promotion_total = 0;
+				$scope.couponNum = '';
+				alert(err.data);
 			});
 		};
 
