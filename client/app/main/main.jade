@@ -1,0 +1,236 @@
+div(ng-include='"components/navbar/navbar.html"')
+
+.container
+  div#sys-notification
+    div.container
+      div#notification
+
+  div#content
+    div.breadcrumb
+      a(href='http://vecsgardenia.com/index.php?route=common/home')
+        i.fa.fa-home 
+      span  / 
+      a(href='http://vecsgardenia.com/index.php?route=checkout/simplecheckout') checkout
+    div.simple-content
+      .row.simplecheckout-step
+        div(ng-show="!to_show_next_process")
+          div#checkout_cart.panel.panel-default
+            div.panel-heading.lead 購物清單
+            div.panel-body
+              ul
+                li 即日起指彩將陸續以透明盒裝出貨，初期訂單可能包含不同盒裝版本，不影響瓶裝及內容，特此告知。
+                li 結帳金額滿1500贈UNT口碑熱銷組一入，不可累贈。此活動不包含UMA特惠及鮮韓貨也不與消費滿2000贈品活動並行，敬請見諒。
+            table#checkout_cart_table.table.checkout-cart
+              tr.black.text-white
+                th.col-lg-6.col-md-6.col-sm-6.col-xs-6.text-center 商品名稱
+                th.col-lg-2.col-md-2.col-sm-2.col-xs-2 數量
+                th.col-lg-2.hidden-md.hidden-sm.hidden-xs 單價
+                th.col-lg-1.col-md-3.col-sm-3.col-xs-3 總價
+                th.col-lg-1.col-md-1.col-sm-1.col-xs-1
+              tr(ng-repeat="product in cart.products")
+                td.cart-name
+                  a(ng-href="{{product.href}}")
+                    div.col-lg-6.col-md-6.col-sm-12.col-xs-12
+                      img.img-responsive(ng-attr-title="{{product.name}}", ng-src="{{product.thumb}}")
+                    div.col-lg-6.col-md-6.col-sm-12.col-xs-12
+                      h5 {{product.name}}
+                      h6(ng-repeat="option_product in product.option") {{option_product.value}}
+                      h6(ng-show="product.reward") 紅利： {{product.reward}}
+                td.cart-quantity
+                  div.input-group(ng-show="!product.isLimited")
+                    select(ng-options="option for option in allow_amount track by option", ng-model="product.quantity", ng-change="updateProductTotal()")
+                  div.input-group(ng-show="product.isLimited") {{product.quantity}}
+
+                td.cart-price.hidden-md.hidden-sm.hidden-xs  $ {{product.price}}
+                td.cart-total $ {{product.quantity * product.price}}
+                td.cart-remove
+                  span.btn.btn-danger.btn-sm(ng-click="removeProduct(product.model)")
+                    i.fa.fa-times.fa-inverse
+            .row
+              div.col-lg-10.col-md-8.col-sm-6.col-xs-6
+              div.col-lg-2.col-md-4.col-sm-6.col-xs-6
+                table.table
+                  tr
+                    td.text-right 小計:
+                    td.text-right $ {{cart.product_total}}
+
+
+          div#checkout_buymore.panel.panel-default
+            div.panel-heading.lead 超值加購區
+            div.panel-body
+              div.row
+                div.col-lg-3.col-md-4.col-sm-6.col-xs-6(ng-repeat="product in promotion_list")
+                  div.thumbnail
+                    img(ng-src="{{product.thumb}}")
+                    div.caption
+                      h5 {{product.name}}
+                      div
+                        strong.text-red $ {{product.price}}
+                        del.small.pull-right $ {{product.default_price}}
+                      p
+                        label.btn.btn-sharp.btn-default(href="#", role="button", ng-click="addPromoteItem(product.key)") 加入購物車
+
+          div#checkout_total_cart.panel.panel-default
+            div.panel-body
+              .row
+                div.col-lg-10.col-md-8.col-sm-12.col-xs-12
+                  table.table
+                    tr
+                      div.col-lg-8.col-md-6.col-sm-4.col-xs-4
+                      div.input-group
+                        div.input-group-addon
+                          input(type='checkbox', aria-label="...", ng-model="useCoupon")
+                        input.form-control(ng-model="couponNum", type='text', aria-label="...", ng-disabled="!useCoupon", ng-focus="useCoupon", placeholder='我要使用折扣碼')
+                    tr
+                      div.col-lg-8.col-md-6.col-sm-4.col-xs-4
+                      div.input-group
+                        div.input-group-addon
+                          input(type='checkbox', aria-label="...", ng-model="useReward")
+                        input.form-control(ng-model="rewardNum", type='number', aria-label="...", ng-disabled="!useReward", placeholder='我要使用紅利點數')
+                    tr
+                      div.col-lg-8.col-md-6.col-sm-4.col-xs-4
+                      div.input-group
+                        div.input-group-addon
+                          input(type='checkbox', aria-label="...", ng-model="useVoucher")
+                        input.form-control(ng-model="voucherNum", type='text', aria-label="...", ng-disabled="!useVoucher", placeholder='我要使用禮券')
+                    tr
+                      div.col-lg-8.col-md-6.col-sm-4.col-xs-4
+                      button.col-lg-4.col-md-6.col-sm-8.col-xs-8.btn.btn-success(ng-click="calcCouponSaved(couponNum, cart)") 更新價格
+                    tr
+                      div.col-lg-8.col-md-6.col-sm-4.col-xs-4
+                      div.well(ng-show="promotion_result") {{promotion_result}}
+                div.col-lg-2.col-md-4.col-sm-6.col-xs-6.pull-right
+                  table.table
+                    tr
+                      td.text-right 小計:
+                      td.text-right $ {{cart.product_total}}
+                    tr
+                      td.text-right 折扣:
+                      td.text-right $ {{cart.promotion_total}}
+                    tr
+                      td.text-right 預估運費:
+                      td.text-right $ {{cart.shipment_fee}}
+                    tr
+                      td.text-right 總計:
+                      td.text-right $ {{cart.product_total + cart.shipment_fee}}
+
+          div.row.panel.panel-body
+            button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedNext()") 結帳
+
+        div(ng-show="to_show_next_process")
+          div#checkout_shipping.panel.panel-default
+            div.panel-heading.lead 選擇配送方式
+            div.panel-body
+              div.btn-group-seperated.btn-group-lg
+                label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", btn-radio="'shipToHome'", ng-click="setPaymentMethod('shipToHome')") 
+                  div.col-lg-12.col-md-12.hidden-sm.hidden-xs 送貨到府
+                    span  
+                    img(src='../assets/images/shipToHome.jpg')
+                  .row
+                    div.hidden-lg.hidden-md.col-sm-12.col-xs-12 送貨到府
+                    div.hidden-lg.hidden-md.col-sm-12.col-xs-12
+                      img.img-responsive(src='../assets/images/shipToHome.jpg')
+                label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", btn-radio="'shipToStore'", ng-click="setPaymentMethod('shipToStore')") 
+                  div.col-lg-12.col-md-12.hidden-sm.hidden-xs 超商取貨
+                    span  
+                    img(src='../assets/images/storePic.png')
+                  .row
+                    div.hidden-lg.hidden-md.col-sm-12.col-xs-12 超商取貨
+                    div.hidden-lg.hidden-md.col-sm-12.col-xs-12
+                      img.img-responsive(src='../assets/images/storePic.png')
+                label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", btn-radio="'shipToOverseas'", ng-click="setPaymentMethod('shipToOverseas')") 
+                  div 海外配送
+              div.well(ng-show="shipping_info.shipment_sel_str == 'shipToStore'")
+                .row
+                  .col-sm-4(ng-show="ezship_store_info")
+                    p 您選擇的是: 
+                      strong {{ezship_store_info.stName}}                    
+                    p 地址為: 
+                      strong {{ezship_store_info.stAddr}}
+                  .col-sm-4
+                    button.btn.btn-default.form-control(ng-click="setEzshipStore()") {{store_select_text}}
+              div.well(ng-show="shipping_info.shipment_sel_str == 'shipToOverseas'")
+                ul
+                  li 港澳，新加坡，馬來西亞一律 350元 ， 費用不包含保險，滿5000元可享免運
+                  li 中國，韓國，日本，澳洲，紐西蘭，加拿大，美國，英國一律550元，費用不包含保險，滿6000元可享免運
+                  li 其他地區請來信至 customer@vecsgardenia.com
+          div#checkout_payment.panel.panel-default
+            div.panel-heading.lead 選擇付款方式
+            div.panel-body
+              div.btn-group-seperated.btn-group-lg
+                label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'credit_pay'", ng-class="{'disabled': !payment_btn.credit_pay, 'enabled': payment_btn.credit_pay}") 信用卡
+                label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'hand_pay'", ng-class="{'disabled': !payment_btn.hand_pay, 'enabled': payment_btn.hand_pay}") 貨到付款
+                label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'store_pay'", ng-class="{'disabled': !payment_btn.store_pay, 'enabled': payment_btn.store_pay}") 超商付現
+          div#checkout_shipping_info.panel.panel-default
+            div.panel-heading.lead 收件人資料
+            div.panel-body
+              form.form-horizontal(name="receiverForm", novalidate)
+                div.form-group(ng-class="{'has-error': receiverForm.inputName.$touched && receiverForm.inputName.$invalid}")
+                  label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputName') 姓名：
+                  div.col-lg-4.col-md-4.col-sm-10.col-xs-9
+                    input.form-control(type='text', name='inputName', placeholder='請填寫真實姓名，以利寄送', ng-model="shipping_info.firstname", ng-minlength="2", required)
+                    p.hidden-lg.hidden-md(ng-hide="receiverForm.inputName.$touched && receiverForm.inputName.$error") 請填寫真實姓名，以利寄送
+                    div.help-block(ng-messages="receiverForm.inputName.$error", ng-show="receiverForm.inputName.$touched")
+                      p(ng-message="minlength") 請填寫真實姓名，以利寄送 !!
+                      p(ng-message="required") 姓名不可為空白喔 !!
+                div.form-group(ng-class="{'disabled': payment_btn.store_pay}")
+                  label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputZone') 地址：
+                  .row.col-lg-4.col-md-4.col-sm-4.col-xs-9(ng-show="shipping_info.shipment_sel_str == 'shipToOverseas'")
+                    div.col-lg-6.col-md-6.col-sm-6.col-xs-6
+                      select.form-control(ng-options="country.country_id as country.name for country in country_coll", ng-model="shipping_info.country_id", ng-change="setCities(shipping_info.country_id)")
+                        option(value='') 國家
+                    div.col-lg-6.col-md-6.col-sm-6.col-xs-6
+                      select.form-control(ng-options="city.zone_id as city.name for city in city_coll", ng-model="shipping_info.city_id", ng-disabled="!with_city_ready" )
+                        option(value='') 城市
+                  .row.col-lg-4.col-md-4.col-sm-4.col-xs-9(ng-show="shipping_info.shipment_sel_str != 'shipToOverseas'")
+                    div.col-lg-6.col-md-6.col-sm-6.col-xs-6
+                      select.form-control(ng-options="city.zone_id as city.name for city in city_coll", ng-model="shipping_info.city_id", ng-change="setDistricts(shipping_info.city_id)", ng-disabled="!with_city_ready")
+                        option(value='') 縣市
+                    div.col-lg-6.col-md-6.col-sm-6.col-xs-6
+                      select.form-control(ng-options="district.district_id as district.name for district in district_coll", ng-model="shipping_info.district_id", ng-change="", ng-disabled="!shipping_info.city_id && !with_district_ready")
+                        option(value='') 鄉鎮市區
+                  div.col-lg-6.col-md-6.col-sm-6.col-xs-9.pull-right
+                    input.form-control(type='address', id='inputAddress', placeholder='您的地址', ng-model="shipping_info.address")
+                div.form-group
+                  label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputPhone') 行動電話：
+                  div.col-lg-4.col-md-4.col-sm-10.col-xs-9(ng-class="{'has-error': receiverForm.inputPhone.$touched && receiverForm.inputPhone.$invalid}")
+                    input.form-control(type='tel', name='inputPhone', ng-model="shipping_info.telephone", ng-minlength="10", required) 
+                    div.help-block(ng-messages="receiverForm.inputPhone.$error", ng-show="receiverForm.inputPhone.$touched")
+                      p(ng-message="minlength") 電話長度有誤 !!
+                      p(ng-message="required") 行動電話不可為空白喔 !!
+                  span.col-lg-6.col-md-6.hidden-sm.hidden-xs
+          div#checkout_invoice.panel.panel-default
+            div.panel-heading.lead 發票及備註資訊
+            div.panel-body
+              form.form-horizontal
+                div.form-group
+                  label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputCompID') 發票統編：
+                  div.col-lg-4.col-md-4.col-sm-10.col-xs-9
+                    input.form-control(ng-model="shipping_info.company_id", type='number', id='inputCompID', placeholder='請填寫發票統編(8位數字)，選填')
+                  span.col-lg-6.col-md-6.hidden-sm.hidden-xs
+              form.form-horizontal
+                div.form-group
+                  label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputCompName') 買受人：
+                  div.col-lg-4.col-md-4.col-sm-10.col-xs-9
+                    input.form-control(ng-model="shipping_info.company_name", type='text', id='inputCompName', placeholder='選填') 
+                  span.col-lg-6.col-md-6.hidden-sm.hidden-xs
+                          form.form-horizontal
+              form.form-horizontal
+                div.form-group
+                  label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputComment') 訂單備註：
+                  div.col-lg-4.col-md-4.col-sm-10.col-xs-9
+                    input.form-control(ng-model="shipping_info.comment", type='textarea', id='inputComment', placeholder='選填') 
+                  span.col-lg-6.col-md-6.hidden-sm.hidden-xs
+          div.well {{shipping_info}}
+          div.row.panel.panel-body
+            button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedCheckout(shipping_info)") 送出結帳
+            button.btn.btn-default.btn-lg.btn-success.btn-sharp(ng-click="to_show_next_process = false; goToAnchor('checkout_cart_table')") 返回
+            
+footer.footer
+  .container
+    p
+      | Angular Fullstack v2.0.13
+      = ' | '
+      a(href='https://twitter.com/tyhenkel') @tyhenkel
+      = ' | '
+      a(href='https://github.com/DaftMonk/generator-angular-fullstack/issues?state=open') Issues
