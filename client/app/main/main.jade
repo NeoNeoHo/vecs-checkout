@@ -53,7 +53,7 @@ div(ng-include='"components/navbar/navbar.html"')
 								table.table
 									tr
 										td.text-right 小計:
-										td.text-right $ {{cart.product_total}}
+										td.text-right $ {{cart.product_total_price}}
 
 
 					div#checkout_buymore.panel.panel-default
@@ -75,45 +75,44 @@ div(ng-include='"components/navbar/navbar.html"')
 						div.panel-body
 							.row
 								div.col-lg-10.col-md-8.col-sm-12.col-xs-12
-									table.table
-										tr
-											div.col-lg-8.col-md-6.col-sm-4.hidden-xs
-											div.input-group.btn-sharp
-												div.input-group-addon
-												input.form-control(ng-model="couponNum", type='text', aria-label="...", placeholder='我要使用折扣碼', ng-change="cart.promotion_total = 0")
-										tr
-											div.col-lg-8.col-md-6.col-sm-4.hidden-xs
-											div.input-group.btn-sharp
-												div.input-group-addon
-												input.form-control(ng-model="rewardNum", type='number', aria-label="...",placeholder='我要使用紅利點數，可使用{{rewards_owned_by_customer}}點')
-										tr
-											div.col-lg-8.col-md-6.col-sm-4.hidden-xs
-											div.input-group.btn-sharp
-												div.input-group-addon
-												input.form-control(ng-model="voucherNum", type='text', aria-label="...", placeholder='我要使用禮券')
-										tr
-											div.col-lg-8.col-md-6.col-sm-4.hidden-xs
-											button.col-lg-4.col-md-6.col-sm-8.col-xs-12.btn.btn-success.btn-sharp(ng-click="calcCouponSaved(couponNum, cart)") 更新價格
-										tr
-											div.col-lg-8.col-md-6.col-sm-4.col-xs-4
-											div.well(ng-show="promotion_result") {{promotion_result}}
+									form(name="form_promotion_saved")
+										table.table
+											tr
+												div.form-group.col-md-6.col-xs-12.col-md-offset-6
+													label.sr-only 使用折扣碼
+													input.form-control(ng-model="coupon_name", type='text', aria-label="...", placeholder='我要使用折扣碼', ng-change="cart.promotion_total_price = 0", ng-disabled="reward_used_pts > 0")
+											tr
+												div.form-group.col-md-6.col-xs-12.col-md-offset-6(ng-class="{'has-error': form_promotion_saved.input_rewards_used_pts.$error.max}")
+													label.sr-only 使用紅利點數折抵
+													input.form-control(name="input_rewards_used_pts", ng-model="reward_used_pts", type='number', aria-label="...", ng-change="coupon_name=''", ng-disabled="coupon_name", placeholder='我要使用紅利點數，可使用{{(cart.product_total_price > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price}}點', max="{{(cart.product_total_price > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price}}", min="0")
+													div.help-block(ng-messages="form_promotion_saved.input_rewards_used_pts.$error", ng-show="form_promotion_saved.input_rewards_used_pts.$error.max")
+														p(ng-message="max") 您最多只能使用{{(cart.product_total_price > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price}}點紅利
+											tr
+												div.form-group.col-md-6.col-xs-12.col-md-offset-6
+													label.sr-only 使用禮券
+													input.form-control(ng-model="voucherNum", type='text', aria-label="...", placeholder='我要使用禮券')
+											tr
+												div.form-group.col-md-6.col-xs-12.col-md-offset-6
+													button.form-control.btn.btn-success(ng-click="calcPriceSaved()", ng-disabled="form_promotion_saved.input_rewards_used_pts.$error.max") 更新價格
+
 								div.col-lg-2.col-md-4.col-sm-6.col-xs-6.pull-right
 									table.table
 										tr
-											td.text-right 小計:
-											td.text-right $ {{cart.product_total}}
-										tr
+											td.text-right 商品總計:
+											td.text-right $ {{cart.product_total_price}}
+										tr(style="color:green")
 											td.text-right 折扣:
-											td.text-right $ {{cart.promotion_total}}
+											td.text-right $ 
+												del {{cart.promotion_total_price}}
 										tr
 											td.text-right 預估運費:
 											td.text-right $ {{cart.shipment_fee}}
 										tr
 											td.text-right 總計:
-											td.text-right $ {{cart.product_total + cart.shipment_fee}}
+											td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.promotion_total_price}}
 
 					div.row.panel.panel-body
-						button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedNext()") 結帳
+						button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-lg.pull-right.text-justify(ng-click="proceedNext()") 結帳
 
 				div(ng-show="to_show_next_process")
 					div#checkout_shipping.panel.panel-default

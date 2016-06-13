@@ -30,9 +30,9 @@ function handleEntityNotFound(res, entity) {
   }
 }
 
-function handleError(res, err, statusCode) {
+function handleError(res, err_msg, statusCode) {
   statusCode = statusCode || 500;
-  res.status(statusCode).send(err);
+  res.status(statusCode).send(err_msg);
 }
 
 
@@ -63,7 +63,7 @@ export function show(req, res) {
   	respondWithResult(res, lresponse);
     // respondWithResult(res, results);
   }, function(err) {
-  	handleError(res, err);
+  	handleError(res, err.message);
   });
 }
 
@@ -73,12 +73,12 @@ var getCoupon = function(code, customer_id) {
   mysql_pool.getConnection(function(err, connection){
     if(err) { 
     	connection.release();
-    	defer.reject('Got Err on getCoupon');
+    	defer.reject(err);
     }
     connection.query('select * from oc_coupon where code = ? and date_start <= ? and date_end >= ?;',[code, today, today] , function(err, rows) {
       connection.release();
-      if(err) defer.reject('Got Err on getCoupon Query Loop');
-      if(rows.length == 0) defer.reject('沒有此一折扣碼');
+      if(err) defer.reject(err);
+      if(rows.length == 0) defer.reject(new Error('沒有此一折扣碼'));
       defer.resolve(rows);
     });
   });
@@ -90,11 +90,11 @@ var getCouponCategoryToProduct = function(code) {
   mysql_pool.getConnection(function(err, connection){
     if(err) { 
     	connection.release();
-    	defer.reject('Got Err on getCouponCategory');
+    	defer.reject(err);
     }
     connection.query('select c.product_id from oc_coupon_category a, oc_coupon b, oc_product_to_category c where a.coupon_id = b.coupon_id and b.code = ? and a.category_id = c.category_id;',[code] , function(err, rows) {
       connection.release();
-      if(err) defer.reject('Got Err on getCouponCategory Query Loop');
+      if(err) defer.reject(err);
       defer.resolve(rows);
     });
   });
@@ -106,11 +106,11 @@ var getCouponProduct = function(code) {
   mysql_pool.getConnection(function(err, connection){
     if(err) { 
     	connection.release();
-    	defer.reject('Got Err on getCouponProduct');
+    	defer.reject(err);
     }
     connection.query('select a.product_id from oc_coupon_product a, oc_coupon b where a.coupon_id = b.coupon_id and b.code = ?;',[code] , function(err, rows) {
       connection.release();
-      if(err) defer.reject('Got Err on getCouponProduct Query Loop');
+      if(err) defer.reject(err);
       defer.resolve(rows);
     });
   });
@@ -122,11 +122,11 @@ var getCouponHistory = function(code) {
   mysql_pool.getConnection(function(err, connection){
     if(err) { 
     	connection.release();
-    	defer.reject('Got Err on getCouponProduct');
+    	defer.reject(err);
     }
     connection.query('select a.* from oc_coupon_history a, oc_coupon b where a.coupon_id = b.coupon_id and b.code = ?;',[code] , function(err, rows) {
       connection.release();
-      if(err) defer.reject('Got Err on getCouponProduct Query Loop');
+      if(err) defer.reject(err);
       defer.resolve(rows);
     });
   });

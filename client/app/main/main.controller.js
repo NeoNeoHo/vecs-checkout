@@ -24,6 +24,12 @@ angular.module('webApp')
 			lproduct.product_id = parseInt(lproduct.product_id);
 			return lproduct;
 		});
+		$scope.cart = {
+			products: clean_cart_cookies,
+			product_total_price: _.reduce(cart_cookies, function(sum, o){return sum+o.total}, 0),
+			promotion_total: 0,
+			shipment_fee: 0,
+		};
 
 		currentUser.$promise.then(function(data) {
 			$scope.address_id = data.address_id;
@@ -31,20 +37,16 @@ angular.module('webApp')
 			$scope.shipping_info.telephone = data.telephone;
 			$scope.getAddress(data.customer_id, data.address_id);
 			$scope.customer_id = data.customer_id;
-			Reward.getByCustomer(data.customer_id).then(function(reward_result) {
-				$scope.rewards_owned_by_customer = reward_result.points;
+			Reward.getFromCustomer(data.customer_id).then(function(reward) {
+				$scope.rewards_customer_has_pts = reward.points;
 			}, function(err) {
 				console.log(err.data);
 			});
 		});
 		
-		$scope.cart = {
-			products: clean_cart_cookies,
-			product_total: _.reduce(cart_cookies, function(sum, o){return sum+o.total}, 0)
-		};
 		console.log('This is cart: ');
 		console.log($scope.cart);
-		
+
 		$scope.goToAnchor = function(anchor) {
 			($location.hash() !== anchor) ? $location.hash(anchor) : $anchorScroll();
 			return true;
@@ -141,7 +143,7 @@ angular.module('webApp')
 		};
 
 		$scope.updateProductTotal = function() {
-			$scope.cart.product_total = _.reduce($scope.cart.products, function(sum, o){return sum+o.price*o.quantity}, 0);
+			$scope.cart.product_total_price = _.reduce($scope.cart.products, function(sum, o){return sum+o.price*o.quantity}, 0);
 			$cookies.put('vecs_cart', JSON.stringify($scope.cart.products));
 			return true;
 		};
@@ -153,12 +155,21 @@ angular.module('webApp')
 			return true;
 		};
 
-		$scope.calcCouponSaved = function(couponNum, cart) {
-			Promotion.calcCouponSaved(couponNum, $scope.customer_id, cart).then(function(data) {
-				$scope.cart.promotion_total = data.promotion_total;
+		$scope.calcRewardSaved = function(reward_used_pts, total_price) {
+			// var defer = $q.defer();
+			// if()
+		};
+
+		$scope.calcPriceSaved = function() {
+			var defer = $q.defer();
+			var promises = [];
+			promises.push(Promotion.calcCouponSaved($scope.coupon_name, $scope.customer_id, $scope.cart));
+			promises.push($scope.calcRewardSaved($scope.reward_used_pts, $scope.cart.product_total_price));
+			$q.all(promises).then(function(datas) {
+				console.log(datas[0].coupon_saved_amount);
 			}, function(err) {
 				$scope.cart.promotion_total = 0;
-				$scope.couponNum = '';
+				$scope.coupon_name = '';
 				alert(err.data);
 			});
 		};
@@ -190,7 +201,7 @@ angular.module('webApp')
 			}
 			Customer.updateCustomer($scope.customer_id, customer).then(function(result){console.log(result)}, function(err){console.log(err)});
 			// validateCart();
-			$scope.calcCouponSaved($scope.couponNum, $scope.cart);
+			$scope.calcCouponSaved($scope.coupon_name, $scope.cart);
 			// validateReward();
 			// validateVoucher();
 		};

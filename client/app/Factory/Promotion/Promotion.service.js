@@ -32,7 +32,8 @@ angular.module('webApp')
 
 				// Check If Coupon Content Has Weird Discount
 				if(_discount_type === 'P' && _discount_fee >= 60) {
-					defer.reject('此折購碼優惠折扣異常，請洽客服02-23623827！！');
+					var lerr = {status: 500, data: '此折購碼優惠折扣異常，請洽客服02-23623827！！'};
+					defer.reject(lerr);
 				}
 
 				// Directly Apply Coupon If No Any Category or Product Limitation
@@ -51,7 +52,7 @@ angular.module('webApp')
 						_coupon_saved_amount = _discount_fee;
 					}
 				}
-				resolve_data.promotion_total = _coupon_saved_amount;
+				resolve_data.coupon_saved_amount = _coupon_saved_amount;
 				defer.resolve(resolve_data);
 
 			}, function(err) {

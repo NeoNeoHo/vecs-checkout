@@ -22,15 +22,10 @@ function respondWithResult(res, entity, statusCode) {
 	}
 }
 
-function handleEntityNotFound(res, entity) {
-	if (!entity[0]) {
-		res.status(404).end();
-	}
-}
 
-function handleError(res, err, statusCode) {
+function handleError(res, err_msg, statusCode) {
 	statusCode = statusCode || 500;
-	res.status(statusCode).send(err);
+	res.status(statusCode).send(err_msg);
 }
 
 // Update
@@ -38,10 +33,12 @@ export function getCustomerReward(req, res) {
 	var customer_id = req.params.customer_id;
 	var info = req.body;
 	mysql_pool.getConnection(function(err, connection){
-		if(err) handleError(res, err);
-		connection.query('select sum(points)as points from '+ mysql_config.db_prefix + 'customer_reward where customer_id = ? ',[customer_id] , function(err, rows) {
+		if(err) handleError(res, err.message);
+		console.log(connection.escape(customer_id));
+		connection.query('select sum(points) as points from '+ mysql_config.db_prefix + 'customer_reward where customer_id = ? ',[customer_id] , function(err, rows) {
 			connection.release();
-			if(err) handleError(res, err);
+			if(err) handleError(res, err.message);
+			console.log(rows);
 			res.status(200).json(rows[0]);
 		});
 
