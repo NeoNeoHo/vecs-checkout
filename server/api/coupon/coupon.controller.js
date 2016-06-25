@@ -78,7 +78,7 @@ var getCoupon = function(code, customer_id) {
     connection.query('select * from oc_coupon where code = ? and date_start <= ? and date_end >= ?;',[code, today, today] , function(err, rows) {
       connection.release();
       if(err) defer.reject(err);
-      if(rows.length == 0) defer.reject(new Error('沒有此一折扣碼'));
+      if(rows.length == 0) defer.reject(new Error('沒有此一折扣碼，或此優惠碼已過期'));
       defer.resolve(rows);
     });
   });

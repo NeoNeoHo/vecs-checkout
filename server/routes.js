@@ -15,6 +15,7 @@ export default function(app) {
   app.use('/api/ezships', require('./api/ezship'));
   app.use('/api/locations', require('./api/location'));
   app.use('/api/things', require('./api/thing'));
+  app.use('/api/vouchers', require('./api/voucher'));
   app.use('/api/users', require('./api/user'));
 
   app.use('/auth', require('./auth'));

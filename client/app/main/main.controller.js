@@ -4,6 +4,11 @@ angular.module('webApp')
 	.controller('MainController', function ($scope, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Promotion, Cart, Customer, Reward) {
 		var currentUser = Auth.getCurrentUser();
 		$scope.allow_amount = _.range(1,10);
+		var SHIPMENT_EZSHIP_FEE = 60;
+		var SHIPMENT_HOME_FEE = 90;
+		var SHIPMENT_OVERSEAS_FEE = 350;
+		var FREESHIPPING_FEE = 1200;
+		var FREESHIPPING_OVERSEAS_FEE = 5000;
 		$scope.store_select_text = '選擇超商門市';
 		$scope.urlParams = $location.search();
 		$scope.to_show_next_process = ($scope.urlParams['showCheckout']) ? $scope.urlParams['showCheckout'] : false;
@@ -27,9 +32,11 @@ angular.module('webApp')
 		$scope.cart = {
 			products: clean_cart_cookies,
 			product_total_price: _.reduce(cart_cookies, function(sum, o){return sum+o.total}, 0),
-			promotion_total: 0,
+			promotion_total_price: 0,
 			shipment_fee: 0,
 		};
+		
+		$scope.promotion_list = $scope.cart.products;
 
 		currentUser.$promise.then(function(data) {
 			$scope.address_id = data.address_id;
@@ -38,7 +45,7 @@ angular.module('webApp')
 			$scope.getAddress(data.customer_id, data.address_id);
 			$scope.customer_id = data.customer_id;
 			Reward.getFromCustomer(data.customer_id).then(function(reward) {
-				$scope.rewards_customer_has_pts = reward.points;
+				$scope.rewards_customer_has_pts = (reward.points) ? reward.points : 0;
 			}, function(err) {
 				console.log(err.data);
 			});
@@ -53,6 +60,9 @@ angular.module('webApp')
 		};
 
 		$scope.proceedNext = function() {
+			$scope.shipping_info.shipment_sel_str = null;
+			$scope.shipping_info.payment_sel_str = null;
+
 			$scope.to_show_next_process = true;
 			$scope.goToAnchor('checkout_shipping');
 			return true;
@@ -113,11 +123,18 @@ angular.module('webApp')
 			$scope.payment_btn.store_pay = (lstrcmp(['shipToStore'], lmethod)) ? true : false;
 			$scope.payment_btn.hand_pay = (lstrcmp(['shipToHome'], lmethod)) ? true : false;
 			$scope.payment_btn.credit_pay = (lstrcmp(['shipToHome','shipToOverseas', 'shipToStore'], lmethod)) ? true : false;
-			if(lstrcmp(['shipToHome'], lmethod)) {
+			$scope.payment_btn.voucher_pay = (lstrcmp(['shipToStore', 'shipToHome'], lmethod)) ? true : false;
+			var total_price_with_promote_so_far = $scope.cart.product_total_price - $scope.cart.promotion_total_price;
+			if(lmethod === 'shipToHome') {
 				$scope.shipping_info.country_id = 206;
 				$scope.setCities(206);
+				$scope.cart.shipment_fee = (total_price_with_promote_so_far >= FREESHIPPING_FEE) ? 0 : SHIPMENT_HOME_FEE;
 			}
-			if(lstrcmp(['shipToOverseas'], lmethod)) {
+			if(lmethod === 'shipToStore') {
+				$scope.cart.shipment_fee = (total_price_with_promote_so_far >= FREESHIPPING_FEE) ? 0 : SHIPMENT_EZSHIP_FEE;
+			}
+			if(lmethod === 'shipToOverseas') {
+				$scope.cart.shipment_fee = (total_price_with_promote_so_far >= FREESHIPPING_OVERSEAS_FEE) ? 0 : SHIPMENT_OVERSEAS_FEE;
 				Location.getCountries().then(function(result) {
 					$scope.country_coll = result;
 					$scope.with_city_ready = false;
@@ -155,23 +172,43 @@ angular.module('webApp')
 			return true;
 		};
 
-		$scope.calcRewardSaved = function(reward_used_pts, total_price) {
-			// var defer = $q.defer();
-			// if()
+		var calcRewardSaved = function(reward_used_pts, promotion_total_price) {
+			if(reward_used_pts <= $scope.cart.product_total_price - promotion_total_price) {
+				return promotion_total_price + reward_used_pts;
+			} else {
+				return promotion_total_price;
+			}
+			
 		};
 
 		$scope.calcPriceSaved = function() {
 			var defer = $q.defer();
 			var promises = [];
-			promises.push(Promotion.calcCouponSaved($scope.coupon_name, $scope.customer_id, $scope.cart));
-			promises.push($scope.calcRewardSaved($scope.reward_used_pts, $scope.cart.product_total_price));
-			$q.all(promises).then(function(datas) {
-				console.log(datas[0].coupon_saved_amount);
-			}, function(err) {
-				$scope.cart.promotion_total = 0;
-				$scope.coupon_name = '';
-				alert(err.data);
-			});
+			var _promotion_total_price = 0;
+			if($scope.reward_used_pts && $scope.reward_used_pts > 0) {
+				$scope.cart.promotion_total_price = calcRewardSaved($scope.reward_used_pts, 0);
+			}
+			if($scope.coupon_name) {
+				Promotion.calcCouponSaved($scope.coupon_name, $scope.customer_id, $scope.cart).then(function(data) {
+					$scope.cart.promotion_total_price += data.coupon_saved_amount;
+					if(data.coupon_saved_amount == 0) {
+						$scope.coupon_name = '';
+						alert('您購買的商品並不適用此張優惠券');
+					} 
+				}, function(err) {
+					$scope.cart.promotion_total_price = 0;
+					$scope.coupon_name = '';
+					alert(err.data);
+				});	
+			}
+			// if($scope.voucher_name) {
+			// 	Promotion.getVoucher($scope.voucher_name).then(function(data) {
+			// 		var afer_promotion_price = 
+			// 		$scope.cart.product_total_price + cart.shipment_fee - cart.promotion_total_price
+			// 	}, function(err) {
+			// 		console.log(err);
+			// 	});
+			// }
 		};
 
 		$scope.proceedCheckout = function(shipping_info) {

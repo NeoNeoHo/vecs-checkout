@@ -73,6 +73,11 @@ a {
   // }
 }
 
+.btn-vecs {
+  @extend .btn-default;
+}
+
+
 .disabled {
   disabled: true;
   display: none;

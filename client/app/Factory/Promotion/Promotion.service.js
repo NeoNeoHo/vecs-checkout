@@ -7,6 +7,16 @@ angular.module('webApp')
 
 		var meaningOfLife = 42;
 
+		var getVoucher = function(voucher_name) {
+			var defer = $q.defer();
+			$http.get('/api/vouchers/'+voucher_name).then(function(data) {
+				defer.resolve(data.data);
+			}, function(err) {
+				defer.reject(err);
+			});
+			return defer.promise;
+		};
+
 		var getCoupon = function(couponNum, customer_id) {
 			var defer = $q.defer();
 			$http.get('/api/coupons/'+couponNum+'/'+customer_id).then(function(data) {
@@ -66,6 +76,7 @@ angular.module('webApp')
 				return meaningOfLife;
 			},
 			getCoupon: getCoupon,
-			calcCouponSaved: calcCouponSaved
+			calcCouponSaved: calcCouponSaved,
+			getVoucher: getVoucher
 		};
 	});

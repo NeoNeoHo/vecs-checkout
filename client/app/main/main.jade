@@ -1,4 +1,4 @@
-div(ng-include='"components/navbar/navbar.html"')
+//- div(ng-include='"components/navbar/navbar.html"')
 
 .container
 	div#sys-notification
@@ -6,11 +6,12 @@ div(ng-include='"components/navbar/navbar.html"')
 			div#notification
 
 	div#content
-		div.breadcrumb
-			a(href='http://vecsgardenia.com/index.php?route=common/home')
-				i.fa.fa-home 
-			span  / 
-			a(href='http://vecsgardenia.com/index.php?route=checkout/simplecheckout') checkout
+		.row
+			div.breadcrumb
+				a(href='http://vecsgardenia.com/index.php?route=common/home')
+					i.fa.fa-home 
+				span  / 
+				a(href='http://vecsgardenia.com/index.php?route=checkout/simplecheckout') checkout
 		div.simple-content
 			.row.simplecheckout-step
 				div(ng-show="!to_show_next_process")
@@ -56,7 +57,7 @@ div(ng-include='"components/navbar/navbar.html"')
 										td.text-right $ {{cart.product_total_price}}
 
 
-					div#checkout_buymore.panel.panel-default
+					div#checkout_buymore.panel.panel-default(ng-hide="true")
 						div.panel-heading.lead 超值加購區
 						div.panel-body
 							div.row
@@ -67,35 +68,31 @@ div(ng-include='"components/navbar/navbar.html"')
 											h5 {{product.name}}
 											div
 												strong.text-red $ {{product.price}}
-												del.small.pull-right $ {{product.default_price}}
+												del.small.pull-right $ {{product.default_price}}1000
 											p
 												label.btn.btn-sharp.btn-default(href="#", role="button", ng-click="addPromoteItem(product.key)") 加入購物車
 
 					div#checkout_total_cart.panel.panel-default
 						div.panel-body
 							.row
-								div.col-lg-10.col-md-8.col-sm-12.col-xs-12
+								div.col-md-8.col-sm-12.col-xs-12
 									form(name="form_promotion_saved")
 										table.table
 											tr
 												div.form-group.col-md-6.col-xs-12.col-md-offset-6
 													label.sr-only 使用折扣碼
-													input.form-control(ng-model="coupon_name", type='text', aria-label="...", placeholder='我要使用折扣碼', ng-change="cart.promotion_total_price = 0", ng-disabled="reward_used_pts > 0")
+													input.form-control(ng-model="coupon_name", type='text', aria-label="...", placeholder='我要使用折扣碼', ng-change="cart.promotion_total_price = 0")
 											tr
-												div.form-group.col-md-6.col-xs-12.col-md-offset-6(ng-class="{'has-error': form_promotion_saved.input_rewards_used_pts.$error.max}")
+												div.form-group.col-md-6.col-xs-12.col-md-offset-6(ng-class="{'has-error': form_promotion_saved.input_rewards_used_pts.$error.max}", ng-hide="rewards_customer_has_pts == 0")
 													label.sr-only 使用紅利點數折抵
-													input.form-control(name="input_rewards_used_pts", ng-model="reward_used_pts", type='number', aria-label="...", ng-change="coupon_name=''", ng-disabled="coupon_name", placeholder='我要使用紅利點數，可使用{{(cart.product_total_price > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price}}點', max="{{(cart.product_total_price > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price}}", min="0")
+													input.form-control(name="input_rewards_used_pts", ng-model="reward_used_pts", type='number', aria-label="...", ng-change="cart.promotion_total_price = 0", placeholder='我要使用紅利點數，可使用{{(cart.product_total_price > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price}}點', max="{{(cart.product_total_price > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price}}", min="0")
 													div.help-block(ng-messages="form_promotion_saved.input_rewards_used_pts.$error", ng-show="form_promotion_saved.input_rewards_used_pts.$error.max")
 														p(ng-message="max") 您最多只能使用{{(cart.product_total_price > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price}}點紅利
 											tr
 												div.form-group.col-md-6.col-xs-12.col-md-offset-6
-													label.sr-only 使用禮券
-													input.form-control(ng-model="voucherNum", type='text', aria-label="...", placeholder='我要使用禮券')
-											tr
-												div.form-group.col-md-6.col-xs-12.col-md-offset-6
 													button.form-control.btn.btn-success(ng-click="calcPriceSaved()", ng-disabled="form_promotion_saved.input_rewards_used_pts.$error.max") 更新價格
 
-								div.col-lg-2.col-md-4.col-sm-6.col-xs-6.pull-right
+								div.col-md-4.col-xs-8.pull-right
 									table.table
 										tr
 											td.text-right 商品總計:
@@ -107,15 +104,15 @@ div(ng-include='"components/navbar/navbar.html"')
 										tr
 											td.text-right 預估運費:
 											td.text-right $ {{cart.shipment_fee}}
-										tr
-											td.text-right 總計:
+										tr.h2
+											td.text-right 總計
 											td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.promotion_total_price}}
 
 					div.row.panel.panel-body
 						button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-lg.pull-right.text-justify(ng-click="proceedNext()") 結帳
 
 				div(ng-show="to_show_next_process")
-					div#checkout_shipping.panel.panel-default
+					div.panel.panel-default
 						div.panel-heading.lead 選擇配送方式
 						div.panel-body
 							div.btn-group-seperated.btn-group-lg
@@ -139,26 +136,50 @@ div(ng-include='"components/navbar/navbar.html"')
 									div 海外配送
 							div.well(ng-show="shipping_info.shipment_sel_str == 'shipToStore'")
 								.row
-									.col-sm-4(ng-show="ezship_store_info")
-										p 您選擇的是: 
-											strong {{ezship_store_info.stName}}                    
-										p 地址為: 
-											strong {{ezship_store_info.stAddr}}
-									.col-sm-4
-										button.btn.btn-default.form-control(ng-click="setEzshipStore()") {{store_select_text}}
+									.col-sm-6.col-sm-offset-3
+										.row(ng-show="ezship_store_info")
+											p 您選擇的是: 
+												strong {{ezship_store_info.stName}}                    
+											p 地址為: 
+												strong {{ezship_store_info.stAddr}}
+										.row
+											button.btn.btn-default.form-control(ng-click="setEzshipStore()") {{store_select_text}}
 							div.well(ng-show="shipping_info.shipment_sel_str == 'shipToOverseas'")
 								ul
 									li 港澳，新加坡，馬來西亞一律 350元 ， 費用不包含保險，滿5000元可享免運
 									li 中國，韓國，日本，澳洲，紐西蘭，加拿大，美國，英國一律550元，費用不包含保險，滿6000元可享免運
 									li 其他地區請來信至 customer@vecsgardenia.com
-					div#checkout_payment.panel.panel-default
+					div.panel.panel-default(ng-show="shipping_info.shipment_sel_str")
 						div.panel-heading.lead 選擇付款方式
 						div.panel-body
 							div.btn-group-seperated.btn-group-lg
-								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'credit_pay'", ng-class="{'disabled': !payment_btn.credit_pay, 'enabled': payment_btn.credit_pay}") 信用卡
-								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'hand_pay'", ng-class="{'disabled': !payment_btn.hand_pay, 'enabled': payment_btn.hand_pay}") 貨到付款
-								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'store_pay'", ng-class="{'disabled': !payment_btn.store_pay, 'enabled': payment_btn.store_pay}") 超商付現
-					div#checkout_shipping_info.panel.panel-default
+								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'credit_pay'", ng-show="payment_btn.credit_pay") 信用卡
+								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'hand_pay'", ng-show="payment_btn.hand_pay") 貨到付款
+								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'store_pay'", ng-show="payment_btn.store_pay") 超商付現
+								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'voucher_pay'", ng-show="payment_btn.voucher_pay") 使用禮品券
+							div.well(ng-show="shipping_info.payment_sel_str == 'voucher_pay'")
+								.input-group.col-sm-6.col-sm-offset-3
+									input.form-control(type="text", placeholder="輸入禮品券", ng-model="voucher_name")
+									span.input-group-btn
+										button.btn.btn-default(type="button") 更新
+							div(ng-show="shipping_info.payment_sel_str")
+								.page-header.h4 總計								
+								div.col-sm-6.col-sm-offset-3
+									table.table
+										tr
+											td.text-right 商品總計:
+											td.text-right $ {{cart.product_total_price}}
+										tr(style="color:green")
+											td.text-right 折扣:
+											td.text-right $ 
+												del {{cart.promotion_total_price}}
+										tr
+											td.text-right 運費:
+											td.text-right $ {{cart.shipment_fee}}
+										tr.h2
+											td.text-right 總計
+											td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.promotion_total_price}}
+					div.panel.panel-default(ng-show="shipping_info.payment_sel_str")
 						div.panel-heading.lead 收件人資料
 						div.panel-body
 							form.form-horizontal(name="receiverForm", novalidate)
@@ -196,7 +217,7 @@ div(ng-include='"components/navbar/navbar.html"')
 											p(ng-message="minlength") 電話長度有誤 !!
 											p(ng-message="required") 行動電話不可為空白喔 !!
 									span.col-lg-6.col-md-6.hidden-sm.hidden-xs
-					div#checkout_invoice.panel.panel-default
+					div#checkout_invoice.panel.panel-default(ng-show="shipping_info.payment_sel_str")
 						div.panel-heading.lead 發票及備註資訊
 						div.panel-body
 							form.form-horizontal
