@@ -32,7 +32,11 @@ angular.module('webApp')
 		$scope.cart = {
 			products: clean_cart_cookies,
 			product_total_price: _.reduce(cart_cookies, function(sum, o){return sum+o.total}, 0),
-			promotion_total_price: 0,
+			discount: {
+				reward: 0,
+				coupon: 0,
+				voucher: 0
+			},
 			shipment_fee: 0,
 		};
 		
@@ -124,17 +128,17 @@ angular.module('webApp')
 			$scope.payment_btn.hand_pay = (lstrcmp(['shipToHome'], lmethod)) ? true : false;
 			$scope.payment_btn.credit_pay = (lstrcmp(['shipToHome','shipToOverseas', 'shipToStore'], lmethod)) ? true : false;
 			$scope.payment_btn.voucher_pay = (lstrcmp(['shipToStore', 'shipToHome'], lmethod)) ? true : false;
-			var total_price_with_promote_so_far = $scope.cart.product_total_price - $scope.cart.promotion_total_price;
+			var total_price_with_discount = $scope.cart.product_total_price - $scope.cart.discount.reward - $scope.cart.discount.coupon;
 			if(lmethod === 'shipToHome') {
 				$scope.shipping_info.country_id = 206;
 				$scope.setCities(206);
-				$scope.cart.shipment_fee = (total_price_with_promote_so_far >= FREESHIPPING_FEE) ? 0 : SHIPMENT_HOME_FEE;
+				$scope.cart.shipment_fee = (total_price_with_discount >= FREESHIPPING_FEE) ? 0 : SHIPMENT_HOME_FEE;
 			}
 			if(lmethod === 'shipToStore') {
-				$scope.cart.shipment_fee = (total_price_with_promote_so_far >= FREESHIPPING_FEE) ? 0 : SHIPMENT_EZSHIP_FEE;
+				$scope.cart.shipment_fee = (total_price_with_discount >= FREESHIPPING_FEE) ? 0 : SHIPMENT_EZSHIP_FEE;
 			}
 			if(lmethod === 'shipToOverseas') {
-				$scope.cart.shipment_fee = (total_price_with_promote_so_far >= FREESHIPPING_OVERSEAS_FEE) ? 0 : SHIPMENT_OVERSEAS_FEE;
+				$scope.cart.shipment_fee = (total_price_with_discount >= FREESHIPPING_OVERSEAS_FEE) ? 0 : SHIPMENT_OVERSEAS_FEE;
 				Location.getCountries().then(function(result) {
 					$scope.country_coll = result;
 					$scope.with_city_ready = false;
@@ -172,11 +176,11 @@ angular.module('webApp')
 			return true;
 		};
 
-		var calcRewardSaved = function(reward_used_pts, promotion_total_price) {
-			if(reward_used_pts <= $scope.cart.product_total_price - promotion_total_price) {
-				return promotion_total_price + reward_used_pts;
+		var calcRewardSaved = function(reward_used_pts) {
+			if(reward_used_pts <= $scope.cart.product_total_price - $scope.cart.discount.coupon) {
+				return reward_used_pts;
 			} else {
-				return promotion_total_price;
+				return $scope.cart.product_total_price - $scope.cart.discount.coupon;
 			}
 			
 		};
@@ -184,32 +188,37 @@ angular.module('webApp')
 		$scope.calcPriceSaved = function() {
 			var defer = $q.defer();
 			var promises = [];
-			var _promotion_total_price = 0;
 			if($scope.reward_used_pts && $scope.reward_used_pts > 0) {
-				$scope.cart.promotion_total_price = calcRewardSaved($scope.reward_used_pts, 0);
+				$scope.cart.discount.reward = calcRewardSaved($scope.reward_used_pts);
 			}
 			if($scope.coupon_name) {
 				Promotion.calcCouponSaved($scope.coupon_name, $scope.customer_id, $scope.cart).then(function(data) {
-					$scope.cart.promotion_total_price += data.coupon_saved_amount;
+					$scope.cart.discount.coupon = data.coupon_saved_amount;
 					if(data.coupon_saved_amount == 0) {
 						$scope.coupon_name = '';
 						alert('您購買的商品並不適用此張優惠券');
 					} 
 				}, function(err) {
-					$scope.cart.promotion_total_price = 0;
+					$scope.cart.discount.coupon = 0;
 					$scope.coupon_name = '';
 					alert(err.data);
 				});	
 			}
-			// if($scope.voucher_name) {
-			// 	Promotion.getVoucher($scope.voucher_name).then(function(data) {
-			// 		var afer_promotion_price = 
-			// 		$scope.cart.product_total_price + cart.shipment_fee - cart.promotion_total_price
-			// 	}, function(err) {
-			// 		console.log(err);
-			// 	});
-			// }
 		};
+
+		$scope.applyVoucher = function() {
+			if($scope.voucher_name) {
+				Promotion.getVoucher($scope.voucher_name).then(function(data) {
+					console.log(data.available_amount);
+					$scope.voucher_available_amount = data.available_amount; 
+					var discount_so_far = $scope.cart.discount.reward + $scope.cart.discount.coupon;
+					$scope.cart.discount.voucher = (data.available_amount >= $scope.cart.product_total_price + $scope.cart.shipment_fee - discount_so_far) ? ($scope.cart.product_total_price + $scope.cart.shipment_fee - discount_so_far) : data.available_amount;
+					return 1;
+				}, function(err) {
+					alert(err.data);
+				});
+			}
+		}
 
 		$scope.proceedCheckout = function(shipping_info) {
 			var address = {

@@ -76,21 +76,21 @@
 						div.panel-body
 							.row
 								div.col-md-8.col-sm-12.col-xs-12
-									form(name="form_promotion_saved")
+									form(name="form_discount")
 										table.table
 											tr
 												div.form-group.col-md-6.col-xs-12.col-md-offset-6
 													label.sr-only 使用折扣碼
-													input.form-control(ng-model="coupon_name", type='text', aria-label="...", placeholder='我要使用折扣碼', ng-change="cart.promotion_total_price = 0")
+													input.form-control(ng-model="coupon_name", type='text', aria-label="...", placeholder='我要使用折扣碼', ng-change="cart.discount.coupon = 0")
 											tr
-												div.form-group.col-md-6.col-xs-12.col-md-offset-6(ng-class="{'has-error': form_promotion_saved.input_rewards_used_pts.$error.max}", ng-hide="rewards_customer_has_pts == 0")
+												div.form-group.col-md-6.col-xs-12.col-md-offset-6(ng-class="{'has-error': form_discount.input_rewards_used_pts.$error.max}", ng-hide="rewards_customer_has_pts == 0")
 													label.sr-only 使用紅利點數折抵
-													input.form-control(name="input_rewards_used_pts", ng-model="reward_used_pts", type='number', aria-label="...", ng-change="cart.promotion_total_price = 0", placeholder='我要使用紅利點數，可使用{{(cart.product_total_price > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price}}點', max="{{(cart.product_total_price > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price}}", min="0")
-													div.help-block(ng-messages="form_promotion_saved.input_rewards_used_pts.$error", ng-show="form_promotion_saved.input_rewards_used_pts.$error.max")
-														p(ng-message="max") 您最多只能使用{{(cart.product_total_price > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price}}點紅利
+													input.form-control(name="input_rewards_used_pts", ng-model="reward_used_pts", type='number', aria-label="...", ng-change="cart.discount.reward = 0", placeholder='我要使用紅利點數，可使用{{(cart.product_total_price - cart.discount.coupon > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price - cart.discount.coupon}}點', max="{{(cart.product_total_price - cart.discount.coupon > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price - cart.discount.coupon}}", min="0")
+													div.help-block(ng-messages="form_discount.input_rewards_used_pts.$error", ng-show="form_discount.input_rewards_used_pts.$error.max")
+														p(ng-message="max") 您最多只能使用{{(cart.product_total_price - cart.discount.coupon > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price - cart.discount.coupon}}點紅利
 											tr
 												div.form-group.col-md-6.col-xs-12.col-md-offset-6
-													button.form-control.btn.btn-success(ng-click="calcPriceSaved()", ng-disabled="form_promotion_saved.input_rewards_used_pts.$error.max") 更新價格
+													button.form-control.btn.btn-success(ng-click="calcPriceSaved()", ng-disabled="form_discount.input_rewards_used_pts.$error.max") 更新價格
 
 								div.col-md-4.col-xs-8.pull-right
 									table.table
@@ -99,14 +99,19 @@
 											td.text-right $ {{cart.product_total_price}}
 										tr(style="color:green")
 											td.text-right 折扣:
-											td.text-right $ 
-												del {{cart.promotion_total_price}}
+											td.text-right - $ {{cart.discount.reward + cart.discount.coupon}}
 										tr
 											td.text-right 預估運費:
 											td.text-right $ {{cart.shipment_fee}}
+										tr(ng-show="cart.discount.voucher > 0", style="color:green")
+											td.text-right 禮品券:
+											td.text-right 
+												| - $ {{cart.discount.voucher}}
+												br
+												small 尚餘 $ {{voucher_available_amount - cart.discount.voucher}}
 										tr.h2
 											td.text-right 總計
-											td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.promotion_total_price}}
+											td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
 
 					div.row.panel.panel-body
 						button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-lg.pull-right.text-justify(ng-click="proceedNext()") 結帳
@@ -161,24 +166,29 @@
 								.input-group.col-sm-6.col-sm-offset-3
 									input.form-control(type="text", placeholder="輸入禮品券", ng-model="voucher_name")
 									span.input-group-btn
-										button.btn.btn-default(type="button") 更新
-							div(ng-show="shipping_info.payment_sel_str")
-								.page-header.h4 總計								
+										button.btn.btn-default(type="button", ng-click="applyVoucher()", ng-disabled="!voucher_name") 更新
+							div(ng-show="shipping_info.payment_sel_str")					
 								div.col-sm-6.col-sm-offset-3
+									.page-header.h4 總計
 									table.table
 										tr
 											td.text-right 商品總計:
 											td.text-right $ {{cart.product_total_price}}
 										tr(style="color:green")
 											td.text-right 折扣:
-											td.text-right $ 
-												del {{cart.promotion_total_price}}
+											td.text-right - $ {{cart.discount.reward + cart.discount.coupon}}
 										tr
 											td.text-right 運費:
 											td.text-right $ {{cart.shipment_fee}}
+										tr(ng-show="cart.discount.voucher > 0", style="color:green")
+											td.text-right 禮品券:
+											td.text-right 
+												| - $ {{cart.discount.voucher}}
+												br
+												small 尚餘 $ {{voucher_available_amount - cart.discount.voucher}}
 										tr.h2
 											td.text-right 總計
-											td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.promotion_total_price}}
+											td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
 					div.panel.panel-default(ng-show="shipping_info.payment_sel_str")
 						div.panel-heading.lead 收件人資料
 						div.panel-body
