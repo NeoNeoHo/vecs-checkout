@@ -117,51 +117,51 @@
 						button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-lg.pull-right.text-justify(ng-click="proceedNext()") 結帳
 
 				div(ng-show="to_show_next_process")
-					div.panel.panel-default
-						div.panel-heading.lead 選擇配送方式
-						div.panel-body
-							div.btn-group-seperated.btn-group-lg
-								label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", btn-radio="'shipToHome'", ng-click="setPaymentMethod('shipToHome')") 
-									div.col-lg-12.col-md-12.hidden-sm.hidden-xs 送貨到府
-										span  
-										img(src='../assets/images/shipToHome.jpg')
-									.row
-										div.hidden-lg.hidden-md.col-sm-12.col-xs-12 送貨到府
-										div.hidden-lg.hidden-md.col-sm-12.col-xs-12
-											img.img-responsive(src='../assets/images/shipToHome.jpg')
-								label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", btn-radio="'shipToStore'", ng-click="setPaymentMethod('shipToStore')") 
-									div.col-lg-12.col-md-12.hidden-sm.hidden-xs 超商取貨
-										span  
-										img(src='../assets/images/storePic.png')
-									.row
-										div.hidden-lg.hidden-md.col-sm-12.col-xs-12 超商取貨
-										div.hidden-lg.hidden-md.col-sm-12.col-xs-12
-											img.img-responsive(src='../assets/images/storePic.png')
-								label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", btn-radio="'shipToOverseas'", ng-click="setPaymentMethod('shipToOverseas')") 
-									div 海外配送
-							div.well(ng-show="shipping_info.shipment_sel_str == 'shipToStore'")
+					div.page-header.h2(ng-click="with_shipping_collapsed = !with_shipping_collapsed") 選擇配送方式
+						button.btn.btn-primary(type="button", ng-show="shipping_info.shipment_sel_str") {{shipping_info.shipment_sel_str}}
+					div(uib-collapse="with_shipping_collapsed")
+						div.btn-group-seperated.btn-group-lg
+							label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", uib-btn-radio="'shipToHome'", ng-click="setPaymentMethod('shipToHome')") 
+								div.col-lg-12.col-md-12.hidden-sm.hidden-xs 送貨到府
+									span  
+									img(src='../assets/images/shipToHome.jpg')
 								.row
-									.col-sm-6.col-sm-offset-3
-										.row(ng-show="ezship_store_info")
-											p 您選擇的是: 
-												strong {{ezship_store_info.stName}}                    
-											p 地址為: 
-												strong {{ezship_store_info.stAddr}}
-										.row
-											button.btn.btn-default.form-control(ng-click="setEzshipStore()") {{store_select_text}}
-							div.well(ng-show="shipping_info.shipment_sel_str == 'shipToOverseas'")
-								ul
-									li 港澳，新加坡，馬來西亞一律 350元 ， 費用不包含保險，滿5000元可享免運
-									li 中國，韓國，日本，澳洲，紐西蘭，加拿大，美國，英國一律550元，費用不包含保險，滿6000元可享免運
-									li 其他地區請來信至 customer@vecsgardenia.com
+									div.hidden-lg.hidden-md.col-sm-12.col-xs-12 送貨到府
+									div.hidden-lg.hidden-md.col-sm-12.col-xs-12
+										img.img-responsive(src='../assets/images/shipToHome.jpg')
+							label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", uib-btn-radio="'shipToStore'", ng-click="setPaymentMethod('shipToStore')") 
+								div.col-lg-12.col-md-12.hidden-sm.hidden-xs 超商取貨
+									span  
+									img(src='../assets/images/storePic.png')
+								.row
+									div.hidden-lg.hidden-md.col-sm-12.col-xs-12 超商取貨
+									div.hidden-lg.hidden-md.col-sm-12.col-xs-12
+										img.img-responsive(src='../assets/images/storePic.png')
+							label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", uib-btn-radio="'shipToOverseas'", ng-click="setPaymentMethod('shipToOverseas')") 
+								div 海外配送
+						div.well(ng-show="shipping_info.shipment_sel_str == 'shipToStore'")
+							.row
+								.col-sm-6.col-sm-offset-3
+									.row(ng-show="ezship_store_info")
+										p 您選擇的是: 
+											strong {{ezship_store_info.stName}}                    
+										p 地址為: 
+											strong {{ezship_store_info.stAddr}}
+									.row
+										button.btn.btn-default.form-control(ng-click="setEzshipStore()") {{store_select_text}}
+						div.well(ng-show="shipping_info.shipment_sel_str == 'shipToOverseas'")
+							ul
+								li 港澳，新加坡，馬來西亞一律 350元 ， 費用不包含保險，滿5000元可享免運
+								li 中國，韓國，日本，澳洲，紐西蘭，加拿大，美國，英國一律550元，費用不包含保險，滿6000元可享免運
+								li 其他地區請來信至 customer@vecsgardenia.com
 					div.panel.panel-default(ng-show="shipping_info.shipment_sel_str")
 						div.panel-heading.lead 選擇付款方式
 						div.panel-body
 							div.btn-group-seperated.btn-group-lg
-								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'credit_pay'", ng-show="payment_btn.credit_pay") 信用卡
-								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'hand_pay'", ng-show="payment_btn.hand_pay") 貨到付款
-								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'store_pay'", ng-show="payment_btn.store_pay") 超商付現
-								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", btn-radio="'voucher_pay'", ng-show="payment_btn.voucher_pay") 使用禮品券
+								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", uib-btn-radio="'credit_pay'", ng-show="payment_btn.credit_pay") 信用卡
+								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", uib-btn-radio="'hand_pay'", ng-show="payment_btn.hand_pay") 貨到付款
+								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", uib-btn-radio="'store_pay'", ng-show="payment_btn.store_pay") 超商付現
+								label.btn.btn-default(ng-model="shipping_info.payment_sel_str", uib-btn-radio="'voucher_pay'", ng-show="payment_btn.voucher_pay") 使用禮品券
 							div.well(ng-show="shipping_info.payment_sel_str == 'voucher_pay'")
 								.input-group.col-sm-6.col-sm-offset-3
 									input.form-control(type="text", placeholder="輸入禮品券", ng-model="voucher_name")

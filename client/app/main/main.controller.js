@@ -9,6 +9,8 @@ angular.module('webApp')
 		var SHIPMENT_OVERSEAS_FEE = 350;
 		var FREESHIPPING_FEE = 1200;
 		var FREESHIPPING_OVERSEAS_FEE = 5000;
+
+		$scope.with_shipping_collapsed = false;
 		$scope.store_select_text = '選擇超商門市';
 		$scope.urlParams = $location.search();
 		$scope.to_show_next_process = ($scope.urlParams['showCheckout']) ? $scope.urlParams['showCheckout'] : false;
@@ -122,6 +124,7 @@ angular.module('webApp')
 		};
 
 		$scope.setPaymentMethod = function(lmethod) {
+			console.log($scope.shipping_info.shipment_sel_str);
 			$scope.shipping_info.payment_sel_str = null;
 			$scope.shipping_info.country_id = 206;
 			$scope.payment_btn.store_pay = (lstrcmp(['shipToStore'], lmethod)) ? true : false;
