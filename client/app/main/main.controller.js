@@ -11,6 +11,10 @@ angular.module('webApp')
 		var FREESHIPPING_OVERSEAS_FEE = 5000;
 
 		$scope.with_shipping_collapsed = false;
+		$scope.with_payment_collapsed = false;
+		$scope.with_info_collapsed = false;
+		$scope.with_memo_collapsed = false;
+
 		$scope.store_select_text = '選擇超商門市';
 		$scope.urlParams = $location.search();
 		$scope.to_show_next_process = ($scope.urlParams['showCheckout']) ? $scope.urlParams['showCheckout'] : false;
