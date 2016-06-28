@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webApp')
-	.controller('MainController', function ($scope, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Promotion, Cart, Customer, Reward) {
+	.controller('MainController', function ($scope, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Promotion, Cart, Customer, Reward, Product) {
 		var currentUser = Auth.getCurrentUser();
 		$scope.allow_amount = _.range(1,10);
 		var SHIPMENT_EZSHIP_FEE = 60;
@@ -11,9 +11,9 @@ angular.module('webApp')
 		var FREESHIPPING_OVERSEAS_FEE = 5000;
 
 		$scope.with_shipping_collapsed = false;
-		$scope.with_payment_collapsed = false;
-		$scope.with_info_collapsed = false;
-		$scope.with_memo_collapsed = false;
+		$scope.with_payment_collapsed = true;
+		$scope.with_info_collapsed = true;
+		$scope.with_memo_collapsed = true;
 
 		$scope.store_select_text = '選擇超商門市';
 		$scope.urlParams = $location.search();
@@ -49,11 +49,16 @@ angular.module('webApp')
 		$scope.promotion_list = $scope.cart.products;
 
 		currentUser.$promise.then(function(data) {
-			$scope.address_id = data.address_id;
+			console.log(data);
 			$scope.shipping_info.firstname = data.firstname;
 			$scope.shipping_info.telephone = data.telephone;
-			$scope.getAddress(data.customer_id, data.address_id);
-			$scope.customer_id = data.customer_id;
+			getAddress(data.customer_id, data.address_id);
+			$scope.customer = {
+				customer_id: data.customer_id,
+				customer_group_id: data.customer_group_id,
+				address_id: data.address_id,
+				email: data.email
+			};
 			Reward.getFromCustomer(data.customer_id).then(function(reward) {
 				$scope.rewards_customer_has_pts = (reward.points) ? reward.points : 0;
 			}, function(err) {
@@ -85,6 +90,19 @@ angular.module('webApp')
 			return result;
 		}
 
+		$scope.updateProductTotal = function() {
+			$scope.cart.product_total_price = _.reduce($scope.cart.products, function(sum, o){return sum+o.price*o.quantity}, 0);
+			$cookies.put('vecs_cart', JSON.stringify($scope.cart.products));
+			return true;
+		};
+
+		$scope.removeProduct = function(lmodel) {
+			$scope.cart.products = _.reject($scope.cart.products, {model: lmodel});
+			$scope.updateProductTotal();
+			$cookies.put('vecs_cart', JSON.stringify($scope.cart.products));
+			return true;
+		};
+
 		$scope.setEzshipStore = function(order_id) {
 			order_id = order_id ? order_id : 999999999;
 			Shipment.setEzshipStore(order_id);
@@ -110,7 +128,7 @@ angular.module('webApp')
 			});		
 		};
 
-		$scope.getAddress = function(customer_id, address_id) {
+		var getAddress = function(customer_id, address_id) {
 			Location.getAddress(customer_id, address_id).then(function(data) {
 				if(data) {
 					console.log('This is customer address: ');
@@ -128,6 +146,8 @@ angular.module('webApp')
 		};
 
 		$scope.setPaymentMethod = function(lmethod) {
+			$scope.with_shipping_collapsed = true;
+			$scope.with_payment_collapsed = false;
 			console.log($scope.shipping_info.shipment_sel_str);
 			$scope.shipping_info.payment_sel_str = null;
 			$scope.shipping_info.country_id = 206;
@@ -170,19 +190,6 @@ angular.module('webApp')
 			});
 		};
 
-		$scope.updateProductTotal = function() {
-			$scope.cart.product_total_price = _.reduce($scope.cart.products, function(sum, o){return sum+o.price*o.quantity}, 0);
-			$cookies.put('vecs_cart', JSON.stringify($scope.cart.products));
-			return true;
-		};
-
-		$scope.removeProduct = function(lmodel) {
-			$scope.cart.products = _.reject($scope.cart.products, {model: lmodel});
-			$scope.updateProductTotal();
-			$cookies.put('vecs_cart', JSON.stringify($scope.cart.products));
-			return true;
-		};
-
 		var calcRewardSaved = function(reward_used_pts) {
 			if(reward_used_pts <= $scope.cart.product_total_price - $scope.cart.discount.coupon) {
 				return reward_used_pts;
@@ -194,23 +201,28 @@ angular.module('webApp')
 
 		$scope.calcPriceSaved = function() {
 			var defer = $q.defer();
-			var promises = [];
 			if($scope.reward_used_pts && $scope.reward_used_pts > 0) {
 				$scope.cart.discount.reward = calcRewardSaved($scope.reward_used_pts);
 			}
 			if($scope.coupon_name) {
-				Promotion.calcCouponSaved($scope.coupon_name, $scope.customer_id, $scope.cart).then(function(data) {
+				Promotion.calcCouponSaved($scope.coupon_name, $scope.customer.customer_id, $scope.cart).then(function(data) {
 					$scope.cart.discount.coupon = data.coupon_saved_amount;
 					if(data.coupon_saved_amount == 0) {
 						$scope.coupon_name = '';
 						alert('您購買的商品並不適用此張優惠券');
 					} 
+					defer.resolve({data: data.coupon_saved_amount});
 				}, function(err) {
 					$scope.cart.discount.coupon = 0;
 					$scope.coupon_name = '';
 					alert(err.data);
+					defer.reject(err);
 				});	
 			}
+			else {
+				defer.resolve('');
+			}
+			return defer.promise;
 		};
 
 		$scope.applyVoucher = function() {
@@ -225,6 +237,12 @@ angular.module('webApp')
 					alert(err.data);
 				});
 			}
+		}
+
+		var validateCart = function() {
+			var defer = $q.defer();
+
+			return defer.promise;
 		}
 
 		$scope.proceedCheckout = function(shipping_info) {
@@ -244,19 +262,24 @@ angular.module('webApp')
 				lastname: '',
 				telephone: shipping_info.telephone
 			};
-			if(lstrcmp(['shipToHome','shipToOverseas'], shipping_info.shipment_sel_str)) {
-				Location.updateAddress($scope.customer_id, $scope.address_id, address).then(function(result){console.log(result)}, function(err){console.log(err)});
+			if(lstrcmp(['海外配送','送貨到府'], shipping_info.shipment_sel_str)) {
+				Location.updateAddress($scope.customer.customer_id, $scope.customer.address_id, address).then(function(result){console.log(result)}, function(err){console.log(err)});
 				$scope.shipping_info.country_d = _.find($scope.country_coll, {country_id: shipping_info.country_id});
 				$scope.shipping_info.city_d = _.find($scope.city_coll, {zone_id: shipping_info.city_id});
-				if(shipping_info.shipment_sel_str.localeCompare('shipToHome') == 0) {
+				if(shipping_info.shipment_sel_str.localeCompare('送貨到府') == 0) {
 					$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: shipping_info.district_id});
 				}
 			}
-			Customer.updateCustomer($scope.customer_id, customer).then(function(result){console.log(result)}, function(err){console.log(err)});
+			Customer.updateCustomer($scope.customer.customer_id, customer).then(function(result){console.log(result)}, function(err){console.log(err)});
 			// validateCart();
-			$scope.calcCouponSaved($scope.coupon_name, $scope.cart);
+			// $scope.calcPriceSaved();
 			// validateReward();
 			// validateVoucher();
+			Product.validateProducts($scope.customer.customer_group_id, $scope.cart.products).then(function(data) {
+				console.log(data);
+			}, function(err) {
+				console.log(err);
+			});
 		};
 
 
