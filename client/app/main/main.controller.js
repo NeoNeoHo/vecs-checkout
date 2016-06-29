@@ -270,15 +270,12 @@ angular.module('webApp')
 					$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: shipping_info.district_id});
 				}
 			}
-			Customer.updateCustomer($scope.customer.customer_id, customer).then(function(result){console.log(result)}, function(err){console.log(err)});
-			// validateCart();
-			// $scope.calcPriceSaved();
-			// validateReward();
-			// validateVoucher();
+			Customer.updateCustomer($scope.customer.customer_id, customer).then(function(result) {}, function(err){console.log(err);});
+			$scope.calcPriceSaved().then(function(data) {}, function(err) {alert(err)});
 			Product.validateProducts($scope.customer.customer_group_id, $scope.cart.products).then(function(data) {
 				console.log(data);
 			}, function(err) {
-				console.log(err);
+				alert('商品價格及紅利點數有異，請洽客服人員，並將客服代碼『1201』告知客服人員，謝謝');
 			});
 		};
 
