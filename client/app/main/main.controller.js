@@ -226,27 +226,24 @@ angular.module('webApp')
 		};
 
 		$scope.applyVoucher = function() {
+			var defer = $q.defer();
 			if($scope.voucher_name) {
 				Promotion.getVoucher($scope.voucher_name).then(function(data) {
 					console.log(data.available_amount);
 					$scope.voucher_available_amount = data.available_amount; 
 					var discount_so_far = $scope.cart.discount.reward + $scope.cart.discount.coupon;
 					$scope.cart.discount.voucher = (data.available_amount >= $scope.cart.product_total_price + $scope.cart.shipment_fee - discount_so_far) ? ($scope.cart.product_total_price + $scope.cart.shipment_fee - discount_so_far) : data.available_amount;
-					return 1;
+					defer.resolve('')
 				}, function(err) {
 					alert(err.data);
+					defer.reject(err);
 				});
 			}
-		}
-
-		var validateCart = function() {
-			var defer = $q.defer();
-
 			return defer.promise;
 		}
 
 		$scope.proceedCheckout = function(shipping_info) {
-			var address = {
+			var address_to_update = {
 				firstname: shipping_info.firstname,
 				lastname: '',
 				company: shipping_info.company ? shipping_info.company : '',
@@ -257,26 +254,39 @@ angular.module('webApp')
 				telephone: shipping_info.telephone,
 				district_id: shipping_info.district_id
 			};
-			var customer = {
+			var customer_to_update = {
 				firstname: shipping_info.firstname,
 				lastname: '',
 				telephone: shipping_info.telephone
 			};
+
+			// Step 1. 更新用戶資料
+			Customer.updateCustomer(customer_to_update).then(function(result) {}, function(err){console.log(err);});
+			
+			// Step 2. 檢查商品資訊是否有被篡改 
+			Product.validateProducts($scope.customer.customer_group_id, $scope.cart.products).then(function(data) {
+				console.log(data);
+			}, function(err) {
+				alert('商品價格及紅利點數有異，請洽客服人員，並將客服代碼『1201』告知客服人員，謝謝');
+			});
+
+			// Step 3. 檢查優惠內容
+			$scope.calcPriceSaved().then(function(data) {}, function(err) {alert(err)}); 
+			
+			// Step 4. 檢查禮品券內容是否正確
+			$scope.applyVoucher().then(function(data) {}, function(err) {alert(err)});
+
+			// Step 5. 根據不同配送 付款方式，產生相對應後送動作
 			if(lstrcmp(['海外配送','送貨到府'], shipping_info.shipment_sel_str)) {
-				Location.updateAddress($scope.customer.customer_id, $scope.customer.address_id, address).then(function(result){console.log(result)}, function(err){console.log(err)});
+				Location.updateAddress($scope.customer.customer_id, $scope.customer.address_id, address_to_update).then(function(result){console.log(result)}, function(err){console.log(err)});
 				$scope.shipping_info.country_d = _.find($scope.country_coll, {country_id: shipping_info.country_id});
 				$scope.shipping_info.city_d = _.find($scope.city_coll, {zone_id: shipping_info.city_id});
 				if(shipping_info.shipment_sel_str.localeCompare('送貨到府') == 0) {
 					$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: shipping_info.district_id});
 				}
 			}
-			Customer.updateCustomer($scope.customer.customer_id, customer).then(function(result) {}, function(err){console.log(err);});
-			$scope.calcPriceSaved().then(function(data) {}, function(err) {alert(err)});
-			Product.validateProducts($scope.customer.customer_group_id, $scope.cart.products).then(function(data) {
-				console.log(data);
-			}, function(err) {
-				alert('商品價格及紅利點數有異，請洽客服人員，並將客服代碼『1201』告知客服人員，謝謝');
-			});
+
+			Cart.updateCart($scope.cart.products).then(function(result) {}, function(err) {console.log(err)});
 		};
 
 

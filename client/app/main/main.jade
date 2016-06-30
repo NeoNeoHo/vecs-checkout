@@ -21,6 +21,8 @@
 							li 需要解決product discount 的問題，(購買x項以上，每項只要y元)
 							li 也需要解決商品即時更新數量的問題，只要購物車商品數量改變，即時更新db該商品目前總數
 							li 以後不會有option形式的加價購，只有選擇樣式會用到option
+							li 購物車opencart 與 node的同步更新，目前node side做好了，但是opencart方面還需要更動cart update的部分(目前好像是用session的方式，要改成cookies)
+							li 檢查所有會更新db的要求，要做到不讓客戶有機會更動customer_id這個變數(從server side auth middleware 做起)
 					table#checkout_cart_table.table.checkout-cart
 						tr.black.text-white
 							th.col-lg-6.col-md-6.col-sm-6.col-xs-6.text-center 商品名稱

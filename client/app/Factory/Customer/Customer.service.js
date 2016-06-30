@@ -6,9 +6,9 @@ angular.module('webApp')
 		// ...
 
 		var meaningOfLife = 42;
-		var updateCustomer = function(customer_id, info) {
+		var updateCustomer = function(info) {
 			var defer = $q.defer();
-			$http.put('/api/customers/'+customer_id, info)
+			$http.put('/api/customers/', info)
 			.then(function(result) {
 				defer.resolve(result);
 			}, function(err) {
