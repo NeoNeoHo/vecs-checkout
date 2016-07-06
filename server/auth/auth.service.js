@@ -41,7 +41,11 @@ export function isAuthenticated() {
 					if(err) next(err);
 					if(!rows[0]) return res.status(401).end();
 					if(rows) {
-						req.user = {role: 'user', _id: rows[0].customer_id};
+						req.user = {
+							role: 'user', 
+							_id: rows[0].customer_id,
+							customer_group_id: rows[0].customer_group_id
+						};
 						// console.log(req.user);
 						next();
 					}

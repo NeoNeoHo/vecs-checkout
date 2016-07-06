@@ -37,7 +37,7 @@ angular.module('webApp')
 		});
 		$scope.cart = {
 			products: clean_cart_cookies,
-			product_total_price: _.reduce(cart_cookies, function(sum, o){return sum+o.total}, 0),
+			product_total_price: _.reduce(cart_cookies, function(sum, o){return sum+o.price*o.quantity}, 0),
 			discount: {
 				reward: 0,
 				coupon: 0,
@@ -45,7 +45,32 @@ angular.module('webApp')
 			},
 			shipment_fee: 0,
 		};
-		
+
+
+		// #########################  根據購物車的product_id,更新商品資料 ######################
+		// #########														   
+		// #########															   
+		// #################################################################################
+		// 取得商品是否有discount的條件
+		console.log($scope.cart.products);
+		Product.getProductsDetail($scope.cart.products).then(function(db_products) {
+			console.log('@@@@@@@@@');
+			$scope.cart.products = _.map($scope.cart.products, function(product) {
+				var db_product = _.find(db_products, {product_id: product.product_id});
+				if(db_product) {
+					product.price = db_product.price;
+					product.discount = db_product.discount;
+					product.reward = db_product.reward;
+					product.name = db_product.name;
+				} else {
+					product = {};
+				}
+				return product;
+			});
+		}, function(err) {
+			console.log(err);
+		});
+
 		$scope.promotion_list = $scope.cart.products;
 
 		currentUser.$promise.then(function(data) {
@@ -90,7 +115,26 @@ angular.module('webApp')
 			return result;
 		}
 
-		$scope.updateProductTotal = function() {
+		var updateCartCookies = function(cart) {
+			cart = _.map(cart, function(product) {
+				return _.pick(product, ['$$hashKey', 'option', 'product_id', 'quantity']);
+			});
+			$cookies.put('vecs_cart', JSON.stringify(cart));
+		}
+		$scope.updateProductTotal = function(hash_key) {
+			_.map($scope.cart.products, function(product) {
+				if(product['$$hashKey'] !== hash_key) return product;
+
+				var discounts = product.discount_condition;
+				if(discounts.length > 0) {
+					var discount_available = _.sortBy(_.filter(discounts, function(discount) {
+						return discount.quantity <= product.quantity;
+					}), 'quantity');
+					product.price = (discount_available.length) ? discount_available[discount_available.length - 1].price : product.price;
+				}
+				return product;
+			});
+
 			$scope.cart.product_total_price = _.reduce($scope.cart.products, function(sum, o){return sum+o.price*o.quantity}, 0);
 			$cookies.put('vecs_cart', JSON.stringify($scope.cart.products));
 			return true;
@@ -264,9 +308,10 @@ angular.module('webApp')
 			Customer.updateCustomer(customer_to_update).then(function(result) {}, function(err){console.log(err);});
 			
 			// Step 2. 檢查商品資訊是否有被篡改 
-			Product.validateProducts($scope.customer.customer_group_id, $scope.cart.products).then(function(data) {
+			Product.validateProducts($scope.cart.products).then(function(data) {
 				console.log(data);
 			}, function(err) {
+				console.log(err);
 				alert('商品價格及紅利點數有異，請洽客服人員，並將客服代碼『1201』告知客服人員，謝謝');
 			});
 
