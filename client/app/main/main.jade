@@ -42,16 +42,16 @@
 									h6(ng-show="product.reward") + 紅利 {{product.reward}} 點  
 							td.cart-quantity
 								div.input-group(ng-show="!product.isLimited")
-									select(ng-options="option for option in allow_amount track by option", ng-model="product.quantity", ng-change="updateProductTotal(product['$$hashKey'])")
+									select(ng-options="option for option in allow_amount track by option", ng-model="product.quantity", ng-change="updateCartTotal(product['$$hashKey'])")
 								div.input-group(ng-show="product.isLimited") {{product.quantity}}
 
 							td.cart-price.hidden-md.hidden-sm.hidden-xs  
-								| $ {{product.price}}
-								p(ng-repeat="discount_condition in product.discount_condition") 購買{{discount_condition.quantity}}件以上，每件只要{{discount_condition.price}}元
-							td.cart-total $ {{product.quantity * product.price}}
-								p.visible-xs(ng-repeat="discount_condition in product.discount_condition") 購買{{discount_condition.quantity}}件以上，每件只要{{discount_condition.price}}元
+								| $ {{product.spot_price + product.option_price}}
+								p(ng-repeat="discount_condition in product.discount") 購買{{discount_condition.quantity}}件以上，每件只要{{discount_condition.price}}元
+							td.cart-total $ {{product.total}}
+								p.visible-xs(ng-repeat="discount_condition in product.discount") 購買{{discount_condition.quantity}}件以上，每件只要{{discount_condition.price}}元
 							td.cart-remove
-								span.btn.btn-danger.btn-sm(ng-click="removeProduct(product.model)")
+								span.btn.btn-danger.btn-sm(ng-click="removeProduct(product.$$hashKey)")
 									i.fa.fa-times.fa-inverse
 					.row
 						div.col-lg-10.col-md-8.col-sm-6.col-xs-6

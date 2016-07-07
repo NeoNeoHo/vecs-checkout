@@ -52,7 +52,6 @@ angular.module('webApp')
 		// #########															   
 		// #################################################################################
 		// 取得商品是否有discount的條件
-		console.log($scope.cart.products);
 		Product.getProductsDetail($scope.cart.products).then(function(db_products) {
 			console.log('@@@@@@@@@');
 			$scope.cart.products = _.map($scope.cart.products, function(product) {
@@ -62,11 +61,17 @@ angular.module('webApp')
 					product.discount = db_product.discount;
 					product.reward = db_product.reward;
 					product.name = db_product.name;
+					product.spot_price = product.price.special_price;
+					product.option_price = _.reduce(_.pluck(product.option, 'price'), function(sum, num){return sum+num;}, 0);
+					checkDiscount(product.$$hashKey);
+					product.total = (product.spot_price + product.option_price) * product.quantity;
+					console.log('total = '+ product.total);
 				} else {
 					product = {};
 				}
 				return product;
 			});
+			$scope.updateCartTotal();
 		}, function(err) {
 			console.log(err);
 		});
@@ -115,35 +120,49 @@ angular.module('webApp')
 			return result;
 		}
 
-		var updateCartCookies = function(cart) {
-			cart = _.map(cart, function(product) {
-				return _.pick(product, ['$$hashKey', 'option', 'product_id', 'quantity']);
+		var updateCartCookies = function(products) {
+			products = _.map(products, function(product) {
+				return _.pick(product, ['$$hashKey', 'option', 'product_id', 'quantity', 'href', 'thumb']);
 			});
-			$cookies.put('vecs_cart', JSON.stringify(cart));
+			$cookies.put('vecs_cart', JSON.stringify(products));
 		}
-		$scope.updateProductTotal = function(hash_key) {
+
+		var checkDiscount = function(hash_key) {
 			_.map($scope.cart.products, function(product) {
 				if(product['$$hashKey'] !== hash_key) return product;
 
-				var discounts = product.discount_condition;
+				var discounts = product.discount;
 				if(discounts.length > 0) {
 					var discount_available = _.sortBy(_.filter(discounts, function(discount) {
 						return discount.quantity <= product.quantity;
 					}), 'quantity');
-					product.price = (discount_available.length) ? discount_available[discount_available.length - 1].price : product.price;
+					product.spot_price = (discount_available.length) ? discount_available[discount_available.length - 1].price : product.price.special_price;
 				}
 				return product;
 			});
+			return 0;		
+		};
 
-			$scope.cart.product_total_price = _.reduce($scope.cart.products, function(sum, o){return sum+o.price*o.quantity}, 0);
-			$cookies.put('vecs_cart', JSON.stringify($scope.cart.products));
+		var updateProductTotal = function() {
+			_.map($scope.cart.products, function(product) {
+				product.total = (product.spot_price + product.option_price) * product.quantity;
+				return product;
+			});
+			return 0;
+		};
+
+		$scope.updateCartTotal = function(hash_key='') {
+			checkDiscount(hash_key);
+			updateProductTotal();
+			$scope.cart.product_total_price = _.reduce($scope.cart.products, function(sum, o){return sum+o.total}, 0);
+			updateCartCookies($scope.cart.products);
 			return true;
 		};
 
-		$scope.removeProduct = function(lmodel) {
-			$scope.cart.products = _.reject($scope.cart.products, {model: lmodel});
-			$scope.updateProductTotal();
-			$cookies.put('vecs_cart', JSON.stringify($scope.cart.products));
+		$scope.removeProduct = function(hash_key='') {
+			$scope.cart.products = _.reject($scope.cart.products, {$$hashKey: hash_key});
+			$scope.updateCartTotal();
+			updateCartCookies($scope.cart.products);
 			return true;
 		};
 
