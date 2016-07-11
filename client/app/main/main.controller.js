@@ -214,20 +214,20 @@ angular.module('webApp')
 			console.log($scope.shipping_info.shipment_sel_str);
 			$scope.shipping_info.payment_sel_str = null;
 			$scope.shipping_info.country_id = 206;
-			$scope.payment_btn.store_pay = (lstrcmp(['shipToStore'], lmethod)) ? true : false;
-			$scope.payment_btn.hand_pay = (lstrcmp(['shipToHome'], lmethod)) ? true : false;
-			$scope.payment_btn.credit_pay = (lstrcmp(['shipToHome','shipToOverseas', 'shipToStore'], lmethod)) ? true : false;
-			$scope.payment_btn.voucher_pay = (lstrcmp(['shipToStore', 'shipToHome'], lmethod)) ? true : false;
+			$scope.payment_btn.store_pay = (lstrcmp(['超商取貨'], lmethod)) ? true : false;
+			$scope.payment_btn.hand_pay = (lstrcmp(['送貨到府'], lmethod)) ? true : false;
+			$scope.payment_btn.credit_pay = (lstrcmp(['送貨到府','海外配送', '超商取貨'], lmethod)) ? true : false;
+			$scope.payment_btn.voucher_pay = (lstrcmp(['超商取貨', '送貨到府'], lmethod)) ? true : false;
 			var total_price_with_discount = $scope.cart.product_total_price - $scope.cart.discount.reward - $scope.cart.discount.coupon;
-			if(lmethod === 'shipToHome') {
+			if(lmethod === '送貨到府') {
 				$scope.shipping_info.country_id = 206;
 				$scope.setCities(206);
 				$scope.cart.shipment_fee = (total_price_with_discount >= FREESHIPPING_FEE) ? 0 : SHIPMENT_HOME_FEE;
 			}
-			if(lmethod === 'shipToStore') {
+			if(lmethod === '超商取貨') {
 				$scope.cart.shipment_fee = (total_price_with_discount >= FREESHIPPING_FEE) ? 0 : SHIPMENT_EZSHIP_FEE;
 			}
-			if(lmethod === 'shipToOverseas') {
+			if(lmethod === '海外配送') {
 				$scope.cart.shipment_fee = (total_price_with_discount >= FREESHIPPING_OVERSEAS_FEE) ? 0 : SHIPMENT_OVERSEAS_FEE;
 				Location.getCountries().then(function(result) {
 					$scope.country_coll = result;
@@ -245,8 +245,9 @@ angular.module('webApp')
 				$scope.store_select_text = '重新選擇超商';
 				$scope.ezship_store_info = data;
 				$scope.shipping_info.ezship_store_info = data;
-				$scope.shipping_info.shipment_sel_str = 'shipToStore';
-				$scope.setPaymentMethod('shipToStore');
+				$scope.shipping_info.shipment_sel_str = '超商取貨';
+				$scope.setPaymentMethod('超商取貨');
+				$scope.with_shipping_collapsed = false;
 			}, function(err) {
 				console.log(err);
 				$scope.ezship_store_info = null;
@@ -270,6 +271,7 @@ angular.module('webApp')
 			if($scope.coupon_name) {
 				Promotion.calcCouponSaved($scope.coupon_name, $scope.customer.customer_id, $scope.cart).then(function(data) {
 					$scope.cart.discount.coupon = data.coupon_saved_amount;
+					$scope.cart.discount.coupon_name = $scope.coupon_name;
 					if(data.coupon_saved_amount == 0) {
 						$scope.coupon_name = '';
 						alert('您購買的商品並不適用此張優惠券');
@@ -305,22 +307,11 @@ angular.module('webApp')
 			return defer.promise;
 		}
 
-		$scope.proceedCheckout = function(shipping_info) {
-			var address_to_update = {
-				firstname: shipping_info.firstname,
-				lastname: '',
-				company: shipping_info.company ? shipping_info.company : '',
-				company_id: shipping_info.company_id ? shipping_info.company_id : '',
-				address_1: shipping_info.address,
-				country_id: shipping_info.country_id,
-				zone_id: shipping_info.city_id,
-				telephone: shipping_info.telephone,
-				district_id: shipping_info.district_id
-			};
+		$scope.proceedCheckout = function() {
 			var customer_to_update = {
-				firstname: shipping_info.firstname,
+				firstname: $scope.shipping_info.firstname,
 				lastname: '',
-				telephone: shipping_info.telephone
+				telephone: $scope.shipping_info.telephone
 			};
 
 			// Step 1. 更新用戶資料
@@ -341,15 +332,17 @@ angular.module('webApp')
 			$scope.applyVoucher().then(function(data) {}, function(err) {alert(err)});
 
 			// Step 5. 根據不同配送 付款方式，產生相對應後送動作
-			if(lstrcmp(['海外配送','送貨到府'], shipping_info.shipment_sel_str)) {
-				Location.updateAddress($scope.customer.customer_id, $scope.customer.address_id, address_to_update).then(function(result){console.log(result)}, function(err){console.log(err)});
-				$scope.shipping_info.country_d = _.find($scope.country_coll, {country_id: shipping_info.country_id});
-				$scope.shipping_info.city_d = _.find($scope.city_coll, {zone_id: shipping_info.city_id});
-				if(shipping_info.shipment_sel_str.localeCompare('送貨到府') == 0) {
-					$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: shipping_info.district_id});
-				}
+			// 		Step 5-1. 貨到付款，使用禮品券
+			if(lstrcmp(['貨到付款','使用禮品券'], $scope.shipping_info.payment_sel_str)) {
+				Location.updateAddress($scope.shipping_info).then(function(result){console.log(result)}, function(err){console.log(err)});
+				$scope.shipping_info.country_d = _.find($scope.country_coll, {country_id: $scope.shipping_info.country_id});
+				$scope.shipping_info.city_d = _.find($scope.city_coll, {zone_id: $scope.shipping_info.city_id});
+				$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: $scope.shipping_info.district_id});
 			}
-
+			Shipment.setShipToHome($scope.cart, $scope.shipping_info).then(function(data) {}, function(err) {console.log(err)});
+			// 		Step 5-2. 信用卡
+			console.log($scope.shipping_info);
+			console.log($scope.cart);
 			Cart.updateCart($scope.cart.products).then(function(result) {}, function(err) {console.log(err)});
 		};
 

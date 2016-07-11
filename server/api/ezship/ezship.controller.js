@@ -49,11 +49,11 @@ export function upsertHistory(req, res) {
 		if(err) handleError(res, err);
 		connection.query('insert into oc_customer_ezship_history set ?',obj, function(err, rows) {
 			if(err) {
-				connection.query('update oc_customer_ezship_history set ? where customer_id = ?',[obj, customer_id] , function(err, rows) {
+				// connection.query('update oc_customer_ezship_history set ? where customer_id = ?',[obj, customer_id] , function(err, rows) {
 					connection.release();
-					if(err) handleError(res, err);
+					// if(err) handleError(res, err);
 					res.redirect('/?showCheckout=true');
-				});
+				// });
 			}
 			else {
 				connection.release();
@@ -69,7 +69,7 @@ export function getHistory(req, res) {
 	if(!order_id) handleError(res, 'You should keyin an order_id !!');
 	mysql_pool.getConnection(function(err, connection){
 		if(err) { handleError(res, err); }
-		connection.query('select * from oc_customer_ezship_history where customer_id = ?',[customer_id] , function(err, result_coll) {
+		connection.query('select * from oc_customer_ezship_history where customer_id = ? order by ezship_history_id desc limit 1;',[customer_id] , function(err, result_coll) {
 			connection.release();
 			// Handle Query Process Error.
 			if(err) handleError(res, err);

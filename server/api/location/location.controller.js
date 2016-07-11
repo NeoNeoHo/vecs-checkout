@@ -95,8 +95,8 @@ export function getAddress(req, res) {
 }
 
 export function updateAddress(req, res) {
-	var customer_id = req.body.customer_id;
-	var address_id = req.body.address_id;
+	var customer_id = req.user._id;
+	var address_id = req.user.address_id;
 	var address = req.body.address;
 
 	mysql_pool.getConnection(function(err, connection){

@@ -49,6 +49,9 @@ a {
   color: red;
 }
 
+.text-green {
+  color: green;
+}
 .btn-sharp {
   @extend .btn-default;
   border-radius: 0px;

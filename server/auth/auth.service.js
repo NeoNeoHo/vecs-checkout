@@ -44,7 +44,9 @@ export function isAuthenticated() {
 						req.user = {
 							role: 'user', 
 							_id: rows[0].customer_id,
-							customer_group_id: rows[0].customer_group_id
+							customer_group_id: rows[0].customer_group_id,
+							address_id: rows[0].address_id,
+							email: rows[0].email
 						};
 						// console.log(req.user);
 						next();

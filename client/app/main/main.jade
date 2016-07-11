@@ -47,9 +47,13 @@
 
 							td.cart-price.hidden-md.hidden-sm.hidden-xs  
 								| $ {{product.spot_price + product.option_price}}
-								p(ng-repeat="discount_condition in product.discount") 購買{{discount_condition.quantity}}件以上，每件只要{{discount_condition.price}}元
+								del.text-red(ng-show="product.price.unit_price > product.spot_price") 
+									| $ {{product.price.unit_price + product.option_price}} 
+								div.text-green(ng-repeat="discount_condition in product.discount")
+									p(ng-hide="discount_condition.quantity <= product.quantity") 加{{discount_condition.quantity - product.quantity}}件，每件再折{{product.spot_price - discount_condition.price}}元
 							td.cart-total $ {{product.total}}
-								p.visible-xs(ng-repeat="discount_condition in product.discount") 購買{{discount_condition.quantity}}件以上，每件只要{{discount_condition.price}}元
+								div.visible-xs.text-green(ng-repeat="discount_condition in product.discount")
+									p(ng-hide="discount_condition.quantity <= product.quantity") 加{{discount_condition.quantity - product.quantity}}件，每件再折{{product.spot_price - discount_condition.price}}元
 							td.cart-remove
 								span.btn.btn-danger.btn-sm(ng-click="removeProduct(product.$$hashKey)")
 									i.fa.fa-times.fa-inverse
@@ -122,12 +126,12 @@
 					button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedNext()") 下一步
 
 			div(ng-show="to_show_next_process")
-				div
+				div#checkout_shipping
 					div.page-header.h3(ng-click="with_shipping_collapsed = !with_shipping_collapsed") 選擇配送方式
 						small(type="button", ng-show="shipping_info.shipment_sel_str") {{shipping_info.shipment_sel_str}} (運費 +{{cart.shipment_fee}}元)
 					div(uib-collapse="with_shipping_collapsed")
 						div.btn-group-seperated.btn-group-lg
-							label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", uib-btn-radio="'送貨到府'", ng-click="setPaymentMethod('shipToHome')") 
+							label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", uib-btn-radio="'送貨到府'", ng-click="setPaymentMethod('送貨到府')") 
 								div.col-lg-12.col-md-12.hidden-sm.hidden-xs 送貨到府
 									span  
 									img(src='../assets/images/shipToHome.jpg')
@@ -135,7 +139,7 @@
 									div.hidden-lg.hidden-md.col-sm-12.col-xs-12 送貨到府
 									div.hidden-lg.hidden-md.col-sm-12.col-xs-12
 										img.img-responsive(src='../assets/images/shipToHome.jpg')
-							label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", uib-btn-radio="'超商取貨'", ng-click="setPaymentMethod('shipToStore')") 
+							label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", uib-btn-radio="'超商取貨'", ng-click="setPaymentMethod('超商取貨')") 
 								div.col-lg-12.col-md-12.hidden-sm.hidden-xs 超商取貨
 									span  
 									img(src='../assets/images/storePic.png')
@@ -143,7 +147,7 @@
 									div.hidden-lg.hidden-md.col-sm-12.col-xs-12 超商取貨
 									div.hidden-lg.hidden-md.col-sm-12.col-xs-12
 										img.img-responsive(src='../assets/images/storePic.png')
-							label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", uib-btn-radio="'海外配送'", ng-click="setPaymentMethod('shipToOverseas')") 
+							label.btn.btn-default(ng-model="shipping_info.shipment_sel_str", uib-btn-radio="'海外配送'", ng-click="setPaymentMethod('海外配送')") 
 								div 海外配送
 						div.well(ng-show="shipping_info.shipment_sel_str == '超商取貨'")
 							.row
@@ -261,7 +265,7 @@
 									td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
 				.row
 					div.panel.panel-body
-						button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedCheckout(shipping_info)") 送出結帳
+						button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedCheckout()") 送出結帳
 						button.btn.btn-default.btn-lg.btn-success.btn-sharp(ng-click="to_show_next_process = false; goToAnchor('checkout_cart_table')") 返回
 						
 footer.footer

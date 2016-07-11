@@ -113,6 +113,7 @@ var validate_price_discount_special_reward = function(product_to_validate, db_pr
 	var is_valid = true;
 	var option_id_list = _.pluck(product_to_validate.option, 'product_option_value_id');
 	var option_price = 0;
+	var msg = '';
 	if(option_id_list) {
 		option_price = _.reduce(product_to_validate.option, function(lsum, option) {
 			console.log(_.find(db_option, {product_option_value_id: parseInt(option.product_option_value_id)})['option_price']);
@@ -123,15 +124,17 @@ var validate_price_discount_special_reward = function(product_to_validate, db_pr
 	var quantity = product_to_validate.quantity;
 	if(db_product.maximum > 0) {
 		is_valid = (product_to_validate.quantity <= db_product.maximum) ? true : false;
+		msg = is_valid ? msg : msg + ' quantity part is errored.';
 	}
 
 	var reasonable_price = _.min([db_product.price, db_discount.price, db_special.price]);
 	
 	is_valid = (is_valid && product_to_validate.total == reasonable_price*quantity + option_price*quantity) ? true : false;
-
-	is_valid = (is_valid && product_to_validate.reward == db_reward.points*quantity) ? true : false;
+	msg = is_valid ? msg : msg + ' price part is errored.';
 	
-	return {product__id: product_to_validate.product_id, valid: is_valid};
+	is_valid = (is_valid && product_to_validate.reward == db_reward.points) ? true : false;
+	msg = is_valid ? msg : msg + ' reward part is errored.';
+	return {product__id: product_to_validate.product_id, valid: is_valid, msg: msg};
 };
 
 
@@ -157,11 +160,11 @@ export function validate(req, res) {
 		var db_reward_coll = datas[3];
 		var db_product_option_value_coll = datas[4];
 
-		var resp = _.map(product_id_list, function(product_id) {
-			var product_to_validate = _.find(product_coll, {product_id: product_id});
+		var resp = _.map(product_coll, function(product_to_validate) {
+			var product_id = product_to_validate.product_id;	
 			var db_product = _.find(db_product_coll, {product_id: product_id}) ? _.find(db_product_coll, {product_id: product_id}) : res.status(400).send('查無'+ product_to_validate.name);
 			var db_discount_many_condition = _.filter(db_discount_coll, function(discount) { 
-				return (discount.product_id == product_to_validate.product_id) && (discount.customer_group_id == customer_group_id) && (discount.quantity <= product_to_validate.quantity);
+				return (discount.product_id == product_id) && (discount.customer_group_id == customer_group_id) && (discount.quantity <= product_to_validate.quantity);
 			});
 			var db_discount = db_discount_many_condition.length ? _.last(_.sortBy(db_discount_many_condition, 'quantity')) : {price: db_product.price};
 			var db_special = _.find(db_special_coll, {product_id: product_id}) ? _.find(db_special_coll, {product_id: product_id}) : {price: db_product.price};

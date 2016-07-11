@@ -68,7 +68,7 @@ angular.module('webApp')
 				db_products = _.map(db_products, function(db_product) {
 					db_product.image = DIR_IMAGE_PATH+db_product.image;
 					db_product.price =  _.pick(_.find(db_prices, {product_id: db_product.product_id}), ['unit_price', 'special_price']);
-					db_product.discount = _.filter(db_discounts, {product_id: db_product.product_id});
+					db_product.discount = _.sortBy(_.filter(db_discounts, {product_id: db_product.product_id}), 'quantity');
 					return db_product;
 				});
 				defer.resolve(db_products);

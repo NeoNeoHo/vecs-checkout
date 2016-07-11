@@ -67,9 +67,20 @@ angular.module('webApp')
 			return defer.promise;
 		};
 
-		var updateAddress = function(customer_id, address_id, address) {
+		var updateAddress = function(shipping_info) {
 			var defer = $q.defer();
-			$http.put('/api/locations/address/', {customer_id: customer_id, address_id: address_id, address: address})
+			var address_to_update = {
+				firstname: shipping_info.firstname,
+				lastname: '',
+				company: shipping_info.company ? shipping_info.company : '',
+				company_id: shipping_info.company_id ? shipping_info.company_id : '',
+				address_1: shipping_info.address,
+				country_id: shipping_info.country_id,
+				zone_id: shipping_info.city_id,
+				telephone: shipping_info.telephone,
+				district_id: shipping_info.district_id
+			};
+			$http.put('/api/locations/address/', {address: address_to_update})
 			.then(function(result) {
 				defer.resolve(result);
 			}, function(err) {

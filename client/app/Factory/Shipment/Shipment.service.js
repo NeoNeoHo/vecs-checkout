@@ -1,11 +1,12 @@
 'use strict';
 
 angular.module('webApp')
-  .factory('Shipment', function ($http, $q, $filter, $cookies) {
+  .factory('Shipment', function ($http, $q, $filter, $cookies, Location, Order) {
     // Service logic
     // ...
+    var SHIP_TO_HOME_METHOD = '送貨到府';
+    var SHIP_TO_HOME_ORDER_STATUS_ID = 43;
 
-    var meaningOfLife = 42;
     var checkoutToken = $cookies.get('vecs_token');
     
     var setEzshipStore = function(order_id) {
@@ -27,12 +28,38 @@ angular.module('webApp')
       });
       return defer.promise;
     };
+
+    var setShipToHome = function(cart, shipping_info) {
+      var defer = $q.defer();
+      var promises = [];
+      var insert_order_dict = {};
+      var address_to_update = {};
+      shipping_info.shipping_method = SHIP_TO_HOME_METHOD;
+      shipping_info.order_status_id = SHIP_TO_HOME_ORDER_STATUS_ID;
+      shipping_info.shipping_firstname = shipping_info.firstname;
+      shipping_info.shipping_lastname = ' ';
+
+      promises.push(Location.updateAddress(shipping_info));
+      promises.push(Order.createOrder(cart, shipping_info));
+
+      $q.all(promises).then(function(datas) {
+        console.log('shipping: "setShipToHome" done !');
+        console.log(datas[1]);
+        defer.resolve(datas[1]);
+      }, function(err) {
+        console.log(err);
+        defer.reject(err);
+      });
+      return defer.promise;
+    };
+
     // Public API here
     return {
       someMethod: function () {
         return meaningOfLife;
       },
       setEzshipStore: setEzshipStore,
-      getEzshipStore: getEzshipStore
+      getEzshipStore: getEzshipStore,
+      setShipToHome: setShipToHome
     };
   });
