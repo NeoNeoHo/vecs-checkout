@@ -7,5 +7,7 @@ var auth = require('../../auth/auth.service');
 var router = express.Router();
 
 router.post('/order/', auth.isAuthenticated(), controller.create);
+router.post('/orderHistory/', auth.isAuthenticated(), controller.insertOrderHistory);
+router.put('/order/:order_id', auth.isAuthenticated(), controller.updateOrder);
 
 module.exports = router;

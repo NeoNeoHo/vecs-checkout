@@ -25,6 +25,7 @@
 							li 以後不會有option形式的加價購，只有選擇樣式會用到option
 							li 購物車opencart 與 node的同步更新，目前node side做好了，但是opencart方面還需要更動cart update的部分(目前好像是用session的方式，要改成cookies)
 							li 檢查所有會更新db的要求，要做到不讓客戶有機會更動customer_id這個變數(從server side auth middleware 做起)
+							li 針對禮品券用戶，使用禮品券的部分不開發票
 					table#checkout_cart_table.table.checkout-cart
 						tr.black.text-white
 							th.col-lg-6.col-md-6.col-sm-6.col-xs-6.text-center 商品名稱
@@ -166,6 +167,22 @@
 								li 港澳，新加坡，馬來西亞一律 350元 ， 費用不包含保險，滿5000元可享免運
 								li 中國，韓國，日本，澳洲，紐西蘭，加拿大，美國，英國一律550元，費用不包含保險，滿6000元可享免運
 								li 其他地區請來信至 customer@vecsgardenia.com
+					div.page-header.h3(ng-click="with_voucher_collapsed = !with_voucher_collapsed") 是否使用禮品券
+					div(uib-collapse="with_voucher_collapsed")
+						form(name="form_voucher")
+							div.well
+								.input-group.col-sm-6.col-sm-offset-3
+									input.form-control(type="text", placeholder="輸入禮品券", ng-model="cart.discount.voucher_name")
+									span.input-group-btn
+										button.btn.btn-default(type="button", ng-click="applyVoucher()", ng-disabled="!cart.discount.voucher_name") 更新
+								div(ng-show="voucher_available_amount") 
+									p 禮品券還有 {{voucher_available_amount}} 元
+									p 此筆購物最多可使用禮品券 {{voucher_max_amount}} 元
+									.input-group(ng-class="{'has-error': form_voucher.input_voucher_amount.$error.max}",)
+										input.form-control(name="input_voucher_amount", type="number", placeholder="輸入欲使用禮品券金額", ng-model="cart.discount.voucher" max="{{voucher_max_amount}}", ng-blur="form_voucher.input_voucher_amount.$error.max ? cart.discount.voucher=0 : 1;")
+									div.help-block(ng-messages="form_voucher.input_voucher_amount.$error", ng-show="form_voucher.input_voucher_amount.$error.max")
+										p(ng-message="max") 您最多只能使用{{voucher_max_amount}}元禮品券
+
 				div
 					.page-header.h3(ng-click="with_payment_collapsed = !with_payment_collapsed") 選擇付款方式
 						small(type="button", ng-show="shipping_info.payment_sel_str") {{shipping_info.payment_sel_str}}
@@ -174,12 +191,12 @@
 							label.btn.btn-default(ng-model="shipping_info.payment_sel_str", uib-btn-radio="'信用卡'", ng-show="payment_btn.credit_pay", ng-click="with_payment_collapsed = true; with_info_collapsed = false;") 信用卡
 							label.btn.btn-default(ng-model="shipping_info.payment_sel_str", uib-btn-radio="'貨到付款'", ng-show="payment_btn.hand_pay", ng-click="with_payment_collapsed = true; with_info_collapsed = false;") 貨到付款
 							label.btn.btn-default(ng-model="shipping_info.payment_sel_str", uib-btn-radio="'超商付現'", ng-show="payment_btn.store_pay", ng-click="with_payment_collapsed = true; with_info_collapsed = false;") 超商付現
-							label.btn.btn-default(ng-model="shipping_info.payment_sel_str", uib-btn-radio="'使用禮品券'", ng-show="payment_btn.voucher_pay") 使用禮品券
-						div.well(ng-show="shipping_info.payment_sel_str == '使用禮品券'")
-							.input-group.col-sm-6.col-sm-offset-3
-								input.form-control(type="text", placeholder="輸入禮品券", ng-model="cart.discount.voucher_name")
-								span.input-group-btn
-									button.btn.btn-default(type="button", ng-click="applyVoucher();with_payment_collapsed = true; with_info_collapsed = false;", ng-disabled="!voucher_name") 更新
+						//- 	label.btn.btn-default(ng-model="shipping_info.payment_sel_str", uib-btn-radio="'使用禮品券'", ng-show="payment_btn.voucher_pay") 使用禮品券
+						//- div.well(ng-show="shipping_info.payment_sel_str == '使用禮品券'")
+						//- 	.input-group.col-sm-6.col-sm-offset-3
+						//- 		input.form-control(type="text", placeholder="輸入禮品券", ng-model="cart.discount.voucher_name")
+						//- 		span.input-group-btn
+						//- 			button.btn.btn-default(type="button", ng-click="applyVoucher();with_payment_collapsed = true; with_info_collapsed = false;", ng-disabled="!voucher_name") 更新
 				div
 					div.page-header.h3(ng-click="with_info_collapsed = !with_info_collapsed") 收件人資料
 						small {{shipping_info.firstname}} / {{shipping_info.telephone}}
@@ -265,6 +282,8 @@
 								tr.h2
 									td.text-right 總計
 									td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
+				.row
+					div.well {{shipping_info}}
 				.row
 					div.panel.panel-body
 						button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedCheckout()") 送出結帳

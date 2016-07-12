@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webApp')
-	.controller('MainController', function ($scope, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Promotion, Cart, Customer, Reward, Product) {
+	.controller('MainController', function ($scope, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Payment, Promotion, Cart, Customer, Reward, Product) {
 		var currentUser = Auth.getCurrentUser();
 		$scope.allow_amount = _.range(1,10);
 		var SHIPMENT_EZSHIP_FEE = 60;
@@ -14,6 +14,7 @@ angular.module('webApp')
 		$scope.with_payment_collapsed = true;
 		$scope.with_info_collapsed = true;
 		$scope.with_memo_collapsed = true;
+		$scope.with_voucher_collapsed = true;
 
 		$scope.store_select_text = '選擇超商門市';
 		$scope.urlParams = $location.search();
@@ -106,7 +107,7 @@ angular.module('webApp')
 		};
 
 		$scope.proceedNext = function() {
-			$scope.shipping_info.shipment_sel_str = null;
+			// $scope.shipping_info.shipment_sel_str = null;
 			$scope.shipping_info.payment_sel_str = null;
 
 			$scope.to_show_next_process = true;
@@ -197,28 +198,29 @@ angular.module('webApp')
 				if(data) {
 					console.log('This is customer address: ');
 					console.log(data);
-					$scope.shipping_info.city_id = (data.zone_id) ? data.zone_id : '';
+					$scope.shipping_info.city_id = (data.zone_id) ? data.zone_id : 0;
 					$scope.setDistricts((data.zone_id) ? data.zone_id : '');
 
-					$scope.shipping_info.country_id = (data.country_id) ? data.country_id : '';
+					$scope.shipping_info.country_id = (data.country_id) ? data.country_id : 0;
 					$scope.setCities((data.country_id) ? data.country_id : 206);
 
-					$scope.shipping_info.district_id = (data.district_id) ? data.district_id : '';
+					$scope.shipping_info.district_id = (data.district_id) ? data.district_id : 0;
 					$scope.shipping_info.address = data.address_1 ? data.address_1 : '';
 				}
 			});
 		};
 
 		$scope.setPaymentMethod = function(lmethod) {
+			$scope.shipping_info.shipment_sel_str = lmethod;
 			$scope.with_shipping_collapsed = true;
 			$scope.with_payment_collapsed = false;
-			console.log($scope.shipping_info.shipment_sel_str);
 			$scope.shipping_info.payment_sel_str = null;
 			$scope.shipping_info.country_id = 206;
 			$scope.payment_btn.store_pay = (lstrcmp(['超商取貨'], lmethod)) ? true : false;
 			$scope.payment_btn.hand_pay = (lstrcmp(['送貨到府'], lmethod)) ? true : false;
 			$scope.payment_btn.credit_pay = (lstrcmp(['送貨到府','海外配送', '超商取貨'], lmethod)) ? true : false;
-			$scope.payment_btn.voucher_pay = (lstrcmp(['超商取貨', '送貨到府'], lmethod)) ? true : false;
+
+			
 			var total_price_with_discount = $scope.cart.product_total_price - $scope.cart.discount.reward - $scope.cart.discount.coupon;
 			if(lmethod === '送貨到府') {
 				$scope.shipping_info.country_id = 206;
@@ -297,10 +299,9 @@ angular.module('webApp')
 			var defer = $q.defer();
 			if($scope.cart.discount.voucher_name) {
 				Promotion.getVoucher($scope.cart.discount.voucher_name).then(function(data) {
-					console.log(data.available_amount);
 					$scope.voucher_available_amount = data.available_amount; 
 					var discount_so_far = $scope.cart.discount.reward + $scope.cart.discount.coupon;
-					$scope.cart.discount.voucher = (data.available_amount >= $scope.cart.product_total_price + $scope.cart.shipment_fee - discount_so_far) ? ($scope.cart.product_total_price + $scope.cart.shipment_fee - discount_so_far) : data.available_amount;
+					$scope.voucher_max_amount = (data.available_amount >= $scope.cart.product_total_price + $scope.cart.shipment_fee - discount_so_far) ? ($scope.cart.product_total_price + $scope.cart.shipment_fee - discount_so_far) : data.available_amount;
 					defer.resolve('')
 				}, function(err) {
 					alert(err.data);
@@ -336,16 +337,23 @@ angular.module('webApp')
 
 			// Step 5. 根據不同配送 付款方式，產生相對應後送動作
 			// 		Step 5-1. 貨到付款，使用禮品券
-			if(lstrcmp(['貨到付款','使用禮品券'], $scope.shipping_info.payment_sel_str)) {
-				Location.updateAddress($scope.shipping_info).then(function(result){console.log(result)}, function(err){console.log(err)});
+			if(lstrcmp(['送貨到府'], $scope.shipping_info.shipment_sel_str)) {
 				$scope.shipping_info.country_d = _.find($scope.country_coll, {country_id: $scope.shipping_info.country_id});
 				$scope.shipping_info.city_d = _.find($scope.city_coll, {zone_id: $scope.shipping_info.city_id});
 				$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: $scope.shipping_info.district_id});
 			}
-			Shipment.setShipToHome($scope.cart, $scope.shipping_info).then(function(data) {}, function(err) {console.log(err)});
+			Shipment.setShipToHome($scope.cart, $scope.shipping_info).then(function(resp_new_order_id) {
+				console.log('Complete Shipment Setting');
+				console.log(resp_new_order_id);
+				Payment.setPayByHand(resp_new_order_id).then(function(data) {
+					console.log(data);
+				}, function(err) {
+					console.log(err);
+				});
+			}, function(err) {
+				console.log(err);
+			});
 			// 		Step 5-2. 信用卡
-			console.log($scope.shipping_info);
-			console.log($scope.cart);
 			Cart.updateCart($scope.cart.products).then(function(result) {}, function(err) {console.log(err)});
 		};
 

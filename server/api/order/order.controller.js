@@ -50,7 +50,7 @@ var updateDictSql = function(table, update_dict, condition_dict) {
 			where_string = pair[0] + ' = ' + pair[1];
 		}
 		else {
-			where_string = where_string + ', ' + pair[0] + ' = ' + pair[1];
+			where_string = where_string + ' and ' + pair[0] + ' = ' + pair[1];
 		}
 
 	});
@@ -350,6 +350,8 @@ export function create(req, res) {
 		promises.push(createOrderHistory(order_id, shipping_info.order_status_id));
 		promises.push(createOrderProduct(order_id, cart));
 		promises.push(createOrderTotal(order_id, shipping_info, cart));
+
+		// Step 3. Create "Customer Reward" and "Coupon History" if Used
 		if(cart.discount.reward > 0) promises.push(createCutomerReward(order_id, customer_id, '使用於訂單 #'+order_id, -cart.discount.reward));
 		if(cart.discount.coupon > 0) promises.push(createCouponHistory(order_id, customer_id, cart.discount.coupon_id, -cart.discount.coupon));
 		
@@ -358,18 +360,18 @@ export function create(req, res) {
 			var lpromises = [];
 			for(var i = 0; i < cart.products.length; i++) {
 				if(cart.products[i].option.length > 0) {
-					// Step 3. Create "Order Option"
+					// Step 4. Create "Order Option"
 					lpromises.push(createOrderOption(order_id, order_product_query_responses[i].insertId, cart.products[i].option));
 				}
 			}
 			if(lpromises.length > 0) {
 				q.all(lpromises).then(function(data) {
-					res.status(200).json(datas);
+					res.status(200).json({order_id: order_id});
 				}, function(err) {
 					res.status(400).send(err);
 				});
 			} else {
-				res.status(200).json(datas);
+				res.status(200).json({order_id: order_id});
 			}
 		}, function(err) {
 			console.log(err);
@@ -381,3 +383,48 @@ export function create(req, res) {
 	});
 };
 
+export function updateOrder(req, res) {
+	var customer_id = req.user._id;
+	var order_id = req.params.order_id;
+	var update_dict = req.body.update_dict;
+
+	update_dict.date_modified = new Date();
+	var sql = updateDictSql('oc_order', update_dict, {order_id: order_id, customer_id: customer_id});
+	console.log(sql);
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) {
+			console.log(err);
+			res.status(400).send(err);
+		}
+		connection.query(sql, function(err, rows) {
+			connection.release();
+			if(err) {
+				console.log(err);
+				res.status(400).send(err);
+			}
+			res.status(200).json(rows);
+		});
+	});
+};
+
+export function insertOrderHistory(req, res) {
+	var customer_id = req.user._id;
+	var order_id = req.body.order_id;
+	var insert_dict = req.body.insert_dict;
+
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) res.status(400).send(err);
+		connection.query('SELECT * FROM oc_order WHERE order_id = ? AND customer_id = ?', [order_id, customer_id], function(err, rows) {
+			connection.release();
+			if(err) res.status(400).send(err);
+			if(rows.length == 0) res.status(400).send('You Don\'t Have the Permission For This Order.');
+			if(rows.length > 0) {
+				createOrderHistory(order_id, insert_dict.order_status_id, 0, insert_dict.comment).then(function(data) {
+					res.status(200).json(data);
+				}, function(err) {
+					res.status(400).send(err);
+				});
+			}
+		});
+	});
+};
