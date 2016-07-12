@@ -18,7 +18,9 @@
 					div.panel-heading.lead 購物清單
 					div.panel-body
 						ul
-							li 需要解決product discount 的問題，(購買x項以上，每項只要y元)
+							li
+								i.fa.fa-check-square-o 
+								span 需要解決product discount 的問題，(購買x項以上，每項只要y元)
 							li 也需要解決商品即時更新數量的問題，只要購物車商品數量改變，即時更新db該商品目前總數
 							li 以後不會有option形式的加價購，只有選擇樣式會用到option
 							li 購物車opencart 與 node的同步更新，目前node side做好了，但是opencart方面還需要更動cart update的部分(目前好像是用session的方式，要改成cookies)
@@ -175,7 +177,7 @@
 							label.btn.btn-default(ng-model="shipping_info.payment_sel_str", uib-btn-radio="'使用禮品券'", ng-show="payment_btn.voucher_pay") 使用禮品券
 						div.well(ng-show="shipping_info.payment_sel_str == '使用禮品券'")
 							.input-group.col-sm-6.col-sm-offset-3
-								input.form-control(type="text", placeholder="輸入禮品券", ng-model="voucher_name")
+								input.form-control(type="text", placeholder="輸入禮品券", ng-model="cart.discount.voucher_name")
 								span.input-group-btn
 									button.btn.btn-default(type="button", ng-click="applyVoucher();with_payment_collapsed = true; with_info_collapsed = false;", ng-disabled="!voucher_name") 更新
 				div

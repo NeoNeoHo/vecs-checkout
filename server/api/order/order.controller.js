@@ -34,6 +34,71 @@ function handleError(res, err, statusCode) {
 	res.status(statusCode).send(err);
 }
 
+var updateDictSql = function(table, update_dict, condition_dict) {
+	var set_string = '';
+	var where_string = '';
+	_.forEach(_.pairs(update_dict), function(pair) {
+		if(set_string.length == 0) {
+			set_string = pair[0] + ' = ' + mysql_pool.escape(pair[1]);
+		}
+		else {
+			set_string = set_string + ', ' + pair[0] + ' = ' + mysql_pool.escape(pair[1]);
+		}
+	});
+	_.forEach(_.pairs(condition_dict), function(pair) {
+		if(where_string.length == 0) {
+			where_string = pair[0] + ' = ' + pair[1];
+		}
+		else {
+			where_string = where_string + ', ' + pair[0] + ' = ' + pair[1];
+		}
+
+	});
+	var sql_string = 'update ' + table + ' set ' + set_string + ' where ' + where_string;
+	return sql_string;
+}
+
+var insertDictSql = function(table, insert_dict) {
+	var set_string = '';
+	_.forEach(_.pairs(insert_dict), function(pair) {
+		if(set_string.length == 0) {
+			set_string = pair[0] + ' = ' + mysql_pool.escape(pair[1]);
+		}
+		else {
+			set_string = set_string + ', ' + pair[0] + ' = ' + mysql_pool.escape(pair[1]);
+		}
+	});
+	var sql_string = 'insert into ' + table + ' set ' + set_string;
+	return sql_string;
+}
+
+var updateBulkSql = function(table, update_coll, condition_coll) {
+	var sqls = '';
+	for(var i = 0; i < _.size(update_coll); i++) {
+		var sub_sql = updateDictSql(table, update_coll[i], condition_coll[i]);
+		if(sqls.length == 0) {
+			sqls = sub_sql;
+		} else {
+			sqls = sqls + '; ' + sub_sql;
+		}
+	}
+	return sqls;
+};
+
+var insertBulkSql = function(table, insert_coll) {
+	var sqls = '';
+	_.forEach(insert_coll, function(insert_dict) {
+		var sub_sql = insertDictSql(table, insert_dict);
+		if(sqls.length == 0) {
+			sqls = sub_sql;
+		} else {
+			sqls = sqls + '; ' + sub_sql;
+		}
+	});
+	return sqls;
+};
+
+
 var createOrder = function(shipping_info, customer_id, customer_group_id, email, customer_ip) {
 	var order_dict = {
 		'store_name': 'Vecs Gardenia 嘉丹妮爾',
@@ -52,13 +117,13 @@ var createOrder = function(shipping_info, customer_id, customer_group_id, email,
 		'shipping_address_1': shipping_info.address,
 		'shipping_address_2': '',
 		'shipping_city': shipping_info.city_d.name,
-		'shipping_postcode': '',
 		'shipping_country': shipping_info.country_d ? shipping_info.country_d.name : '台灣',
 		'shipping_country_id': shipping_info.country_id,
 		'shipping_zone': shipping_info.city_d.name,
 		'shipping_zone_id': shipping_info.city_d.zone_id,
 		'shipping_district': shipping_info.district_d ? shipping_info.district_d.name : '',
 		'shipping_district_id': shipping_info.district_d ? shipping_info.district_d.district_id : '',
+		'shipping_postcode': shipping_info.district_d ? shipping_info.district_d.postcode : '',
 		'shipping_method': shipping_info.shipping_method,
 		'shipping_address_format': '', 'shipping_custom_field': '', 'shipping_code': '',
 
@@ -68,13 +133,13 @@ var createOrder = function(shipping_info, customer_id, customer_group_id, email,
 		'payment_address_1': shipping_info.address,
 		'payment_address_2': '',
 		'payment_city': shipping_info.city_d.name,
-		'payment_postcode': '',
 		'payment_country': shipping_info.country_d ? shipping_info.country_d.name : '台灣',
 		'payment_country_id': shipping_info.country_id,
 		'payment_zone': shipping_info.city_d.name,
 		'payment_zone_id': shipping_info.city_d.zone_id,
 		'payment_district': shipping_info.district_d ? shipping_info.district_d.name : '',
 		'payment_district_id': shipping_info.district_d ? shipping_info.district_d.district_id : '',
+		'payment_postcode': shipping_info.district_d ? shipping_info.district_d.postcode : '',
 		'payment_method': '', 'payment_address_format': '', 'payment_custom_field': '', 'payment_code': '',
 		
 		'affiliate_id': 0, 'commission': 0, 'marketing_id': 0, 'tracking': '', 'language_id': 2, 'currency_id': 4, 
@@ -89,23 +154,178 @@ var createOrder = function(shipping_info, customer_id, customer_group_id, email,
 		'date_modified': new Date()
 	};
 	var defer = q.defer();
-	console.log(order_dict);
 	mysql_pool.getConnection(function(err, connection) {
 		if(err) defer.reject(err);
 		connection.query('INSERT INTO oc_order SET ?;', order_dict, function(err, rows) {
 			connection.release();
 			if(err) {
-				console.log('#########@@@@@@@@@#########');
-				console.log(err);
 				defer.reject(err);
 			}
-			console.log('@@@@@@@@@@@@@@@@@@@: ' + rows.insertId);
 			defer.resolve(rows);
 		});
 	});
 	return defer.promise;
 };
 
+var createOrderHistory = function(order_id = 0, order_status_id = 0, notify = 0, comment = '') {
+	var defer = q.defer();
+	var insert_dict = {
+		order_id: order_id,
+		order_status_id: order_status_id,
+		notify: notify,
+		comment: comment,
+		date_added: new Date()
+	};
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query('INSERT INTO oc_order_history SET ?;', insert_dict, function(err, rows) {
+			connection.release();
+			if(err) {
+				defer.reject(err);
+			}
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
+
+var createOrderProduct = function(order_id, cart) {
+	var products = cart.products;
+	var defer = q.defer();
+	var insert_coll = [];
+	insert_coll = _.map(products, function(product) {
+		return {
+			order_id: order_id,
+			product_id: product.product_id,
+			name: product.name,
+			model: product.model,
+			quantity: product.quantity,
+			price: product.spot_price + product.option_price,
+			total: (product.spot_price + product.option_price) * product.quantity,
+			reward: product.reward * product.quantity
+		};
+	});
+	var sql = insertBulkSql('oc_order_product', insert_coll);
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query(sql, function(err, rows) {
+			connection.release();
+			if(err) {
+				defer.reject(err);
+			}
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
+
+var createOrderOption = function(order_id, order_product_id, options) {
+	var defer = q.defer();
+	var insert_coll = [];
+	insert_coll = _.map(options, function(option) {
+		return {
+			order_id: order_id,
+			order_product_id: order_product_id,
+			product_option_id: option.product_option_id,
+			product_option_value_id: option.product_option_value_id,
+			name: option.name,
+			value: option.value,
+			type: option.type
+		};
+	});
+	var sql = insertBulkSql('oc_order_option', insert_coll);
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query(sql, function(err, rows) {
+			connection.release();
+			if(err) {
+				defer.reject(err);
+			}
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
+
+var getOrderTotalDict = function(order_id, code, title, value, sort_order) {
+	return {
+		order_id: order_id,
+		code: code,
+		title: title,
+		value: value,
+		sort_order: sort_order
+	};
+};
+
+// 注意，這裡有預先處理“禮品券”
+var createOrderTotal = function(order_id = 0, shipping_info, cart) {
+	var defer = q.defer();
+	var insert_coll = [];
+	insert_coll.push(getOrderTotalDict(order_id, 'sub_total', '商品總計', cart.product_total_price, 1));
+	if(cart.discount.coupon > 0) insert_coll.push(getOrderTotalDict(order_id, 'coupon', '優惠券 - '+cart.discount.coupon_name, -cart.discount.coupon, 2));
+	if(cart.discount.reward > 0) insert_coll.push(getOrderTotalDict(order_id, 'reward', '紅利點數 - '+cart.discount.reward, -cart.discount.reward, 3));
+	insert_coll.push(getOrderTotalDict(order_id, 'shipping', '運費 - '+shipping_info.shipment_sel_str, shipping_info.shipment_fee, 4));
+	if(cart.discount.voucher > 0) insert_coll.push(getOrderTotalDict(order_id, 'voucher', '禮券 - '+cart.discount.voucher_name, -cart.discount.voucher, 5));
+	insert_coll.push(getOrderTotalDict(order_id, 'total', '訂單總計', shipping_info.total, 6));
+	
+	var sql = insertBulkSql('oc_order_total', insert_coll);
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query(sql, function(err, rows) {
+			connection.release();
+			if(err) {
+				defer.reject(err);
+			}
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
+
+
+var createCutomerReward = function(order_id = 0, customer_id = 0, description = '', points = 0) {
+	var defer = q.defer();
+	var insert_dict = {
+		order_id: order_id,
+		customer_id: customer_id,
+		description: description,
+		points: points,
+		date_added: new Date()
+	};
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query('INSERT INTO oc_customer_reward SET ?;', insert_dict, function(err, rows) {
+			connection.release();
+			if(err) {
+				defer.reject(err);
+			}
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
+
+var createCouponHistory = function(order_id = 0, customer_id = 0, coupon_id = 0,  amount = 0) {
+	var defer = q.defer();
+	var insert_dict = {
+		order_id: order_id,
+		customer_id: customer_id,
+		coupon_id: coupon_id,
+		amount: amount,
+		date_added: new Date()
+	};
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query('INSERT INTO oc_coupon_history SET ?;', insert_dict, function(err, rows) {
+			connection.release();
+			if(err) {
+				defer.reject(err);
+			}
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
 
 // ################ Check Cart validation of 'price', 'maximun amount', 'discount', 'special', 'reward point' ###########
 // ####
@@ -120,9 +340,43 @@ export function create(req, res) {
 	var shipping_info = req.body.shipping_info;
 
 	shipping_info.total = cart.product_total_price + cart.shipment_fee - cart.discount.coupon - cart.discount.reward - cart.discount.voucher;
+	
+	// Step 1. Create "Order"
 	createOrder(shipping_info, customer_id, customer_group_id, email, customer_ip).then(function(data) {
-		res.status(200).json(data);
+		var order_id = data.insertId;
+		var promises = [];
+
+		// Step 2. Create "Order History" and "Order Product" and "Order Total"
+		promises.push(createOrderHistory(order_id, shipping_info.order_status_id));
+		promises.push(createOrderProduct(order_id, cart));
+		promises.push(createOrderTotal(order_id, shipping_info, cart));
+		if(cart.discount.reward > 0) promises.push(createCutomerReward(order_id, customer_id, '使用於訂單 #'+order_id, -cart.discount.reward));
+		if(cart.discount.coupon > 0) promises.push(createCouponHistory(order_id, customer_id, cart.discount.coupon_id, -cart.discount.coupon));
+		
+		q.all(promises).then(function(datas) {
+			var order_product_query_responses = datas[1];
+			var lpromises = [];
+			for(var i = 0; i < cart.products.length; i++) {
+				if(cart.products[i].option.length > 0) {
+					// Step 3. Create "Order Option"
+					lpromises.push(createOrderOption(order_id, order_product_query_responses[i].insertId, cart.products[i].option));
+				}
+			}
+			if(lpromises.length > 0) {
+				q.all(lpromises).then(function(data) {
+					res.status(200).json(datas);
+				}, function(err) {
+					res.status(400).send(err);
+				});
+			} else {
+				res.status(200).json(datas);
+			}
+		}, function(err) {
+			console.log(err);
+			res.status(400).send(err);
+		});
 	}, function(err) {
+		console.log(err);
 		res.status(400).send(err);
 	});
 };

@@ -62,7 +62,11 @@ angular.module('webApp')
 						_coupon_saved_amount = _discount_fee;
 					}
 				}
-				resolve_data.coupon_saved_amount = _coupon_saved_amount;
+				resolve_data = {
+					coupon_saved_amount: _coupon_saved_amount,
+					coupon_id: data.setting.coupon_id
+				};
+
 				defer.resolve(resolve_data);
 
 			}, function(err) {

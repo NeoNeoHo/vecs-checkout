@@ -60,6 +60,7 @@ angular.module('webApp')
 					product.price = db_product.price;
 					product.discount = db_product.discount;
 					product.reward = db_product.reward;
+					product.model = db_product.model;
 					product.name = db_product.name;
 					product.spot_price = product.price.special_price;
 					product.option_price = _.reduce(_.pluck(product.option, 'price'), function(sum, num){return sum+num;}, 0);
@@ -236,6 +237,7 @@ angular.module('webApp')
 					console.log(err);
 				});
 			}
+			$scope.shipping_info.shipment_fee = $scope.cart.shipment_fee;
 		};
 		$scope.getEzshipStore = function(order_id) {
 			order_id = order_id ? order_id : 999999999;
@@ -272,6 +274,7 @@ angular.module('webApp')
 				Promotion.calcCouponSaved($scope.coupon_name, $scope.customer.customer_id, $scope.cart).then(function(data) {
 					$scope.cart.discount.coupon = data.coupon_saved_amount;
 					$scope.cart.discount.coupon_name = $scope.coupon_name;
+					$scope.cart.discount.coupon_id = data.coupon_id;
 					if(data.coupon_saved_amount == 0) {
 						$scope.coupon_name = '';
 						alert('您購買的商品並不適用此張優惠券');
@@ -292,8 +295,8 @@ angular.module('webApp')
 
 		$scope.applyVoucher = function() {
 			var defer = $q.defer();
-			if($scope.voucher_name) {
-				Promotion.getVoucher($scope.voucher_name).then(function(data) {
+			if($scope.cart.discount.voucher_name) {
+				Promotion.getVoucher($scope.cart.discount.voucher_name).then(function(data) {
 					console.log(data.available_amount);
 					$scope.voucher_available_amount = data.available_amount; 
 					var discount_so_far = $scope.cart.discount.reward + $scope.cart.discount.coupon;

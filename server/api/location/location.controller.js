@@ -66,7 +66,7 @@ export function districts(req, res) {
 	var city_id = req.params.city_id;
 	mysql_pool.getConnection(function(err, connection){
 		if(err) handleError(res, err);
-		var sql = 'select district_id, name from '+ mysql_config.db_prefix+'district where status = 1 and zone_id = ' + city_id;
+		var sql = 'select district_id, name, postcode from '+ mysql_config.db_prefix+'district where status = 1 and zone_id = ' + city_id;
 		connection.query(sql,[], function(err, rows) {
 			if(err) handleError(res, err);
 			connection.release();
