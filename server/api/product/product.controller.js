@@ -49,7 +49,7 @@ var getProducts = function(product_id_list, customer_group_id) {
 };
 
 var getProductDiscounts = function(product_id_list, customer_group_id) {
-	console.log(product_id_list+' '+customer_group_id);
+	// console.log(product_id_list+' '+customer_group_id);
 	var defer = q.defer();
 	product_id_list = product_id_list.length ? product_id_list : product_id_list;
 	var today = moment().format('YYYY-MM-DD');

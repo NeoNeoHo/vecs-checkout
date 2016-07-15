@@ -77,8 +77,8 @@ export function districts(req, res) {
 }
 
 export function getAddress(req, res) {
-	var customer_id = req.params.customer_id;
-	var address_id = req.params.address_id;
+	var customer_id = req.user._id;
+	var address_id = req.user.address_id;
 	mysql_pool.getConnection(function(err, connection){
 		if(err) handleError(res, err);
 		var sql = 'select a.*, b.name as city_name,  c.name as country_name from '+ mysql_config.db_prefix+'address a, ' + mysql_config.db_prefix + 'zone b, ' + mysql_config.db_prefix + 'country c where a.customer_id = ' + customer_id + ' and a.zone_id = b.zone_id and a.country_id = c.country_id order by a.address_id desc limit 1';

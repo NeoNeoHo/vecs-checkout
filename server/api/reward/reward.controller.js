@@ -34,11 +34,11 @@ export function getCustomerReward(req, res) {
 	var info = req.body;
 	mysql_pool.getConnection(function(err, connection){
 		if(err) handleError(res, err.message);
-		console.log(connection.escape(customer_id));
+		// console.log(connection.escape(customer_id));
 		connection.query('select sum(points) as points from '+ mysql_config.db_prefix + 'customer_reward where customer_id = ? ',[customer_id] , function(err, rows) {
 			connection.release();
 			if(err) handleError(res, err.message);
-			console.log(rows);
+			// console.log(rows);
 			res.status(200).json(rows[0]);
 		});
 

@@ -84,7 +84,7 @@ angular.module('webApp')
 			console.log(data);
 			$scope.shipping_info.firstname = data.firstname;
 			$scope.shipping_info.telephone = data.telephone;
-			getAddress(data.customer_id, data.address_id);
+			getAddress();
 			$scope.customer = {
 				customer_id: data.customer_id,
 				customer_group_id: data.customer_group_id,
@@ -193,8 +193,8 @@ angular.module('webApp')
 			});		
 		};
 
-		var getAddress = function(customer_id, address_id) {
-			Location.getAddress(customer_id, address_id).then(function(data) {
+		var getAddress = function() {
+			Location.getAddress().then(function(data) {
 				if(data) {
 					console.log('This is customer address: ');
 					console.log(data);
@@ -337,24 +337,25 @@ angular.module('webApp')
 
 			// Step 5. 根據不同配送 付款方式，產生相對應後送動作
 			// 		Step 5-1. 貨到付款，使用禮品券
-			if(lstrcmp(['送貨到府'], $scope.shipping_info.shipment_sel_str)) {
+			if(lstrcmp(['送貨到府', '海外配送'], $scope.shipping_info.shipment_sel_str)) {
 				$scope.shipping_info.country_d = _.find($scope.country_coll, {country_id: $scope.shipping_info.country_id});
 				$scope.shipping_info.city_d = _.find($scope.city_coll, {zone_id: $scope.shipping_info.city_id});
 				$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: $scope.shipping_info.district_id});
 			}
-			Shipment.setShipToHome($scope.cart, $scope.shipping_info).then(function(resp_new_order_id) {
-				console.log('Complete Shipment Setting');
-				console.log(resp_new_order_id);
-				Payment.setPayByHand(resp_new_order_id).then(function(data) {
-					console.log(data);
-				}, function(err) {
-					console.log(err);
-				});
+			Shipment.setShipToEzship($scope.cart, $scope.shipping_info, $scope.shipping_info.payment_sel_str).then(function(resp_new_order_id) {
+				// console.log('Complete Shipment Setting');
+				// console.log(resp_new_order_id);
+				// Payment.setPayByHand(resp_new_order_id).then(function(data) {
+				// 	console.log(data);
+				// }, function(err) {
+				// 	console.log(err);
+				// });
 			}, function(err) {
 				console.log(err);
 			});
 			// 		Step 5-2. 信用卡
 			Cart.updateCart($scope.cart.products).then(function(result) {}, function(err) {console.log(err)});
+			console.log($scope.shipping_info);
 		};
 
 

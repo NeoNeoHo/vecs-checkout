@@ -9,7 +9,7 @@ var router = express.Router();
 router.get('/countries', controller.countries);
 router.get('/cities/:country_id', controller.cities);
 router.get('/districts/:city_id', controller.districts);
-router.get('/customer/:customer_id/:address_id', controller.getAddress);
+router.get('/customer',auth.isAuthenticated(), controller.getAddress);
 router.put('/address', auth.isAuthenticated(), controller.updateAddress);
 
 

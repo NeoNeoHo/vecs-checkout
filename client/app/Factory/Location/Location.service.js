@@ -56,9 +56,9 @@ angular.module('webApp')
 			return defer.promise;
 		};
 
-		var getAddress = function(customer_id, address_id) {
+		var getAddress = function() {
 			var defer = $q.defer();
-			$http.get('/api/locations/customer/'+customer_id+'/'+address_id)
+			$http.get('/api/locations/customer/')
 			.then(function(result) {
 				defer.resolve(result.data[0]);
 			}, function(err) {

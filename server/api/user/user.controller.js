@@ -106,7 +106,7 @@ export function changePassword(req, res, next) {
  */
 export function me(req, res, next) {
 	var userId = req.user._id;
-	console.log(req.user);
+	// console.log(req.user);
 	mysql_pool.getConnection(function(err, connection){
 		if(err) handleError(res)(err);
 		connection.query('select * from oc_customer where customer_id = ?',[userId], function(err, rows) {
@@ -114,7 +114,7 @@ export function me(req, res, next) {
 			if(err) next(err);
 			if(!rows) return res.status(401).end();
 			if(rows) {
-				console.log(rows[0]);
+				// console.log(rows[0]);
 				res.json(rows[0]);
 			}
 		});

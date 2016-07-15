@@ -46,7 +46,8 @@ export function isAuthenticated() {
 							_id: rows[0].customer_id,
 							customer_group_id: rows[0].customer_group_id,
 							address_id: rows[0].address_id,
-							email: rows[0].email
+							email: rows[0].email,
+							address_id: rows[0].address_id
 						};
 						// console.log(req.user);
 						next();

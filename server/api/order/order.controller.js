@@ -116,13 +116,13 @@ var createOrder = function(shipping_info, customer_id, customer_group_id, email,
 		'shipping_company': shipping_info.company_id ? shipping_info.company_id : '',
 		'shipping_address_1': shipping_info.address,
 		'shipping_address_2': '',
-		'shipping_city': shipping_info.city_d.name,
 		'shipping_country': shipping_info.country_d ? shipping_info.country_d.name : '台灣',
 		'shipping_country_id': shipping_info.country_id,
-		'shipping_zone': shipping_info.city_d.name,
-		'shipping_zone_id': shipping_info.city_d.zone_id,
+		'shipping_city': shipping_info.city_d ? shipping_info.city_d.name : '',
+		'shipping_zone': shipping_info.city_d ? shipping_info.city_d.name : '',
+		'shipping_zone_id': shipping_info.city_d ? shipping_info.city_d.zone_id : 0,
 		'shipping_district': shipping_info.district_d ? shipping_info.district_d.name : '',
-		'shipping_district_id': shipping_info.district_d ? shipping_info.district_d.district_id : '',
+		'shipping_district_id': shipping_info.district_d ? shipping_info.district_d.district_id : 0,
 		'shipping_postcode': shipping_info.district_d ? shipping_info.district_d.postcode : '',
 		'shipping_method': shipping_info.shipping_method,
 		'shipping_address_format': '', 'shipping_custom_field': '', 'shipping_code': '',
@@ -132,15 +132,16 @@ var createOrder = function(shipping_info, customer_id, customer_group_id, email,
 		'payment_company': shipping_info.company_id ? shipping_info.company_id : '',
 		'payment_address_1': shipping_info.address,
 		'payment_address_2': '',
-		'payment_city': shipping_info.city_d.name,
 		'payment_country': shipping_info.country_d ? shipping_info.country_d.name : '台灣',
 		'payment_country_id': shipping_info.country_id,
-		'payment_zone': shipping_info.city_d.name,
-		'payment_zone_id': shipping_info.city_d.zone_id,
+		'payment_city': shipping_info.city_d ? shipping_info.city_d.name : '',
+		'payment_zone': shipping_info.city_d ? shipping_info.city_d.name : '',
+		'payment_zone_id': shipping_info.city_d ? shipping_info.city_d.zone_id : 0,
 		'payment_district': shipping_info.district_d ? shipping_info.district_d.name : '',
-		'payment_district_id': shipping_info.district_d ? shipping_info.district_d.district_id : '',
+		'payment_district_id': shipping_info.district_d ? shipping_info.district_d.district_id : 0,
 		'payment_postcode': shipping_info.district_d ? shipping_info.district_d.postcode : '',
-		'payment_method': '', 'payment_address_format': '', 'payment_custom_field': '', 'payment_code': '',
+		'payment_method': '', 
+		'payment_address_format': '', 'payment_custom_field': '', 'payment_code': '',
 		
 		'affiliate_id': 0, 'commission': 0, 'marketing_id': 0, 'tracking': '', 'language_id': 2, 'currency_id': 4, 
 		'forwarded_ip': '', 'user_agent': '', 'accept_language': '', 'balanced_document': '', 'date_invoice': 0,
@@ -327,6 +328,19 @@ var createCouponHistory = function(order_id = 0, customer_id = 0, coupon_id = 0,
 	return defer.promise;
 };
 
+export function lupdateOrder(update_dict, condition_dict) {
+	var defer = q.defer();
+	var table = 'oc_order';
+	var sql = updateDictSql(table, update_dict, condition_dict);
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query(sql, function(err, rows) {
+			if(err) defer.reject(err);
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
 // ################ Check Cart validation of 'price', 'maximun amount', 'discount', 'special', 'reward point' ###########
 // ####
 // ####

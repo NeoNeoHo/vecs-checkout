@@ -12,8 +12,14 @@
 import _ from 'lodash';
 import Ezship from './ezship.model';
 import db_config from '../../config/db_config.js';
+import api_config from '../../config/api_config.js';
+
+import request from 'request';
+import url from 'url';
+var Order = require('../order/order.controller.js');
 var mysql_pool = db_config.mysql_pool;
 var mysql_config = db_config.mysql_config;  
+var HOST_PATH = api_config.HOST_PATH;
 
 function respondWithResult(res, entity, statusCode) {
 	statusCode = statusCode || 200;
@@ -81,4 +87,62 @@ export function getHistory(req, res) {
 			}
 		});
 	});
+}
+
+
+export function sendOrder(req, res) {
+	var customer_id = req.user._id;
+	var order_id = req.body.order_id;
+	var order_type = req.body.order_type;
+
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) { res.status(400).send(err); }
+		connection.query('SELECT * FROM oc_order WHERE order_id = ? AND customer_id = ?;', [order_id, customer_id], function(err, rows) {
+			connection.release();
+			if(err) res.status(400).send(err);
+			if(_.size(rows) == 0) res.status(400).send('Error from send ezship order: no order record.');
+			var order = rows[0];
+			var order_dict = {
+				su_id: 'shipping@vecsgardenia.com',
+				order_id: order_id,
+				order_status: 'A01',
+				order_type: order_type,
+				order_amount: order.total,
+				rv_name: order.firstname,
+				rv_email: order.email,
+				rv_mobile: order.telephone,
+				st_code: order.shipping_country,
+				rtn_url: HOST_PATH + '/api/ezships/receiveOrder/',
+				web_para: 'fjdofijasdifosdjf'
+			};
+
+			request.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict}, function(err, httpResponse, body) {
+				var result = url.parse(httpResponse.headers.location, true).query;
+				// console.log(result);
+				if(result.order_status !== 'S01') res.status(400).send({ezship_order_status: result.order_status, msg: '設定超商失敗'});
+				var update_dict = {
+					payment_postcode: result.sn_id,
+					shipping_postcode: result.sn_id
+				};
+				var condition_dict = {
+					customer_id: customer_id,
+					order_id: order_id
+				};
+				Order.lupdateOrder(update_dict, condition_dict).then(function(data) {
+					res.status(200).json(data);
+				}, function(err) {
+					res.status(400).json(err);
+				});
+			});
+		});
+	});
+}
+
+export function receiveOrder(req, res) {
+	console.log('Receive From Ezship');
+	// var customer_id = req.user._id;
+	var content = req.query;
+	if(!content) handleError(res, 'Err No content to update ezship order');
+	console.log(content);
+	res.redirect('/?showCheckout=true');
 }

@@ -39,7 +39,7 @@ function handleError(res, err, statusCode) {
 export function update(req, res) {
 	var customer_id = req.user._id;
 	var info = req.body;
-	console.log(info);
+	// console.log(info);
 	mysql_pool.getConnection(function(err, connection){
 		if(err) handleError(res, err);
 		connection.query('update '+ mysql_config.db_prefix + 'customer set ? where customer_id = ? ',[info, customer_id] , function(err, rows) {
@@ -66,14 +66,14 @@ export function get(req, res) {
 export function updateCart(req, res) {
 	var cart = req.body.cart_products;
 	var customer_id = req.user._id;
-	console.log(cart);
-	console.log(customer_id);
+	// console.log(cart);
+	// console.log(customer_id);
 	var result = _.reduce(cart, function(result, product) {
 		result[new Buffer(serialize({"product_id":product.product_id}), 'ascii').toString('base64')] = product.quantity;
 		return result;
 	}, {});
 	var serialize_result = serialize(result);
-	console.log(serialize_result);
+	// console.log(serialize_result);
 	mysql_pool.getConnection(function(err, connection) {
 		if(err) {
 			connection.release();
