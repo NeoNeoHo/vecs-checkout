@@ -429,3 +429,17 @@ export function insertOrderHistory(req, res) {
 		});
 	});
 };
+
+export function lgetOrder(order_id) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query('SELECT * FROM oc_order WHERE order_id = ?', [order_id], function(err, rows) {
+			connection.release();
+			if(err) defer.reject(err);
+			if(_.size(rows) == 0) defer.reject('Error: getOrder no such order_id');	
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};

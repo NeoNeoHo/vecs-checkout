@@ -350,18 +350,22 @@ angular.module('webApp')
 				// }, function(err) {
 				// 	console.log(err);
 				// });
+				if($scope.shipping_info.payment_sel_str === '信用卡') {
+					console.log('Yes 信用卡');
+					Payment.getCathayStrRqXML(resp_new_order_id).then(function(strRqXML) {
+						// $scope.cathay_strRqXML = strRqXML;
+						console.log('Cathay Payment Str');
+						console.log(strRqXML);
+						// document.getElementById("cathay_order_form").submit();
+					}, function(err) {
+						console.log(err);
+					});
+				}
 			}, function(err) {
 				console.log(err);
 			});
 
-			if($scope.shipping_info.payment_sel_str === '信用卡') {
-				Payment.getCathayStrRqXML(order_id).then(function(strRqXML) {
-					$scope.cathay_strRqXML = strRqXML;
-					document.getElementById("cathay_order_form").submit();
-				}, function(err) {
-					console.log(err);
-				});
-			}
+
 			Cart.updateCart($scope.cart.products).then(function(result) {}, function(err) {console.log(err)});
 			console.log($scope.shipping_info);
 		};
