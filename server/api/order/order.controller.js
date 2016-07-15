@@ -328,23 +328,10 @@ var createCouponHistory = function(order_id = 0, customer_id = 0, coupon_id = 0,
 	return defer.promise;
 };
 
-export function lupdateOrder(update_dict, condition_dict) {
-	var defer = q.defer();
-	var table = 'oc_order';
-	var sql = updateDictSql(table, update_dict, condition_dict);
-	mysql_pool.getConnection(function(err, connection) {
-		if(err) defer.reject(err);
-		connection.query(sql, function(err, rows) {
-			if(err) defer.reject(err);
-			defer.resolve(rows);
-		});
-	});
-	return defer.promise;
-};
-// ################ Check Cart validation of 'price', 'maximun amount', 'discount', 'special', 'reward point' ###########
+// ################ Create "order", "order_totl", "order_product", "order_option", "coupon_history", "customer_reward" ###########
 // ####
 // ####
-// ######################################################################################################################
+// ###############################################################################################################################
 export function create(req, res) {
 	var customer_id = req.user._id;
 	var customer_group_id = req.user.customer_group_id;

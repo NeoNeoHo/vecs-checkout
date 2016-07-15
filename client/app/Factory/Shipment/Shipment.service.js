@@ -103,14 +103,14 @@ angular.module('webApp')
 			return defer.promise;			
 		}
 
-		var setShipToEzship = function(cart, shipping_info, payment_type='超商付現') {
+		var setShipToEzship = function(cart, shipping_info, payment_method='超商付現') {
 			var defer = $q.defer();
 			var promises = [];
 			var insert_order_dict = {};
 			var address_to_update = {};
-			var order_type = (payment_type === '信用卡') ? 3 : 1;
+			var order_type = (payment_method === '信用卡') ? 3 : 1;
 
-			// Ship to Home Parameters
+			// Ship to Store Parameters
 			shipping_info.shipping_method = SHIP_TO_EZSHIP_METHOD;
 			shipping_info.order_status_id = SHIP_TO_EZSHIP_ORDER_STATUS_ID;
 			shipping_info.shipping_firstname = shipping_info.firstname;
@@ -135,12 +135,18 @@ angular.module('webApp')
 
 			$q.all(promises).then(function(datas) {
 				var order_id = datas[0].order_id
-				postEzshipOrder(order_id, order_type).then(function(data) {
+				postEzshipOrder(order_id, order_type).then(function(ezship_order_status_resp) {
 					console.log('shipping: "Ship to Ezship" done !');
-					console.log(data);
-
-					// Shipment Method Should Return "Order Id" For Later Use (Payment Method)
-					defer.resolve(order_id);
+					var ezship_order_status = ezship_order_status_resp.data;
+					var update_dict = {
+						payment_postcode: ezship_order_status.sn_id
+					};
+					Order.updateOrder(order_id, update_dict).then(function(data) {
+						// Shipment Method Should Return "Order Id" For Later Use (Payment Method)
+						defer.resolve(order_id);
+					}, function(err) {
+						defer.reject(err);
+					});
 				}, function(err) {
 					console.log(err);
 					defer.reject(err);					
@@ -158,6 +164,7 @@ angular.module('webApp')
 		return {
 			setEzshipStore: setEzshipStore,
 			getEzshipStore: getEzshipStore,
+
 			setShipToHome: setShipToHome,
 			setShipToOverseas: setShipToOverseas,
 			setShipToEzship: setShipToEzship

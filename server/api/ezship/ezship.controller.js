@@ -13,10 +13,9 @@ import _ from 'lodash';
 import Ezship from './ezship.model';
 import db_config from '../../config/db_config.js';
 import api_config from '../../config/api_config.js';
-
 import request from 'request';
 import url from 'url';
-var Order = require('../order/order.controller.js');
+
 var mysql_pool = db_config.mysql_pool;
 var mysql_config = db_config.mysql_config;  
 var HOST_PATH = api_config.HOST_PATH;
@@ -118,21 +117,8 @@ export function sendOrder(req, res) {
 
 			request.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict}, function(err, httpResponse, body) {
 				var result = url.parse(httpResponse.headers.location, true).query;
-				// console.log(result);
-				if(result.order_status !== 'S01') res.status(400).send({ezship_order_status: result.order_status, msg: '設定超商失敗'});
-				var update_dict = {
-					payment_postcode: result.sn_id,
-					shipping_postcode: result.sn_id
-				};
-				var condition_dict = {
-					customer_id: customer_id,
-					order_id: order_id
-				};
-				Order.lupdateOrder(update_dict, condition_dict).then(function(data) {
-					res.status(200).json(data);
-				}, function(err) {
-					res.status(400).json(err);
-				});
+				if(result.order_status !== 'S01') res.status(400).json({ezship_order_status: result.order_status, msg: '設定超商失敗'});
+				res.status(200).json(result);
 			});
 		});
 	});
@@ -140,7 +126,6 @@ export function sendOrder(req, res) {
 
 export function receiveOrder(req, res) {
 	console.log('Receive From Ezship');
-	// var customer_id = req.user._id;
 	var content = req.query;
 	if(!content) handleError(res, 'Err No content to update ezship order');
 	console.log(content);

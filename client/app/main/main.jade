@@ -288,18 +288,8 @@
 					div.panel.panel-body
 						button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedCheckout()") 送出結帳
 						button.btn.btn-default.btn-lg.btn-success.btn-sharp(ng-click="to_show_next_process = false; goToAnchor('checkout_cart_table')") 返回
-				form(method="post", id="ezship_order_form", action="https://www.ezship.com.tw/emap/ezship_request_order_api.jsp")
-					input(type='hidden', name='su_id', value='shipping@vecsgardenia.com')
-					input(type='hidden', name='order_id', value='99990020')
-					input(type='hidden', name='order_status', value='A01')
-					input(type='hidden', name='order_type',value='1')
-					input(type='hidden', name='order_amount', value='1400')
-					input(type='hidden', name='rv_name', value='侯濟民的單')
-					input(type='hidden', name='rv_email', value='b95042@gmail.com')
-					input(type='hidden', name='rv_mobile', value='0912412381')
-					input(type='hidden', name='st_code', value='TOK0615')
-					input(type='hidden', name='rtn_url', value='http://61.220.72.50:9001/api/ezships/receiveOrder/')
-					input(type='submit', value='submit')
+				form(method="post", id="cathay_order_form", action="https://sslpayment.uwccb.com.tw/EPOSService/Payment/OrderInitial.aspx")
+					input(type='hidden', name='strRqXML', ng-value="cathay_strRqXML")
 
 
 footer.footer
