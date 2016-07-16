@@ -3,9 +3,13 @@
 var express = require('express');
 var controller = require('./payment.controller');
 var auth = require('../../auth/auth.service');
-
+var cors = require('cors');
 var router = express.Router();
 
-router.get('/cathay/rqXML/:order_id', auth.isAuthenticated(), controller.getCathayRqXML);
+var corsOptions = {
+	origin: ['https://sslpayment.uwccb.com.tw/EPOSService/Payment/OrderInitial.aspx', /\.sslpayment\.uwccb\.com\.tw$/]
+};
 
+router.get('/cathay/rqXML/:order_id', auth.isAuthenticated(), controller.getCathayRqXML);
+router.post('cathay/callback/', cors(corsOptions), controller.getCathayCallback);
 module.exports = router;

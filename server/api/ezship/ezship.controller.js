@@ -93,20 +93,20 @@ export function sendOrder(req, res) {
 	var customer_id = req.user._id;
 	var order_id = req.body.order_id;
 	var order_type = req.body.order_type;
-
 	mysql_pool.getConnection(function(err, connection) {
 		if(err) { res.status(400).send(err); }
 		connection.query('SELECT * FROM oc_order WHERE order_id = ? AND customer_id = ?;', [order_id, customer_id], function(err, rows) {
 			connection.release();
 			if(err) res.status(400).send(err);
 			if(_.size(rows) == 0) res.status(400).send('Error from send ezship order: no order record.');
+			
 			var order = rows[0];
 			var order_dict = {
 				su_id: 'shipping@vecsgardenia.com',
 				order_id: order_id,
 				order_status: 'A01',
 				order_type: order_type,
-				order_amount: order.total,
+				order_amount: (order_type == 1) ? order.total : 0,
 				rv_name: order.firstname,
 				rv_email: order.email,
 				rv_mobile: order.telephone,
@@ -114,12 +114,16 @@ export function sendOrder(req, res) {
 				rtn_url: HOST_PATH + '/api/ezships/receiveOrder/',
 				web_para: 'fjdofijasdifosdjf'
 			};
-
-			request.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict}, function(err, httpResponse, body) {
-				var result = url.parse(httpResponse.headers.location, true).query;
-				if(result.order_status !== 'S01') res.status(400).json({ezship_order_status: result.order_status, msg: '設定超商失敗'});
-				res.status(200).json(result);
-			});
+			// request.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict}, function(err, lhttpResponse, body) {
+			// 	if(err) {
+			// 		console.log(err);
+			// 		res.status(400).json(err);
+			// 	}
+			// 	var result = (lhttpResponse) ? url.parse(lhttpResponse.headers.location, true).query : {order_status: 'Error'};
+			// 	if(result.order_status !== 'S01') res.status(400).json({ezship_order_status: result.order_status, msg: '設定超商失敗'});
+			// 	res.status(200).json(result);
+			// });
+			res.status(200).json(rows);
 		});
 	});
 }

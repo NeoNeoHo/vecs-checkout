@@ -6,6 +6,16 @@ angular.module('webApp')
 		// ...
 		var DIR_IMAGE_PATH = 'https://www.vecsgardenia.com/image/';
 
+		var getOrder = function(order_id) {
+			var defer = $q.defer();
+			$http.get('/api/orders/order/'+order_id)
+			.then(function(result) {
+				defer.resolve(result.data);
+			}, function(err) {
+				defer.reject(err);
+			});
+			return defer.promise;	
+		};
 		var createOrder = function(cart, shipping_info) {
 			var defer = $q.defer();
 			$http.post('/api/orders/order/', {cart: cart, shipping_info: shipping_info})
@@ -45,6 +55,7 @@ angular.module('webApp')
 			},
 			createOrder: createOrder,
 			updateOrder: updateOrder,
-			insertOrderHistory: insertOrderHistory
+			insertOrderHistory: insertOrderHistory,
+			getOrder: getOrder
 		};
 	});

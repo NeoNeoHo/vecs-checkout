@@ -343,23 +343,10 @@ angular.module('webApp')
 				$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: $scope.shipping_info.district_id});
 			}
 			Shipment.setShipToEzship($scope.cart, $scope.shipping_info, $scope.shipping_info.payment_sel_str).then(function(resp_new_order_id) {
-				// console.log('Complete Shipment Setting');
-				// console.log(resp_new_order_id);
-				// Payment.setPayByHand(resp_new_order_id).then(function(data) {
-				// 	console.log(data);
-				// }, function(err) {
-				// 	console.log(err);
-				// });
+				console.log('進入setSHipTOEzship');
 				if($scope.shipping_info.payment_sel_str === '信用卡') {
 					console.log('Yes 信用卡');
-					Payment.getCathayStrRqXML(resp_new_order_id).then(function(strRqXML) {
-						// $scope.cathay_strRqXML = strRqXML;
-						console.log('Cathay Payment Str');
-						console.log(strRqXML);
-						// document.getElementById("cathay_order_form").submit();
-					}, function(err) {
-						console.log(err);
-					});
+					Payment.setPayByCreditCard(resp_new_order_id);
 				}
 			}, function(err) {
 				console.log(err);

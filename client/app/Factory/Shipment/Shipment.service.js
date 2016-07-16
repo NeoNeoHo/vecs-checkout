@@ -98,6 +98,7 @@ angular.module('webApp')
 			$http.post('/api/ezships/sendOrder/', {order_id: order_id, order_type: order_type}).then(function(data) {
 				defer.resolve(data);
 			}, function(err) {
+				console.log(err);
 				defer.reject(err);
 			});
 			return defer.promise;			

@@ -5,7 +5,7 @@
 'use strict';
 
 import express from 'express';
-import cors from 'cors';
+// import cors from 'cors';
 import mongoose from 'mongoose';
 mongoose.Promise = require('bluebird');
 import config from './config/environment';
@@ -23,10 +23,10 @@ if (config.seedDB) { require('./config/seed'); }
 
 // Setup server
 var app = express();
-var corsOptions = {
-  origin: 'http://vecsgardenia.com.tw'
-};
-app.use(cors(corsOptions));
+// var corsOptions = {
+//   origin: 'http://vecsgardenia.com.tw'
+// };
+// app.use(cors(corsOptions));
 var server = http.createServer(app);
 require('./config/express')(app);
 require('./routes')(app);

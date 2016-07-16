@@ -388,8 +388,8 @@ export function updateOrder(req, res) {
 	var customer_id = req.user._id;
 	var order_id = req.params.order_id;
 	var update_dict = req.body.update_dict;
-
 	update_dict.date_modified = new Date();
+	
 	var sql = updateDictSql('oc_order', update_dict, {order_id: order_id, customer_id: customer_id});
 	console.log(sql);
 	mysql_pool.getConnection(function(err, connection) {
@@ -442,4 +442,18 @@ export function lgetOrder(order_id) {
 		});
 	});
 	return defer.promise;
+};
+
+export function getOrder(req, res) {
+	var order_id = req.params.order_id;
+	var customer_id = req.user._id;
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) res.status(400).json(err);
+		connection.query('SELECT * FROM oc_order WHERE order_id = ? and customer_id = ?', [order_id, customer_id], function(err, rows) {
+			connection.release();
+			if(err) res.status(400).json(err);
+			if(_.size(rows) == 0) res.status(400).send('Error: getOrder no such order_id');	
+			res.status(200).json(rows);
+		});
+	});
 };
