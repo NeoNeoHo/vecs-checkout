@@ -35,7 +35,7 @@ angular.module('webApp')
 			return defer.promise;
 		};
 
-		var setShipToHome = function(cart, shipping_info) {
+		var setShipToHome = function(cart, shipping_info, payment_method='超商付現') {
 			var defer = $q.defer();
 			var promises = [];
 			var insert_order_dict = {};
@@ -64,7 +64,7 @@ angular.module('webApp')
 			return defer.promise;
 		};
 
-		var setShipToOverseas = function(cart, shipping_info) {
+		var setShipToOverseas = function(cart, shipping_info, payment_method='超商付現') {
 			var defer = $q.defer();
 			var promises = [];
 			var insert_order_dict = {};
@@ -152,8 +152,6 @@ angular.module('webApp')
 					console.log(err);
 					defer.reject(err);					
 				});
-
-
 			}, function(err) {
 				console.log(err);
 				defer.reject(err);

@@ -58,6 +58,7 @@ angular.module('webApp')
 		};
 
 		var setPayByCreditCard = function(order_id) {
+			var defer = $q.defer();
 			Order.getOrder(order_id).then(function(orders) {
 				var order = orders[0];
 				var shipping_method = order.shipping_method;
@@ -72,15 +73,17 @@ angular.module('webApp')
 					getCathayStrRqXML(order_id).then(function(strRqXML) {
 						document.getElementById("strRqXMLID").value = strRqXML;
 						document.getElementById("cathay_order_form").submit();
+						defer.resolve(data);
 					}, function(err) {
 						console.log(err);
+						defer.reject(err);
 					});					
 				}, function(err) {
 					console.log(err);
+					defer.reject(err);
 				});
-
 			});
-			return 0;
+			return defer.promise;
 		};
 
 

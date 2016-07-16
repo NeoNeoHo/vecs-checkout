@@ -312,6 +312,8 @@ angular.module('webApp')
 		}
 
 		$scope.proceedCheckout = function() {
+			var shipping_promise = [];
+			var payment_promise = [];
 			var customer_to_update = {
 				firstname: $scope.shipping_info.firstname,
 				lastname: '',
@@ -342,12 +344,29 @@ angular.module('webApp')
 				$scope.shipping_info.city_d = _.find($scope.city_coll, {zone_id: $scope.shipping_info.city_id});
 				$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: $scope.shipping_info.district_id});
 			}
-			Shipment.setShipToEzship($scope.cart, $scope.shipping_info, $scope.shipping_info.payment_sel_str).then(function(resp_new_order_id) {
-				console.log('進入setSHipTOEzship');
-				if($scope.shipping_info.payment_sel_str === '信用卡') {
-					console.log('Yes 信用卡');
-					Payment.setPayByCreditCard(resp_new_order_id);
-				}
+
+			var shipment_method = $scope.shipping_info.shipment_sel_str;
+			var payment_method = $scope.shipping_info.payment_sel_str;
+			if(shipment_method === '送貨到府') { 
+				shipping_promise.push(Shipment.setShipToHome($scope.cart, $scope.shipping_info, payment_method));
+			} else if(shipment_method === '海外配送') {
+				shipping_promise.push(Shipment.setShipToOverseas($scope.cart, $scope.shipping_info, payment_method));
+			} else if(shipment_method === '超商取貨') {
+				shipping_promise.push(Shipment.setShipToEzship($scope.cart, $scope.shipping_info, payment_method));
+			} else {
+				alert('沒有配送方式');
+			}
+
+			$q.all(shipping_promise).then(function(resp_new_order_id) {
+				if(payment_method === '貨到付款') payment_promise.push(Payment.setPayOnDeliver(resp_new_order_id));
+				if(payment_method === '超商付現') payment_promise.push(Payment.setPayOnStore(resp_new_order_id));
+				if(payment_method === '信用卡') payment_promise.push(Payment.setPayByCreditCard(resp_new_order_id));
+
+				$q.all(payment_promise).then(function(data) {
+					console.log('完成付款部分: ' + data);
+				}, function(err) {
+					console.log('完成付款部分: ' + err);
+				});
 			}, function(err) {
 				console.log(err);
 			});
