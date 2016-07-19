@@ -114,16 +114,20 @@ export function sendOrder(req, res) {
 				rtn_url: HOST_PATH + '/api/ezships/receiveOrder/',
 				web_para: 'fjdofijasdifosdjf'
 			};
-			// request.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict}, function(err, lhttpResponse, body) {
-			// 	if(err) {
-			// 		console.log(err);
-			// 		res.status(400).json(err);
-			// 	}
-			// 	var result = (lhttpResponse) ? url.parse(lhttpResponse.headers.location, true).query : {order_status: 'Error'};
-			// 	if(result.order_status !== 'S01') res.status(400).json({ezship_order_status: result.order_status, msg: '設定超商失敗'});
-			// 	res.status(200).json(result);
-			// });
-			res.status(200).json(rows);
+			request.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict}, function(err, lhttpResponse, body) {
+				if(err) {
+					console.log(err);
+					res.status(400).json(err);
+				}
+				var result = (lhttpResponse) ? url.parse(lhttpResponse.headers.location, true).query : {order_status: 'Error'};
+				if(result.order_status !== 'S01') {
+					res.status(400).json({ezship_order_status: result.order_status, msg: '設定超商失敗'});
+				} else {
+					console.log('receives ezship response');
+					res.status(200).json(result);
+				}
+			});
+			// res.status(200).json(rows);
 		});
 	});
 }

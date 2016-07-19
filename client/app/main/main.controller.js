@@ -314,6 +314,8 @@ angular.module('webApp')
 		$scope.proceedCheckout = function() {
 			var shipping_promise = [];
 			var payment_promise = [];
+			var shipment_method = $scope.shipping_info.shipment_sel_str;
+			var payment_method = $scope.shipping_info.payment_sel_str;
 			var customer_to_update = {
 				firstname: $scope.shipping_info.firstname,
 				lastname: '',
@@ -338,15 +340,12 @@ angular.module('webApp')
 			$scope.applyVoucher().then(function(data) {}, function(err) {alert(err)});
 
 			// Step 5. 根據不同配送 付款方式，產生相對應後送動作
-			// 		Step 5-1. 貨到付款，使用禮品券
-			if(lstrcmp(['送貨到府', '海外配送'], $scope.shipping_info.shipment_sel_str)) {
+			if(lstrcmp(['送貨到府', '海外配送'], shipment_method)) {
 				$scope.shipping_info.country_d = _.find($scope.country_coll, {country_id: $scope.shipping_info.country_id});
 				$scope.shipping_info.city_d = _.find($scope.city_coll, {zone_id: $scope.shipping_info.city_id});
 				$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: $scope.shipping_info.district_id});
 			}
 
-			var shipment_method = $scope.shipping_info.shipment_sel_str;
-			var payment_method = $scope.shipping_info.payment_sel_str;
 			if(shipment_method === '送貨到府') { 
 				shipping_promise.push(Shipment.setShipToHome($scope.cart, $scope.shipping_info, payment_method));
 			} else if(shipment_method === '海外配送') {
@@ -357,13 +356,21 @@ angular.module('webApp')
 				alert('沒有配送方式');
 			}
 
-			$q.all(shipping_promise).then(function(resp_new_order_id) {
+			// Step 5-1. 先處理配送方式，回傳訂單編號
+			$q.all(shipping_promise).then(function(resp_new_order_id_array) {
+				var resp_new_order_id = resp_new_order_id_array[0];
 				if(payment_method === '貨到付款') payment_promise.push(Payment.setPayOnDeliver(resp_new_order_id));
 				if(payment_method === '超商付現') payment_promise.push(Payment.setPayOnStore(resp_new_order_id));
 				if(payment_method === '信用卡') payment_promise.push(Payment.setPayByCreditCard(resp_new_order_id));
 
-				$q.all(payment_promise).then(function(data) {
-					console.log('完成付款部分: ' + data);
+				// Step 5-2. 再處理付款方式，回傳訂單狀態與訂單編號
+				$q.all(payment_promise).then(function(datas) {
+					console.log('完成付款部分: ');
+					var checkout_result = datas[0];
+					console.log(checkout_result);
+					// if(checkout_result.checkout_status == 1) {
+						$location.path('/success').search({order_id: checkout_result.order_id}).hash('');
+					// }
 				}, function(err) {
 					console.log('完成付款部分: ' + err);
 				});
@@ -375,9 +382,5 @@ angular.module('webApp')
 			Cart.updateCart($scope.cart.products).then(function(result) {}, function(err) {console.log(err)});
 			console.log($scope.shipping_info);
 		};
-
-
-
-
 		$scope.getEzshipStore();
 	});

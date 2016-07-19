@@ -75,7 +75,10 @@ angular.module('webApp')
 				company: shipping_info.company ? shipping_info.company : '',
 				company_id: shipping_info.company_id ? shipping_info.company_id : '',
 				address_1: shipping_info.address,
+				address_2: '',
 				country_id: shipping_info.country_id,
+				city: '',
+				postcode: (shipping_info.district_d) ? shipping_info.district_d.postcode : 0,
 				zone_id: shipping_info.city_id,
 				telephone: shipping_info.telephone,
 				district_id: shipping_info.district_id

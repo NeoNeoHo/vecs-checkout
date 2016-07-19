@@ -101,10 +101,29 @@ export function updateAddress(req, res) {
 
 	mysql_pool.getConnection(function(err, connection){
 		if(err) handleError(res, err);
-		connection.query('update '+ mysql_config.db_prefix + 'address set ? where customer_id = ? and address_id = ?',[address, customer_id, address_id] , function(err, rows) {
-			connection.release();
-			if(err) handleError(res, err);
-			res.status(200).json(rows);
+		connection.query('update '+ mysql_config.db_prefix + 'address set ? where customer_id = ? and address_id = ?',[address, customer_id, address_id] , function(err, result) {
+			if(err) {
+				console.log(err);
+				connection.release();
+				handleError(res, err);
+			}
+			else if(result.affectedRows == 0) {
+				address.address_id = address_id;
+				address.customer_id = customer_id;
+				address.tax_id = 0;
+				connection.query('insert into ' + mysql_config.db_prefix + 'address set ?;', address, function(err, result2) {
+					connection.release();
+					if(err) {
+						console.log(err);
+						res.status(400).json(err);
+					}
+					res.status(200).json(result2);
+				});
+			} 
+			else {
+				connection.release();
+				res.status(200).json(result);
+			}
 		});
 
 	});

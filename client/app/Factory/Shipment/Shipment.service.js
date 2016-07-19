@@ -53,6 +53,7 @@ angular.module('webApp')
 
 			$q.all(promises).then(function(datas) {
 				console.log('shipping: "Ship to Home" done !');
+				console.log(datas);
 				var order_id = datas[1].order_id
 
 				// Shipment Method Should Return "Order Id" For Later Use (Payment Method)

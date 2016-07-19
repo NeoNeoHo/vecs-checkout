@@ -62,6 +62,13 @@ export function getCathayRqXML(req, res) {
 export function getCathayCallback(req, res) {
 	var strRsXML = req.body.strRsXML;
 	var xml = "<?xml version='1.0' encoding='UTF-8'?> <CUBXML><CAVALUE>驗證值</CAVALUE> <ORDERINFO><STOREID>特店代號</STOREID> <ORDERNUMBER>訂單編號</ORDERNUMBER> <AMOUNT>金額</AMOUNT></ORDERINFO> <AUTHINFO><AUTHSTATUS>授權狀態</AUTHSTATUS> <AUTHCODE>授權碼</AUTHCODE> <AUTHTIME>授權時間</AUTHTIME>< AUTHMSG>授權訊息</AUTHMSG></AUTHINFO> </CUBXML>";
+	var returl = 'http://http://61.220.72.50:9001/';
+	var CAVALUE = md5(returl+api_config.CATHAY.CUBKEY);
+	var respXML = "<?xml version='1.0' encoding='UTF-8'?>";
+	respXML += "<MERCHANTXML>";
+	respXML += "<CAVALUE>" + CAVALUE + "</CAVALUE>";
+	respXML += "<RETURL>" + returl + "</RETURL></MERCHANTXML>";
+	res.status(200).send(respXML);
 	parseString(strRsXML, function (err, result) {
 		if(err) res.status(400).json(err);
 		console.log(strRsXML);

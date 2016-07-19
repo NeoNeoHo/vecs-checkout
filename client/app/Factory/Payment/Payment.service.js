@@ -20,7 +20,8 @@ angular.module('webApp')
 		var getCathayStrRqXML = function(order_id) {
 			console.log('getCathayStrRqXML: ' + order_id);
 			var defer = $q.defer();
-			$http.get('/api/payments/cathay/rqXML/'+order_id).then(function(resp) {
+			$http.get('/api/payment/cathay/rqXML/'+order_id).then(function(resp) {
+
 				defer.resolve(resp.data.rqXML);
 			}, function(err) {
 				defer.reject(err);
@@ -36,7 +37,7 @@ angular.module('webApp')
 				order_status_id: PAY_ON_DELIVER_SUCCESS_ORDER_STATUS_ID
 			};
 			Order.updateOrder(order_id, update_dict).then(function(data) {
-				defer.resolve(data);
+				defer.resolve({checkout_status: 1, order_id: order_id});
 			}, function(err) {
 				defer.reject(err);
 			});
@@ -50,7 +51,7 @@ angular.module('webApp')
 				order_status_id: PAY_ON_STORE_SUCCESS_ORDER_STATUS_ID
 			};
 			Order.updateOrder(order_id, update_dict).then(function(data) {
-				defer.resolve(data);
+				defer.resolve({checkout_status: 1, order_id: order_id});
 			}, function(err) {
 				defer.reject(err);
 			});
@@ -72,7 +73,7 @@ angular.module('webApp')
 				Order.updateOrder(order_id, update_dict).then(function(data) {
 					getCathayStrRqXML(order_id).then(function(strRqXML) {
 						document.getElementById("strRqXMLID").value = strRqXML;
-						document.getElementById("cathay_order_form").submit();
+						// document.getElementById("cathay_order_form").submit();
 						defer.resolve(data);
 					}, function(err) {
 						console.log(err);
