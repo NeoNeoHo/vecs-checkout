@@ -29,6 +29,17 @@
   border-top: 1px solid #E5E5E5;
 }
 
+.well-focus {
+  @extend .well;
+  background-color: green;
+  color: white;
+}
+
+.well-blur {
+  @extend .well;
+  opacity: 0.3;
+}
+
 a {
   color: black;
   &:hover {

@@ -6,6 +6,23 @@ angular.module('webApp')
 		// ...
 		var DIR_IMAGE_PATH = 'https://www.vecsgardenia.com/image/';
 
+		var STATUS_def = {
+			_created: [54, 55, 57, 58, 60],
+			_shipped: [20, 28, 32, 42],
+			_received: [21, 29, 34],
+			_failed: [10, 50, 51, 52, 53, 56, 59],
+			_returned: [45, 46]
+		};
+
+		var getStatusLevel = function(order_status_id){
+			var level = _.contains(STATUS_def._created, order_status_id) ? '_created' : '';
+			level = _.contains(STATUS_def._shipped, order_status_id) ? '_shipped' : level;
+			level = _.contains(STATUS_def._received, order_status_id) ? '_received' : level;
+			level = _.contains(STATUS_def._failed, order_status_id) ? '_failed' : level;
+			level = _.contains(STATUS_def._returned, order_status_id) ? '_returned' : level;
+			return level;
+		};
+
 		var getOrder = function(order_id) {
 			var defer = $q.defer();
 			$http.get('/api/orders/order/'+order_id)
@@ -16,6 +33,18 @@ angular.module('webApp')
 			});
 			return defer.promise;	
 		};
+
+		var getOrderProducts = function(order_id) {
+			var defer = $q.defer();
+			$http.get('/api/orders/orderProducts/'+order_id)
+			.then(function(result) {
+				defer.resolve(result.data);
+			}, function(err) {
+				defer.reject(err);
+			});
+			return defer.promise;	
+		};
+
 		var createOrder = function(cart, shipping_info) {
 			var defer = $q.defer();
 			$http.post('/api/orders/order/', {cart: cart, shipping_info: shipping_info})
@@ -56,6 +85,9 @@ angular.module('webApp')
 			createOrder: createOrder,
 			updateOrder: updateOrder,
 			insertOrderHistory: insertOrderHistory,
-			getOrder: getOrder
+			getOrder: getOrder,
+			getOrderProducts: getOrderProducts,
+			STATUS_def: STATUS_def,
+			getStatusLevel: getStatusLevel
 		};
 	});

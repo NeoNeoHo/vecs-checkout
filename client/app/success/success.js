@@ -6,6 +6,7 @@ angular.module('webApp')
       .state('success', {
         url: '/success',
         templateUrl: 'app/success/success.html',
-        controller: 'SuccessCtrl'
+        controller: 'SuccessCtrl',
+        authenticate: true
       });
   });

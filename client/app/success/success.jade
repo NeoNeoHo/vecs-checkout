@@ -1,1 +1,38 @@
-div This is the success view.
+div.container
+	div.jumbotron.text-center
+		h1 Hello, We are Vecs Gardenia
+		p 我們將會儘速將商品(訂單編號：
+			b {{order.order_id}}
+			| )交到您的手中
+		p 嘉丹妮爾，沒有負擔的美麗
+		table.table
+			tr.black.text-white
+				th.col-lg-6.col-md-6.col-sm-6.col-xs-6.text-center 商品名稱
+				th.col-lg-2.col-md-2.col-sm-2.col-xs-2.text-center 數量
+				th.col-lg-1.col-md-3.col-sm-3.col-xs-3.text-center 總價
+			tr(ng-repeat="product in order.products")
+				td 
+					a(ng-href="{{product.href}}") {{product.name}}
+					em.small(ng-repeat="option in product.options")
+						br
+						| {{option.name}},{{option.value}}
+				td {{product.quantity}}
+				td {{product.total}}
+		em.pull-right ({{order.payment_method}} , {{order.shipping_method}})
+			//- a.btn.btn-default.btn-lg(href="/users", role="button") 一探究竟
+	
+	.page-header.h3 商品處理資訊
+	div.row
+		div.col-md-4
+			div.well.well-lg(ng-class="{'well-focus': (order_status_level=='_created'), 'well-blur': (order_status_level!= '_created')}")
+				h4.text-center 我們已經收到您的訂單資訊</br>嘉丹妮爾的出貨小組</br>將會盡快為您裝箱與出貨</br>再耐心等一下下吧</br>
+			//- img.img-circle.img-half-width.center-block(src='../assets/images/me.jpg')
+		div.col-md-4
+			div.well.well-lg.well-blur(ng-class="{'well-focus': (order_status_level=='_shipped'), 'well-blur': (order_status_level!= '_shipped')}")
+				h4.text-center 出貨囉！！</br></br>若是超商取貨</br>商品到店後會寄簡訊通知您
+			//- img.img-circle.img-half-width.center-block(src='../assets/images/vincent.jpg')
+		div.col-md-4
+			div.well.well-lg.well-blur(ng-class="{'well-focus': (order_status_level=='_received'), 'well-blur': (order_status_level!= '_received')}")
+				h4.text-center 謝謝您的訂購，</br>希望拿到商品的您會喜歡嘉丹妮爾
+			//- img.img-circle.img-half-width.center-block(src='../assets/images/max.jpg')
+footer

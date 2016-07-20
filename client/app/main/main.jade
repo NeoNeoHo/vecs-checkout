@@ -6,12 +6,11 @@
 			div#notification
 
 	div
-		.row
-			div.breadcrumb
-				a(href='http://vecsgardenia.com/index.php?route=common/home')
-					i.fa.fa-home 
-				span  / 
-				a(href='http://vecsgardenia.com/index.php?route=checkout/simplecheckout') checkout
+		div.breadcrumb
+			a(href='http://vecsgardenia.com/index.php?route=common/home')
+				i.fa.fa-home 
+			span  / 
+			a(href='http://vecsgardenia.com/index.php?route=checkout/simplecheckout') checkout
 		div.simple-content
 			div(ng-show="!to_show_next_process")
 				div#checkout_cart.panel.panel-default
@@ -260,7 +259,7 @@
 									input.form-control(ng-model="shipping_info.comment", type='textarea', id='inputComment', placeholder='選填') 
 								span.col-lg-6.col-md-6.hidden-sm.hidden-xs
 				div
-					.row			
+					.row
 						div.col-sm-6
 							.page-header.h3 總計
 							table.table(ng-show="shipping_info.payment_sel_str")
@@ -290,13 +289,4 @@
 						button.btn.btn-default.btn-lg.btn-success.btn-sharp(ng-click="to_show_next_process = false; goToAnchor('checkout_cart_table')") 返回
 				form(method="post", id="cathay_order_form", action="https://sslpayment.uwccb.com.tw/EPOSService/Payment/OrderInitial.aspx")
 					input(type='hidden', id='strRqXMLID', name='strRqXML', value='')
-
-
-footer.footer
-	.container
-		p
-			| Angular Fullstack v2.0.13
-			= ' | '
-			a(href='https://twitter.com/tyhenkel') @tyhenkel
-			= ' | '
-			a(href='https://github.com/DaftMonk/generator-angular-fullstack/issues?state=open') Issues
+footer

@@ -11,6 +11,7 @@
 
 import _ from 'lodash';
 import db_config from '../../config/db_config.js';
+import api_config from '../../config/api_config.js';
 import q from 'q';
 import moment from 'moment';
 var mysql_pool = db_config.mysql_pool;
@@ -328,6 +329,64 @@ var createCouponHistory = function(order_id = 0, customer_id = 0, coupon_id = 0,
 	return defer.promise;
 };
 
+var lgetOrder = function(order_id) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) {
+			connection.release();
+			defer.reject(err);
+		}
+		connection.query('SELECT a.*, b.name as order_status_name FROM oc_order a, oc_order_status b WHERE a.order_id = ? and a.order_status_id = b.order_status_id and b.language_id = 2', [order_id], function(err, rows) {
+			connection.release();
+			if(err) defer.reject(err);
+			if(_.size(rows) == 0) defer.reject('Error: getOrder no such order_id');	
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
+
+var lgetOrderProduct = function(order_id) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) {
+			connection.release();
+			defer.reject(err);
+		} else {
+			connection.query('SELECT * FROM oc_order_product WHERE order_id = ? order by order_product_id asc;', [order_id], function(err, rows) {
+				connection.release();
+				if(err) {
+					defer.reject(err);
+				} else if (_.size(rows) == 0) {
+					defer.reject('Error: getOrderProduct no product from order_id');
+				} else {
+					defer.resolve(rows);
+				}
+			});
+		}
+	});
+	return defer.promise;
+};
+
+var lgetOrderOption = function(order_id) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) {
+			connection.release();
+			defer.reject(err);
+		} else {
+			connection.query('SELECT * FROM oc_order_option WHERE order_id = ? order by order_option_id asc;', [order_id], function(err, rows) {
+				connection.release();
+				if(err) {
+					defer.reject(err);
+				} else {
+					defer.resolve(rows);
+				}
+			});
+		}
+	});
+	return defer.promise;
+};
 // ################ Create "order", "order_totl", "order_product", "order_option", "coupon_history", "customer_reward" ###########
 // ####
 // ####
@@ -395,6 +454,7 @@ export function updateOrder(req, res) {
 	mysql_pool.getConnection(function(err, connection) {
 		if(err) {
 			console.log(err);
+			connection.release();
 			res.status(400).send(err);
 		}
 		connection.query(sql, function(err, rows) {
@@ -414,7 +474,10 @@ export function insertOrderHistory(req, res) {
 	var insert_dict = req.body.insert_dict;
 
 	mysql_pool.getConnection(function(err, connection) {
-		if(err) res.status(400).send(err);
+		if(err) {
+			connection.release();
+			res.status(400).send(err);
+		}
 		connection.query('SELECT * FROM oc_order WHERE order_id = ? AND customer_id = ?', [order_id, customer_id], function(err, rows) {
 			connection.release();
 			if(err) res.status(400).send(err);
@@ -455,5 +518,49 @@ export function getOrder(req, res) {
 			if(_.size(rows) == 0) res.status(400).send('Error: getOrder no such order_id');	
 			res.status(200).json(rows);
 		});
+	});
+};
+
+export function getOrderProducts(req, res) {
+	var order_id = req.params.order_id;
+	var customer_id = req.user._id;
+	var promises = [];
+	promises.push(lgetOrder(order_id));
+	promises.push(lgetOrderProduct(order_id));
+	promises.push(lgetOrderOption(order_id));
+	q.all(promises).then(function(datas) {
+		var order = datas[0][0];
+		if(order.customer_id !== customer_id) {
+			res.status(400).send('You have no permission to query order: ' + order_id);
+		} else {
+			var order_product = datas[1];
+			var order_option = datas[2];
+
+			var result_obj = {
+				order_id: order_id,
+				total: order.total,
+				order_status_id: order.order_status_id,
+				order_status_name: order.order_status_name,
+				payment_method: order.payment_method,
+				shipping_method: order.shipping_method
+			};
+			result_obj['products'] = _.map(order_product, function(product) {
+				var obj = {
+					product_id: product.product_id,
+					href: api_config.DIR_PATH + '?route=product/product&product_id=' + product.product_id,
+					name: product.name,
+					quantity: product.quantity,
+					total: product.total,
+					price: product.price
+				}
+				obj['options'] = _.filter(order_option, function(option) {
+					return option.order_product_id == product.order_product_id;
+				});
+				return obj;
+			});
+			res.status(200).json(result_obj);
+		}
+	}, function(err) {
+		res.status(400).json(err);
 	});
 };
