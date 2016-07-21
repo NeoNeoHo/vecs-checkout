@@ -1,18 +1,9 @@
 'use strict';
 
 angular.module('webApp')
-	.factory('Order', function ($q, $http) {
-		// Service logic
-		// ...
-		var DIR_IMAGE_PATH = 'https://www.vecsgardenia.com/image/';
+	.factory('Order', function ($q, $http, Config) {
 
-		var STATUS_def = {
-			_created: [54, 55, 57, 58, 60],
-			_shipped: [20, 28, 32, 42],
-			_received: [21, 29, 34],
-			_failed: [10, 50, 51, 52, 53, 56, 59],
-			_returned: [45, 46]
-		};
+		var STATUS_def = Config.ORDER_STATUS_def;
 
 		var getStatusLevel = function(order_status_id){
 			var level = _.contains(STATUS_def._created, order_status_id) ? '_created' : '';
@@ -87,7 +78,6 @@ angular.module('webApp')
 			insertOrderHistory: insertOrderHistory,
 			getOrder: getOrder,
 			getOrderProducts: getOrderProducts,
-			STATUS_def: STATUS_def,
 			getStatusLevel: getStatusLevel
 		};
 	});

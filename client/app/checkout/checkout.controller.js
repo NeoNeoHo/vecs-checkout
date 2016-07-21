@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webApp')
-	.controller('MainController', function ($scope, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Payment, Promotion, Cart, Customer, Reward, Product, Config) {
+	.controller('CheckoutController', function ($scope, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Payment, Promotion, Cart, Customer, Reward, Product, Config) {
 		var currentUser = Auth.getCurrentUser();
 		$scope.allow_amount = _.range(1,10);
 		var SHIPMENT_EZSHIP_FEE = Config.SHIPPING_FEE.EZSHIP;

@@ -1,27 +1,25 @@
 'use strict';
 
 angular.module('webApp')
-	.factory('Payment', function ($http, $q, $filter, Location, Order) {
+	.factory('Payment', function ($http, $q, $filter, Location, Order, Config) {
 		// Service logic
 		// ...
-		var PAY_ON_DELIVER_METHOD = '貨到付款';
+		var PAY_ON_DELIVER_METHOD = Config.PAYMENT_NAME.hand_pay;
 		var PAY_ON_DELIVER_SUCCESS_ORDER_STATUS_ID = 55;
 
-		var PAY_ON_STORE_METHOD = '超商付現';
+		var PAY_ON_STORE_METHOD = Config.PAYMENT_NAME.store_pay;
 		var PAY_ON_STORE_SUCCESS_ORDER_STATUS_ID = 58;
 
-		var PAY_BY_CREDIT_CARD_METHOD = '信用卡';
+		var PAY_BY_CREDIT_CARD_METHOD = Config.PAYMENT_NAME.credit_pay;
 		var PAY_BY_CREDIT_CARD_STATUS_coll = [
-			{shipping_method: '送貨到府', confirm_status_id: 53, success_status_id: 54},
-			{shipping_method: '超商取貨', confirm_status_id: 56, success_status_id: 57},
-			{shipping_method: '海外配送', confirm_status_id: 59, success_status_id: 60}
+			{shipping_method: Config.SHIPPING_NAME.ship_to_home, confirm_status_id: 53, success_status_id: 54},
+			{shipping_method: Config.SHIPPING_NAME.ship_to_store, confirm_status_id: 56, success_status_id: 57},
+			{shipping_method: Config.SHIPPING_NAME.ship_to_overseas, confirm_status_id: 59, success_status_id: 60}
 		];
 
 		var getCathayStrRqXML = function(order_id) {
-			console.log('getCathayStrRqXML: ' + order_id);
 			var defer = $q.defer();
 			$http.get('/api/payment/cathay/rqXML/'+order_id).then(function(resp) {
-
 				defer.resolve(resp.data.rqXML);
 			}, function(err) {
 				defer.reject(err);

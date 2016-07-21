@@ -1,19 +1,18 @@
 'use strict';
 
 angular.module('webApp')
-	.factory('Shipment', function ($http, $q, $filter, $cookies, Location, Order) {
+	.factory('Shipment', function ($http, $q, $filter, $cookies, Location, Order, Config) {
 		// Service logic
 		// ...
-		// var PRODUCTION_ENV = 'http://61.220.72.50:9001';
-		var PRODUCTION_ENV = 'http://checkout.vecsgardenia.com.tw';
+		var PRODUCTION_ENV = Config.DIR_HOST;
 
-		var SHIP_TO_HOME_METHOD = '送貨到府';
+		var SHIP_TO_HOME_METHOD = Config.SHIPPING_NAME.ship_to_home;
 		var SHIP_TO_HOME_ORDER_STATUS_ID = 51;
 
-		var SHIP_TO_OVERSEAS_METHOD = '海外配送';
+		var SHIP_TO_OVERSEAS_METHOD = Config.SHIPPING_NAME.ship_to_overseas;
 		var SHIP_TO_OVERSEAS_ORDER_STATUS_ID = 52;
 
-		var SHIP_TO_EZSHIP_METHOD = '超商取貨';
+		var SHIP_TO_EZSHIP_METHOD = Config.SHIPPING_NAME.ship_to_store;
 		var SHIP_TO_EZSHIP_ORDER_STATUS_ID = 50;
 
 		var checkoutToken = $cookies.get('vecs_token');
@@ -38,7 +37,7 @@ angular.module('webApp')
 			return defer.promise;
 		};
 
-		var setShipToHome = function(cart, shipping_info, payment_method='超商付現') {
+		var setShipToHome = function(cart, shipping_info, payment_method=Config.PAYMENT_NAME.store_pay) {
 			var defer = $q.defer();
 			var promises = [];
 			var insert_order_dict = {};
@@ -68,7 +67,7 @@ angular.module('webApp')
 			return defer.promise;
 		};
 
-		var setShipToOverseas = function(cart, shipping_info, payment_method='超商付現') {
+		var setShipToOverseas = function(cart, shipping_info, payment_method=Config.PAYMENT_NAME.store_pay) {
 			var defer = $q.defer();
 			var promises = [];
 			var insert_order_dict = {};
@@ -108,12 +107,12 @@ angular.module('webApp')
 			return defer.promise;			
 		}
 
-		var setShipToEzship = function(cart, shipping_info, payment_method='超商付現') {
+		var setShipToEzship = function(cart, shipping_info, payment_method=Config.PAYMENT_NAME.store_pay) {
 			var defer = $q.defer();
 			var promises = [];
 			var insert_order_dict = {};
 			var address_to_update = {};
-			var order_type = (payment_method === '信用卡') ? 3 : 1;
+			var order_type = (payment_method === Config.PAYMENT_NAME.credit_pay) ? 3 : 1;
 
 			// Ship to Store Parameters
 			shipping_info.shipping_method = SHIP_TO_EZSHIP_METHOD;

@@ -1,10 +1,8 @@
 'use strict';
 
 angular.module('webApp')
-	.factory('Product', function ($q, $http) {
-		// Service logic
-		// ...
-		var DIR_IMAGE_PATH = 'https://www.vecsgardenia.com/image/';
+	.factory('Product', function ($q, $http, Config) {
+		var DIR_IMAGE_PATH = Config.DIR_IMAGE_PATH;
 
 		var validateProducts = function(product_coll) {
 			var defer = $q.defer();

@@ -80,17 +80,55 @@ export function getCathayRqXML(req, res) {
 	});
 };
 
+
+var updateOrderByCathayResponse = function(order_id, msg, order_status_id) {
+	var defer = q.defer();
+	var order_update_dict = {
+		payment_custom_field: msg, 
+		order_status_id: order_status_id
+	};
+	var order_condition_dict = {
+		order_id: order_id
+	};
+
+	var order_history_insert_dict = {
+		order_id: order_id,
+		order_status_id: order_status_id,
+		notify: 0,
+		comment:msg,
+		date_added: new Date()
+	};
+	var sql = updateDictSql('oc_order', order_update_dict, order_condition_dict);
+	sql += ';';
+	sql += insertDictSql('oc_order_history', order_history_insert_dict);
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) {
+			console.log(err);
+			defer.reject(err);
+		} else {
+			connection.query(sql, function(err, result) {
+				if(err) {
+					defer.reject(err);
+				}
+				defer.resolve(result)
+			});								
+		}
+	});
+	return defer.promise;
+};
+
 export function getCathayCallback(req, res) {
 	var strRsXML = req.body.strRsXML;
 
 	parseString(strRsXML, function(err, result) {	
-		var returl = 'checkout.vecsgardenia.com.tw';
+		var returl = api_config.CATHAY_RETURN_URL;
 		var CAVALUE = md5(returl+api_config.CATHAY.CUBKEY);
 		var respXML = "<?xml version='1.0' encoding='UTF-8'?>";
 		respXML += "<MERCHANTXML>";
 		respXML += "<CAVALUE>" + CAVALUE + "</CAVALUE>";
 		
 		if(err) {
+			console.log(err);
 			respXML += "<RETURL>http://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
 			res.set('Content-Type', 'text/xml').send(respXML);
 		} else {
@@ -102,52 +140,41 @@ export function getCathayCallback(req, res) {
 			var auth_status = content.AUTHINFO[0].AUTHSTATUS[0];
 			var auth_code = content.AUTHINFO[0].AUTHCODE[0];
 			var auth_time = content.AUTHINFO[0].AUTHTIME[0];
-			var auth_msg = content.AUTHINFO[0].AUTHMSG[0];
-			
+			var auth_msg = content.AUTHINFO[0].AUTHMSG[0];		
+			var update_msg = "授權時間:" + auth_time + ",授權狀態:" + auth_status + ",授權碼:" + auth_code + ",授權訊息:" + auth_msg + ",授權金額:" + amount;
 
 			if(auth_status !== '0000') {
 				respXML += "<RETURL>http://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
-				res.set('Content-Type', 'text/xml').send(respXML);
+				updateOrderByCathayResponse(order_number, msg, 10).then(function(result) {
+					res.set('Content-Type', 'text/xml').send(respXML);
+				}, function(err) {
+					console.log(err);
+					res.set('Content-Type', 'text/xml').send(respXML);
+				});
 			} else {
 				Order.lgetOrder(order_number).then(function(orders) {
 					var order = orders[0];
 					var order_status_id = order.order_status_id;
 					order.total = 1;
+					var next_order_status_id = api_config.CathayPaymentNextOrderStatusId(order_status_id);
 					var server_ca_value = md5(api_config.CATHAY.STOREID + order.order_id + order.total + auth_status + auth_code + api_config.CATHAY.CUBKEY);
+					
 					if(server_ca_value === ca_value) {
 						respXML += "<RETURL>http://" + returl + "/api/payment/cathay/success/redirect</RETURL></MERCHANTXML>";	
-						var order_update_dict = {
-							payment_custom_field: "授權時間:" + auth_time + ",授權狀態:" + auth_status + ",授權碼:" + auth_code + ",授權訊息:" + auth_msg + ",授權金額:" + amount,
-							order_status_id: api_config.CathayPaymentNextOrderStatusId(order_status_id)
-						};
-						var order_condition_dict = {
-							order_id: order_number
-						};
-
-						var order_history_insert_dict = {
-							order_id: order_number,
-							order_status_id: api_config.CathayPaymentNextOrderStatusId(order_status_id),
-							notify: 0,
-							comment: "授權時間:" + auth_time + ",授權狀態:" + auth_status + ",授權碼:" + auth_code + ",授權訊息:" + auth_msg + ",授權金額:" + amount,
-							date_added: new Date()
-						};
-						var sql = updateDictSql('oc_order', order_update_dict, order_condition_dict);
-						sql += ';';
-						sql += insertDictSql('oc_order_history', order_history_insert_dict);
-						mysql_pool.getConnection(function(err, connection) {
-							if(err) {
-								console.log(err);
-								res.set('Content-Type', 'text/xml').send(respXML);
-							} else {
-								connection.query(sql, function(err, result) {
-									if(err) console.log(err);
-									res.set('Content-Type', 'text/xml').send(respXML);
-								});								
-							}
+						updateOrderByCathayResponse(order.order_id, msg, next_order_status_id).then(function(result) {
+							res.set('Content-Type', 'text/xml').send(respXML);
+						}, function(err) {
+							console.log(err);
+							res.set('Content-Type', 'text/xml').send(respXML);
 						});
 					} else {
 						respXML += "<RETURL>http://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
-						res.set('Content-Type', 'text/xml').send(respXML);
+						updateOrderByCathayResponse(order.order_id, msg, 10).then(function(result) {
+							res.set('Content-Type', 'text/xml').send(respXML);
+						}, function(err) {
+							console.log(err);
+							res.set('Content-Type', 'text/xml').send(respXML);
+						});
 					}
 				}, function(err) {
 					respXML += "<RETURL>http://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
