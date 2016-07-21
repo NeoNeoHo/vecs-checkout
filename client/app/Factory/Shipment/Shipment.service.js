@@ -4,6 +4,9 @@ angular.module('webApp')
 	.factory('Shipment', function ($http, $q, $filter, $cookies, Location, Order) {
 		// Service logic
 		// ...
+		// var PRODUCTION_ENV = 'http://61.220.72.50:9001';
+		var PRODUCTION_ENV = 'http://checkout.vecsgardenia.com.tw';
+
 		var SHIP_TO_HOME_METHOD = '送貨到府';
 		var SHIP_TO_HOME_ORDER_STATUS_ID = 51;
 
@@ -19,7 +22,7 @@ angular.module('webApp')
 			var url = 'https://map.ezship.com.tw/ezship_map_web.jsp';
 			var suID = '?suID=' + $filter('encodeURI')('shipping@vecsgardenia.com');
 			var processID = '&processID=' + order_id;
-			var rtURL = '&rtURL=' + $filter('encodeURI')('http://61.220.72.50:9001/api/ezships/history/');
+			var rtURL = '&rtURL=' + $filter('encodeURI')(PRODUCTION_ENV+'/api/ezships/history/');
 			var webPara = '&webPara='+checkoutToken;
 			var req_str = url+suID+processID+rtURL+webPara;
 			window.location = req_str;
@@ -141,7 +144,8 @@ angular.module('webApp')
 					console.log('shipping: "Ship to Ezship" done !');
 					var ezship_order_status = ezship_order_status_resp.data;
 					var update_dict = {
-						payment_postcode: ezship_order_status.sn_id
+						payment_postcode: ezship_order_status.sn_id,
+						shipping_postcode: ezship_order_status.sn_id
 					};
 					Order.updateOrder(order_id, update_dict).then(function(data) {
 						// Shipment Method Should Return "Order Id" For Later Use (Payment Method)

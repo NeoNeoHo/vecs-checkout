@@ -73,7 +73,7 @@ angular.module('webApp')
 				Order.updateOrder(order_id, update_dict).then(function(data) {
 					getCathayStrRqXML(order_id).then(function(strRqXML) {
 						document.getElementById("strRqXMLID").value = strRqXML;
-						// document.getElementById("cathay_order_form").submit();
+						document.getElementById("cathay_order_form").submit();
 						defer.resolve(data);
 					}, function(err) {
 						console.log(err);

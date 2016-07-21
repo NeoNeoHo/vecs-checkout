@@ -10,6 +10,8 @@ angular.module('webApp')
 		var FREESHIPPING_FEE = 1200;
 		var FREESHIPPING_OVERSEAS_FEE = 5000;
 
+		$scope.checkout_disabled = false;
+
 		$scope.with_shipping_collapsed = false;
 		$scope.with_payment_collapsed = true;
 		$scope.with_info_collapsed = true;
@@ -312,6 +314,8 @@ angular.module('webApp')
 		}
 
 		$scope.proceedCheckout = function() {
+			$scope.checkout_disabled = true;
+			
 			var shipping_promise = [];
 			var payment_promise = [];
 			var shipment_method = $scope.shipping_info.shipment_sel_str;

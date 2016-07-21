@@ -1,3 +1,4 @@
+navbar
 div.container
 	div.jumbotron.text-center
 		h1 Hello, We are Vecs Gardenia
@@ -22,7 +23,7 @@ div.container
 			//- a.btn.btn-default.btn-lg(href="/users", role="button") 一探究竟
 	
 	.page-header.h3 商品處理資訊
-	div.row
+	.row
 		div.col-md-4
 			div.well.well-lg(ng-class="{'well-focus': (order_status_level=='_created'), 'well-blur': (order_status_level!= '_created')}")
 				h4.text-center 我們已經收到您的訂單資訊</br>嘉丹妮爾的出貨小組</br>將會盡快為您裝箱與出貨</br>再耐心等一下下吧</br>
@@ -35,4 +36,5 @@ div.container
 			div.well.well-lg.well-blur(ng-class="{'well-focus': (order_status_level=='_received'), 'well-blur': (order_status_level!= '_received')}")
 				h4.text-center 謝謝您的訂購，</br>希望拿到商品的您會喜歡嘉丹妮爾
 			//- img.img-circle.img-half-width.center-block(src='../assets/images/max.jpg')
+	a.btn.btn-danger.btn-lg.pull-right(href="https://vecsgardenia.com", role="button") 回到首頁
 footer

@@ -12,4 +12,6 @@ var corsOptions = {
 
 router.get('/cathay/rqXML/:order_id', auth.isAuthenticated(), controller.getCathayRqXML);
 router.post('/cathay/callback/', cors(corsOptions), controller.getCathayCallback);
+router.post('/cathay/success/redirect/', cors(corsOptions), controller.redirectSuccess);
+router.post('/cathay/failure/redirect/', cors(corsOptions), controller.redirectFailure);
 module.exports = router;

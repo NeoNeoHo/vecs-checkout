@@ -281,11 +281,11 @@
 								tr.h2
 									td.text-right 總計
 									td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
-				.row
+				//- .row
 					div.well {{shipping_info}}
 				.row
 					div.panel.panel-body
-						button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedCheckout()") 送出結帳
+						button.col-lg-3.col-md-3.col-sm-6.col-xs-6.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedCheckout()", ng-disabled="checkout_disabled") 送出結帳
 						button.btn.btn-default.btn-lg.btn-success.btn-sharp(ng-click="to_show_next_process = false; goToAnchor('checkout_cart_table')") 返回
 				form(method="post", id="cathay_order_form", action="https://sslpayment.uwccb.com.tw/EPOSService/Payment/OrderInitial.aspx")
 					input(type='hidden', id='strRqXMLID', name='strRqXML', value='')
