@@ -6,9 +6,9 @@ div.navbar.navbar-default.navbar-static-top(ng-controller='NavbarController')
         span.icon-bar
         span.icon-bar
         span.icon-bar
-      a.navbar-brand(href='/') web
+      a.navbar-brand(href='/') 嘉丹妮爾
 
-    div#navbar-main.navbar-collapse.collapse(collapse='nav.isCollapsed')
+    div#navbar-main.navbar-collapse.collapse(uib-collapse='nav.isCollapsed')
       ul.nav.navbar-nav
         li(ng-repeat='item in nav.menu', ui-sref-active='active')
           a(ui-sref='{{item.state}}') {{item.title}}
@@ -24,7 +24,7 @@ div.navbar.navbar-default.navbar-static-top(ng-controller='NavbarController')
           a(ui-sref='login') Login
 
         li(ng-show='nav.isLoggedIn()')
-          p.navbar-text Hello {{ nav.getCurrentUser().name }}
+          p.navbar-text 您好，{{ nav.getCurrentUser().firstname }}
 
         li(ng-show='nav.isLoggedIn()', ui-sref-active='active')
           a(ui-sref='settings')

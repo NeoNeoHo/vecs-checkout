@@ -1,17 +1,12 @@
-//- div(ng-include='"components/navbar/navbar.html"')
-
+navbar
 .container
 	div#sys-notification
 		div.container
 			div#notification
-
-	div
-		div.breadcrumb
-			a(href='http://vecsgardenia.com/index.php?route=common/home')
-				i.fa.fa-home 
-			span  / 
-			a(href='http://vecsgardenia.com/index.php?route=checkout/simplecheckout') checkout
-		div.simple-content
+	.row
+		div.col-md-2.content-left
+			.well {{content-left-html}}
+		div.col-md-8
 			div(ng-show="!to_show_next_process")
 				div#checkout_cart.panel.panel-default
 					div.panel-heading.lead 購物清單
@@ -22,7 +17,7 @@
 								span 需要解決product discount 的問題，(購買x項以上，每項只要y元)
 							li 也需要解決商品即時更新數量的問題，只要購物車商品數量改變，即時更新db該商品目前總數
 							li 以後不會有option形式的加價購，只有選擇樣式會用到option
-							li 購物車opencart 與 node的同步更新，目前node side做好了，但是opencart方面還需要更動cart update的部分(目前好像是用session的方式，要改成cookies)
+							li 購物車opencart 與 node的同步更新，目前node side做好了，但是opencart方面還需要更動cart update的部分(目前好像是用session的方式，要改成cookies) https://simplapi.wordpress.com/2012/04/13/php-and-node-js-session-share-redi/
 							li 檢查所有會更新db的要求，要做到不讓客戶有機會更動customer_id這個變數(從server side auth middleware 做起)
 							li 針對禮品券用戶，使用禮品券的部分不開發票
 					table#checkout_cart_table.table.checkout-cart
@@ -283,4 +278,6 @@
 						button.btn.btn-default.btn-lg.btn-success.btn-sharp(ng-click="to_show_next_process = false; goToAnchor('checkout_cart_table')") 返回
 				form(method="post", id="cathay_order_form", action="https://sslpayment.uwccb.com.tw/EPOSService/Payment/OrderInitial.aspx")
 					input(type='hidden', id='strRqXMLID', name='strRqXML', value='')
+		div.col-md-2.content-right
+			.well {{content-right-html}}
 footer

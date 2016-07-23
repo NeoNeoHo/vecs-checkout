@@ -49,6 +49,7 @@ export default function(app) {
   /**
    * Lusca - express server security
    * https://github.com/krakenjs/lusca
+   * Benson turns it off by cors issue, and needs to be revisited some day.
    */
   if ('test' == env) {
     app.use(lusca({

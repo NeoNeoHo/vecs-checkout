@@ -133,7 +133,7 @@ angular.module('webApp')
 			products = _.map(products, function(product) {
 				return _.pick(product, ['$$hashKey', 'option', 'product_id', 'quantity', 'href', 'thumb']);
 			});
-			$cookies.put('vecs_cart', JSON.stringify(products));
+			$cookies.put('vecs_cart', JSON.stringify(products), {domain: Config.COOKIES_DOMAIN});
 		}
 
 		var checkDiscount = function(hash_key) {
