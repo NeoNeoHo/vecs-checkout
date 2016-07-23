@@ -12,8 +12,10 @@
 import _ from 'lodash';
 import Customer from './customer.model';
 import db_config from '../../config/db_config.js';
+import api_config from '../../config/api_config.js';
 import unserialize from 'locutus/php/var/unserialize';
 import serialize from 'locutus/php/var/serialize';
+import request from 'request';
 var mysql_pool = db_config.mysql_pool;
 var mysql_config = db_config.mysql_config;  
 
@@ -85,4 +87,13 @@ export function updateCart(req, res) {
 			res.status(200).json((serialize_result));
 		});
 	});
+}
+
+export function clearCart(req, res) {
+	var customer_id = req.user._id;
+	console.log('clearCart');
+	res.redirect(api_config.DIR_PATH+'index.php?route=checkout/cart/clear');
+	// request.get(api_config.DIR_PATH+'index.php?route=checkout/cart/clear', function(err, resp, body) {
+	// 	res.status(200).json(body);
+	// });
 }

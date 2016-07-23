@@ -19,7 +19,7 @@ div.panel.panel-default
 						h6(ng-show="product.reward") + 紅利 {{product.reward}} 點  
 				td.cart-quantity
 					div.input-group(ng-show="!product.isLimited")
-						select(ng-options="option for option in allow_amount track by option", ng-model="product.quantity", ng-change="updateCartTotal(product['$$hashKey'])")
+						select(ng-options="option for option in allow_amount track by option", ng-model="product.quantity", ng-change="updateCartTotal(product.product_id)")
 					div.input-group(ng-show="product.isLimited") {{product.quantity}}
 
 				td.cart-price.hidden-md.hidden-sm.hidden-xs  

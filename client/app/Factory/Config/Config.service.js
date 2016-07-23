@@ -2,10 +2,11 @@
 
 angular.module('webApp')
 	.factory('Config', function ($q, $http) {
+		var DIR_IMAGE_PATH = 'https://www.vecsgardenia.com/image/';
 		// var DIR_HOST = 'http://love.vecsgardenia.com.tw';
 		// var COOKIES_DOMAIN = 'vecsgardenia.com.tw';
-		var DIR_IMAGE_PATH = 'https://www.vecsgardenia.com/image/';
-		var DIR_HOST = 'http://61.220.72.50:9001';
+		// var DIR_HOST = 'http://61.220.72.50:9001';
+		var DIR_HOST = 'http://localhost';
 		var COOKIES_DOMAIN = 'localhost'
 
 		var SHIPPING_FEE = {

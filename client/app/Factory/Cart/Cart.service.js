@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webApp')
-  .factory('Cart', function ($q, $http) {
+  .factory('Cart', function ($q, $http, Config) {
     // Service logic
     // ...
 
@@ -16,11 +16,15 @@ angular.module('webApp')
       });
       return defer.promise;
     };
+    var clear = function() {
+      window.location.href = Config.DIR_HOST + '/index.php?route=checkout/cart/clear';
+    };
     // Public API here
     return {
       someMethod: function () {
         return meaningOfLife;
       },
-      updateCart: updateCart
+      updateCart: updateCart,
+      clear: clear
     };
   });

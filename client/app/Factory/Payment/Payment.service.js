@@ -30,11 +30,22 @@ angular.module('webApp')
 
 		var setPayOnDeliver = function(order_id) {
 			var defer = $q.defer();
+			var promises = [];
 			var update_dict = {
 				payment_method: PAY_ON_DELIVER_METHOD,
 				order_status_id: PAY_ON_DELIVER_SUCCESS_ORDER_STATUS_ID
 			};
-			Order.updateOrder(order_id, update_dict).then(function(data) {
+
+			var insert_dict = {
+				order_id: order_id,
+				order_status_id: PAY_ON_DELIVER_SUCCESS_ORDER_STATUS_ID,
+				notify: 0,
+				comment:'系統自動更新',
+				date_added: new Date()
+			}
+			promises.push(Order.updateOrder(order_id, update_dict));
+			promises.push(Order.insertOrderHistory(order_id, insert_dict));
+			$q.all(promises).then(function(datas) {
 				defer.resolve({checkout_status: 1, order_id: order_id});
 			}, function(err) {
 				defer.reject(err);
@@ -48,7 +59,16 @@ angular.module('webApp')
 				payment_method: PAY_ON_STORE_METHOD,
 				order_status_id: PAY_ON_STORE_SUCCESS_ORDER_STATUS_ID
 			};
-			Order.updateOrder(order_id, update_dict).then(function(data) {
+			var insert_dict = {
+				order_id: order_id,
+				order_status_id: PAY_ON_STORE_SUCCESS_ORDER_STATUS_ID,
+				notify: 0,
+				comment:'系統自動更新',
+				date_added: new Date()
+			}
+			promises.push(Order.updateOrder(order_id, update_dict));
+			promises.push(Order.insertOrderHistory(order_id, insert_dict));
+			$q.all(promises).then(function(datas) {
 				defer.resolve({checkout_status: 1, order_id: order_id});
 			}, function(err) {
 				defer.reject(err);

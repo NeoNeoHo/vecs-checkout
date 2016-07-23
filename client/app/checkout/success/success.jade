@@ -34,4 +34,4 @@ div.jumbotron.text-center
 		div.well.well-lg.well-blur(ng-class="{'well-focus': (order_status_level=='_received'), 'well-blur': (order_status_level!= '_received')}")
 			h4.text-center 謝謝您的訂購，</br>希望拿到商品的您會喜歡嘉丹妮爾
 		//- img.img-circle.img-half-width.center-block(src='../assets/images/max.jpg')
-a.btn.btn-danger.btn-lg.pull-right(href="https://vecsgardenia.com", role="button") 回到首頁
+a.btn.btn-danger.btn-lg.pull-right(ng-click="backAndClearCart()", role="button") 回到首頁

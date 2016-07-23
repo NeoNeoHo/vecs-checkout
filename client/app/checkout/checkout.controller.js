@@ -38,6 +38,10 @@ angular.module('webApp')
 		};
 		$scope.with_city_ready = false;
 		$scope.with_district_ready = false;
+		if(!$cookies.get('vecs_cart')) {
+			console.log('redirect to host');
+			window.location.href = 'http://' + Config.COOKIES_DOMAIN;
+		}
 		var cart_cookies = JSON.parse($cookies.get('vecs_cart'));
 		var clean_cart_cookies = _.map(cart_cookies, function(lproduct) {
 			lproduct.product_id = parseInt(lproduct.product_id);
@@ -62,6 +66,8 @@ angular.module('webApp')
 		// 取得商品是否有discount的條件
 		Product.getProductsDetail($scope.cart.products).then(function(db_products) {
 			console.log('@@@@@@@@@');
+			console.log(db_products);
+			console.log($scope.cart.products);
 			$scope.cart.products = _.map($scope.cart.products, function(product) {
 				var db_product = _.find(db_products, {product_id: product.product_id});
 				if(db_product) {
@@ -72,7 +78,7 @@ angular.module('webApp')
 					product.name = db_product.name;
 					product.spot_price = product.price.special_price;
 					product.option_price = _.reduce(_.pluck(product.option, 'price'), function(sum, num){return sum+num;}, 0);
-					checkDiscount(product.$$hashKey);
+					checkDiscount(product.product_id);
 					product.total = (product.spot_price + product.option_price) * product.quantity;
 					console.log('total = '+ product.total);
 				} else {
@@ -136,9 +142,9 @@ angular.module('webApp')
 			$cookies.put('vecs_cart', JSON.stringify(products), {domain: Config.COOKIES_DOMAIN});
 		}
 
-		var checkDiscount = function(hash_key) {
+		var checkDiscount = function(product_id) {
 			_.map($scope.cart.products, function(product) {
-				if(product['$$hashKey'] !== hash_key) return product;
+				if(product.product_id !== product_id) return product;
 
 				var discounts = product.discount;
 				if(discounts.length > 0) {
@@ -160,8 +166,8 @@ angular.module('webApp')
 			return 0;
 		};
 
-		$scope.updateCartTotal = function(hash_key='') {
-			checkDiscount(hash_key);
+		$scope.updateCartTotal = function(product_id) {
+			checkDiscount(product_id);
 			updateProductTotal();
 			$scope.cart.product_total_price = _.reduce($scope.cart.products, function(sum, o){return sum+o.total}, 0);
 			updateCartCookies($scope.cart.products);
@@ -275,8 +281,12 @@ angular.module('webApp')
 		};
 
 		$scope.calcPriceSaved = function() {
+			console.log('進來calcPriceSaved');
+			console.log($scope.reward_used_pts);
+			console.log($scope.coupon_name);
 			var defer = $q.defer();
 			if($scope.reward_used_pts && $scope.reward_used_pts > 0) {
+				console.log($scope.reward_used_pts);
 				$scope.cart.discount.reward = calcRewardSaved($scope.reward_used_pts);
 			}
 			if($scope.coupon_name) {
@@ -378,7 +388,7 @@ angular.module('webApp')
 					var checkout_result = datas[0];
 					console.log(checkout_result);
 					// if(checkout_result.checkout_status == 1) {
-						$location.path('/success').search({order_id: checkout_result.order_id}).hash('');
+						$location.path('/checkout/success').search({order_id: checkout_result.order_id}).hash('');
 					// }
 				}, function(err) {
 					console.log('完成付款部分: ' + err);

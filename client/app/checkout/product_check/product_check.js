@@ -5,7 +5,8 @@ angular.module('webApp')
     $stateProvider
       .state('checkout.product_check', {
         url: '/product_check',
-        templateUrl: 'app/checkout/product_check/product_check.html'
+        templateUrl: 'app/checkout/product_check/product_check.html',
+        controller: 'CheckoutController',
         // authenticate: true
       });
   });
