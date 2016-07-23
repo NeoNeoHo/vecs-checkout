@@ -1,0 +1,121 @@
+div.panel.panel-default
+	div.panel-body
+		table#checkout_cart_table.table.checkout-cart
+			tr.black.text-white
+				th.col-lg-6.col-md-6.col-sm-6.col-xs-6.text-center 商品名稱
+				th.col-lg-2.col-md-2.col-sm-2.col-xs-2 數量
+				th.col-lg-2.hidden-md.hidden-sm.hidden-xs 單價
+				th.col-lg-1.col-md-3.col-sm-3.col-xs-3 總價
+				th.col-lg-1.col-md-1.col-sm-1.col-xs-1
+			tr(ng-repeat="product in cart.products")
+				td.cart-name
+					div.col-lg-6.col-md-6.col-sm-12.col-xs-12
+						a(ng-href="{{product.href}}")
+							img.img-responsive(ng-attr-title="{{product.name}}", ng-src="{{product.thumb}}")
+					div.col-lg-6.col-md-6.col-sm-12.col-xs-12
+						a(ng-href="{{product.href}}")
+							h5 {{product.name}}
+						h6(ng-repeat="option_product in product.option") {{option_product.value}}
+						h6(ng-show="product.reward") + 紅利 {{product.reward}} 點  
+				td.cart-quantity
+					div.input-group(ng-show="!product.isLimited")
+						select(ng-options="option for option in allow_amount track by option", ng-model="product.quantity", ng-change="updateCartTotal(product['$$hashKey'])")
+					div.input-group(ng-show="product.isLimited") {{product.quantity}}
+
+				td.cart-price.hidden-md.hidden-sm.hidden-xs  
+					| $ {{product.spot_price + product.option_price}}
+					del.text-red(ng-show="product.price.unit_price > product.spot_price") 
+						| $ {{product.price.unit_price + product.option_price}} 
+					div.text-green(ng-repeat="discount_condition in product.discount")
+						p(ng-hide="discount_condition.quantity <= product.quantity") 加{{discount_condition.quantity - product.quantity}}件，每件再折{{product.spot_price - discount_condition.price}}元
+				td.cart-total $ {{product.total}}
+					div.visible-xs.text-green(ng-repeat="discount_condition in product.discount")
+						p(ng-hide="discount_condition.quantity <= product.quantity") 加{{discount_condition.quantity - product.quantity}}件，每件再折{{product.spot_price - discount_condition.price}}元
+				td.cart-remove
+					span.btn.btn-danger.btn-sm(ng-click="removeProduct(product.$$hashKey)")
+						span.glyphicon.glyphicon-trash
+		.row
+			.col-md-4.col-xs-6.col-md-offset-8.col-xs-offset-6
+				table.table
+					tr
+						td.text-right 小計:
+						td.text-right $ {{cart.product_total_price}}
+
+div#checkout_buymore.panel.panel-default(ng-hide="true")
+	div.panel-heading.lead 超值加購區
+	div.panel-body
+		div.row
+			div.col-lg-3.col-md-4.col-sm-6.col-xs-6(ng-repeat="product in promotion_list")
+				div.thumbnail
+					img(ng-src="{{product.thumb}}")
+					div.caption
+						h5 {{product.name}}
+						div
+							strong.text-red $ {{product.price}}
+							del.small.pull-right $ {{product.default_price}}1000
+						p
+							label.btn.btn-sharp.btn-default(href="#", role="button", ng-click="addPromoteItem(product.key)") 加入購物車
+
+.page-header.h4 使用折扣，紅利，或禮品券
+div.panel.panel-default
+	div.panel-body
+		.row
+			.col-md-8.col-sm-12.col-xs-12
+				.form-group
+					label.col-md-4.control-label(for="input_coupon") 使用折扣碼
+					.col-md-8
+						input.form-control(id="input_coupon", name="input_coupon", ng-model="coupon_name", type='text', aria-label="...", placeholder='我要使用折扣碼', ng-change="cart.discount.coupon = 0")
+				.form-group
+					label.col-md-4.control-label(for="input_rewards") 使用紅利點數折抵
+					.col-md-8
+						input.form-control(name="input_rewards", id="input_rewards",  ng-model="reward_used_pts", type='number', aria-label="...", ng-change="cart.discount.reward = 0", placeholder='我要使用紅利點數，可使用{{(cart.product_total_price - cart.discount.coupon > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price - cart.discount.coupon}}點', max="{{(cart.product_total_price - cart.discount.coupon > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price - cart.discount.coupon}}", min="0")
+					div.help-block(ng-messages="checkout-form.input_rewards.$error", ng-show="checkout-form.input_rewards.$error.max")
+						p(ng-message="max") 您最多只能使用{{(cart.product_total_price - cart.discount.coupon > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price - cart.discount.coupon}}點紅利
+				.form-group
+					label.col-md-4.control-label(for="input_voucher") 使用禮品券
+					.col-md-8
+						input.form-control(id="input_voucher", name="input_voucher", ng-model="cart.discount.voucher_name", type='text', ng-change="cart.discount.voucher = 0")
+				.form-group
+					.col-md-8.col-md-offset-4
+						button.form-control.btn.btn-success.btn-sharp(ng-click="calcPriceSaved()", ng-disabled="checkout-form.input_rewards.$error.max") 更新價格
+			.col-md-4.pull-right.hidden-xs
+				table.table
+					tr
+						td.text-right 商品總計:
+						td.text-right $ {{cart.product_total_price}}
+					tr(style="color:green")
+						td.text-right 折扣:
+						td.text-right - $ {{cart.discount.reward + cart.discount.coupon}}
+					tr(ng-show="cart.discount.voucher > 0", style="color:green")
+						td.text-right 禮品券:
+						td.text-right 
+							| - $ {{cart.discount.voucher}}
+							br
+							small 尚餘 $ {{voucher_available_amount - cart.discount.voucher}}
+					tr.h2
+						td.text-right 總計
+						td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
+
+div.panel.panel-default.visible-xs
+	div.panel-body
+		.row
+			table.table
+				tr
+					td.text-right 商品總計:
+					td.text-right $ {{cart.product_total_price}}
+				tr(style="color:green")
+					td.text-right 折扣:
+					td.text-right - $ {{cart.discount.reward + cart.discount.coupon}}
+				tr(ng-show="cart.discount.voucher > 0", style="color:green")
+					td.text-right 禮品券:
+					td.text-right 
+						| - $ {{cart.discount.voucher}}
+						br
+						small 尚餘 $ {{voucher_available_amount - cart.discount.voucher}}
+				tr.h2
+					td.text-right 總計
+					td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
+div.row.panel.panel-body
+	button.col-md-3.col-xs-6.btn.btn-default.btn-sharp.btn-lg.text-justify(href="vecsgardenia.com/?route=checkout/cart") 繼續購物
+	button.col-md-3.col-xs-6.btn.btn-success.btn-sharp.btn-lg.pull-right.text-justify(ui-sref="checkout.shipment_payment") 選擇配送方式
+		span.glyphicon.glyphicon-circle-arrow-right

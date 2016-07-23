@@ -7,7 +7,7 @@ angular.module('webApp')
         url: '/checkout',
         templateUrl: 'app/checkout/checkout.html',
         controller: 'CheckoutController',
-        controllerAs: 'checkout',
+        // controllerAs: 'checkout',
         authenticate: true
       });
   });

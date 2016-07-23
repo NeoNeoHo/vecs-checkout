@@ -1,0 +1,11 @@
+'use strict';
+
+angular.module('webApp')
+  .config(function($stateProvider) {
+    $stateProvider
+      .state('checkout.product_check', {
+        url: '/product_check',
+        templateUrl: 'app/checkout/product_check/product_check.html'
+        // authenticate: true
+      });
+  });
