@@ -3,11 +3,12 @@
 angular.module('webApp')
 	.factory('Config', function ($q, $http) {
 		var DIR_IMAGE_PATH = 'https://www.vecsgardenia.com/image/';
-		// var DIR_HOST = 'http://love.vecsgardenia.com.tw';
-		// var COOKIES_DOMAIN = 'vecsgardenia.com.tw';
+		var DIR_HOST = 'https://love.vecsgardenia.com.tw';
+		var SERVER_HOST = 'https://vecsgardenia.com.tw';
+		var COOKIES_DOMAIN = 'vecsgardenia.com.tw';
 		// var DIR_HOST = 'http://61.220.72.50:9001';
-		var DIR_HOST = 'http://localhost';
-		var COOKIES_DOMAIN = 'localhost'
+		// var DIR_HOST = 'http://localhost';
+		// var COOKIES_DOMAIN = 'localhost'
 
 		var SHIPPING_FEE = {
 			EZSHIP: 60,
@@ -45,6 +46,7 @@ angular.module('webApp')
 		return {
 			DIR_IMAGE_PATH: DIR_IMAGE_PATH,
 			DIR_HOST: DIR_HOST,
+			SERVER_HOST: SERVER_HOST,
 			COOKIES_DOMAIN: COOKIES_DOMAIN,
 			SHIPPING_FEE: SHIPPING_FEE,
 			FREE_SHIPPING_CONDICTION: FREE_SHIPPING_CONDICTION,

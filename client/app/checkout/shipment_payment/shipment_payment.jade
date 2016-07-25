@@ -64,37 +64,37 @@ div.page-header.h4 收件人資料
 	small {{shipping_info.firstname}} / {{shipping_info.telephone}}
 div.panel.panel-default
 	div.panel-body
-		div.form-group(ng-class="{'has-error': checkout-form.inputName.$touched && checkout-form.inputName.$invalid}")
-			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputName') 姓名：
+		div.form-group(ng-class="{'has-error': checkout-form.input_name.$touched && checkout-form.input_name.$invalid}")
+			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='input_name') 姓名：
 			div.col-lg-4.col-md-4.col-sm-10.col-xs-9
-				input.form-control(type='text', name='inputName', placeholder='請填寫真實姓名，以利寄送', ng-model="shipping_info.firstname", ng-minlength="2", required)
-				p.hidden-lg.hidden-md(ng-hide="checkout-form.inputName.$touched && checkout-form.inputName.$error") 請填寫真實姓名，以利寄送
-				div.help-block(ng-messages="checkout-form.inputName.$error", ng-show="checkout-form.inputName.$touched")
+				input.form-control(type='text', name='input_name', placeholder='請填寫真實姓名，以利寄送', ng-model="shipping_info.firstname", ng-minlength="2", required)
+				p.hidden-lg.hidden-md(ng-hide="checkout-form.input_name.$touched && checkout-form.input_name.$error") 請填寫真實姓名，以利寄送
+				div.help-block(ng-messages="checkout-form.input_name.$error", ng-show="checkout-form.input_name.$touched")
 					p(ng-message="minlength") 請填寫真實姓名，以利寄送 !!
 					p(ng-message="required") 姓名不可為空白喔 !!
 		div.form-group(ng-class="{'disabled': payment_btn.store_pay}")
-			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputZone') 地址：
+			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='input_country') 地址：
 			.row.col-lg-4.col-md-4.col-sm-4.col-xs-9(ng-show="shipping_info.shipment_sel_str == SHIPPING_NAME.ship_to_overseas")
 				div.col-lg-6.col-md-6.col-sm-6.col-xs-6
-					select.form-control(ng-options="country.country_id as country.name for country in country_coll", ng-model="shipping_info.country_id", ng-change="setCities(shipping_info.country_id)")
+					select.form-control(ng-options="country.country_id as country.name for country in country_coll", ng-model="shipping_info.country_id", ng-change="setCities(shipping_info.country_id)", name="input_country")
 						option(value='') 國家
 				div.col-lg-6.col-md-6.col-sm-6.col-xs-6
-					select.form-control(ng-options="city.zone_id as city.name for city in city_coll", ng-model="shipping_info.city_id", ng-disabled="!with_city_ready" )
+					select.form-control(ng-options="city.zone_id as city.name for city in city_coll", ng-model="shipping_info.city_id", ng-disabled="!with_city_ready", name="input_city")
 						option(value='') 城市
 			.row.col-lg-4.col-md-4.col-sm-4.col-xs-9(ng-show="shipping_info.shipment_sel_str != SHIPPING_NAME.ship_to_overseas")
 				div.col-lg-6.col-md-6.col-sm-6.col-xs-6
-					select.form-control(ng-options="city.zone_id as city.name for city in city_coll", ng-model="shipping_info.city_id", ng-change="setDistricts(shipping_info.city_id)", ng-disabled="!with_city_ready")
+					select.form-control(ng-options="city.zone_id as city.name for city in city_coll", ng-model="shipping_info.city_id", ng-change="setDistricts(shipping_info.city_id)", ng-disabled="!with_city_ready", name="input_city2")
 						option(value='') 縣市
 				div.col-lg-6.col-md-6.col-sm-6.col-xs-6
-					select.form-control(ng-options="district.district_id as district.name for district in district_coll", ng-model="shipping_info.district_id", ng-change="", ng-disabled="!shipping_info.city_id && !with_district_ready")
+					select.form-control(ng-options="district.district_id as district.name for district in district_coll", ng-model="shipping_info.district_id", ng-disabled="!shipping_info.city_id && !with_district_ready", name="input_district")
 						option(value='') 鄉鎮市區
 			div.col-lg-6.col-md-6.col-sm-6.col-xs-9.pull-right
-				input.form-control(type='address', id='inputAddress', placeholder='您的地址', ng-model="shipping_info.address")
+				input.form-control(type='address', id='input_address', placeholder='您的地址', ng-model="shipping_info.address", name="input_address")
 		div.form-group
-			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputPhone') 行動電話：
-			div.col-lg-4.col-md-4.col-sm-10.col-xs-9(ng-class="{'has-error': checkout-form.inputPhone.$touched && checkout-form.inputPhone.$invalid}")
-				input.form-control(type='tel', name='inputPhone', ng-model="shipping_info.telephone", ng-minlength="10", required) 
-				div.help-block(ng-messages="checkout-form.inputPhone.$error", ng-show="checkout-form.inputPhone.$touched")
+			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='input_phone') 行動電話：
+			div.col-lg-4.col-md-4.col-sm-10.col-xs-9(ng-class="{'has-error': checkout-form.input_phone.$touched && checkout-form.input_phone.$invalid}")
+				input.form-control(type='tel', name='input_phone', ng-model="shipping_info.telephone", ng-minlength="10", required) 
+				div.help-block(ng-messages="checkout-form.input_phone.$error", ng-show="checkout-form.input_phone.$touched")
 					p(ng-message="minlength") 電話長度有誤 !!
 					p(ng-message="required") 行動電話不可為空白喔 !!
 			span.col-lg-6.col-md-6.hidden-sm.hidden-xs
@@ -104,20 +104,20 @@ div.page-header.h4(ng-click="with_memo_collapsed = !with_memo_collapsed") 發票
 div.panel.panel-default(uib-collapse="with_memo_collapsed")
 	div.panel-body
 		div.form-group
-			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputCompID') 發票統編：
+			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='input_comp_id') 發票統編：
 			div.col-lg-4.col-md-4.col-sm-10.col-xs-9
-				input.form-control(ng-model="shipping_info.company_id", type='number', id='inputCompID', placeholder='請填寫發票統編(8位數字)，選填')
+				input.form-control(ng-model="shipping_info.company_id", type='number', name='input_comp_id', placeholder='請填寫發票統編(8位數字)，選填')
 			span.col-lg-6.col-md-6.hidden-sm.hidden-xs
 		div.form-group
-			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputCompName') 買受人：
+			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='input_comp_name') 買受人：
 			div.col-lg-4.col-md-4.col-sm-10.col-xs-9
-				input.form-control(ng-model="shipping_info.company_name", type='text', id='inputCompName', placeholder='選填') 
+				input.form-control(ng-model="shipping_info.company_name", type='text', name='input_comp_name', placeholder='選填') 
 			span.col-lg-6.col-md-6.hidden-sm.hidden-xs
 							form.form-horizontal
 		div.form-group
-			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='inputComment') 訂單備註：
+			label.col-lg-2.col-md-2.col-sm-2.col-xs-3.control-label.text-right(for='input_comment') 訂單備註：
 			div.col-lg-4.col-md-4.col-sm-10.col-xs-9
-				input.form-control(ng-model="shipping_info.comment", type='textarea', id='inputComment', placeholder='選填') 
+				input.form-control(ng-model="shipping_info.comment", type='textarea', name='input_comment', placeholder='選填') 
 			span.col-lg-6.col-md-6.hidden-sm.hidden-xs
 
 div.page-header.h4 總計

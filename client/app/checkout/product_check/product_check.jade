@@ -113,8 +113,8 @@ div.panel.panel-default.visible-xs
 						br
 						small 尚餘 $ {{voucher_available_amount - cart.discount.voucher}}
 				tr.h2
-					td.text-right 總計
-					td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
+					td.text-right 小計
+					td.text-right $ {{cart.product_total_price - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
 div.row.panel.panel-body
 	button.col-md-3.col-xs-6.btn.btn-default.btn-sharp.btn-lg.text-justify(href="vecsgardenia.com/?route=checkout/cart") 繼續購物
 	button.col-md-3.col-xs-6.btn.btn-success.btn-sharp.btn-lg.pull-right.text-justify(ui-sref="checkout.shipment_payment") 選擇配送方式

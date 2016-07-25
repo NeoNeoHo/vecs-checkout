@@ -74,7 +74,7 @@ export default function(app) {
     app.use(morgan('dev'));
   }
 
-  if ('development' === env) {
+  if ('development' == env) {  /* Benson turned this off on 2016-07-24 */
     app.use(require('connect-livereload')());
   }
 

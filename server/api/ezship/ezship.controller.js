@@ -118,13 +118,14 @@ export function sendOrder(req, res) {
 				if(err) {
 					console.log(err);
 					res.status(400).json(err);
-				}
-				var result = (lhttpResponse) ? url.parse(lhttpResponse.headers.location, true).query : {order_status: 'Error'};
-				if(result.order_status !== 'S01') {
-					res.status(400).json({ezship_order_status: result.order_status, msg: '設定超商失敗'});
 				} else {
-					console.log('receives ezship response');
-					res.status(200).json(result);
+					var result = (lhttpResponse) ? url.parse(lhttpResponse.headers.location, true).query : {order_status: 'Error'};
+					if(result.order_status !== 'S01') {
+						res.status(400).json({ezship_order_status: result.order_status, msg: '設定超商失敗'});
+					} else {
+						console.log('receives ezship response');
+						res.status(200).json(result);
+					}	
 				}
 			});
 			// res.status(200).json(rows);
@@ -137,5 +138,5 @@ export function receiveOrder(req, res) {
 	var content = req.query;
 	if(!content) handleError(res, 'Err No content to update ezship order');
 	console.log(content);
-	res.redirect('/?showCheckout=true');
+	res.redirect('/checkout/shipment_payment');
 }

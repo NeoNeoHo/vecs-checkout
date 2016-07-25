@@ -20,6 +20,9 @@ navbar
 							| 訂購成功
 				form#checkout-form.form-horizontal
 					div#form-views(ui-view="")
+	.row
+		.well {{shipping_info}}
+		.well {{cart}}
 	//- .row
 	//- 	div.col-md-2.content-left
 	//- 		.well {{content-left-html}}
@@ -297,4 +300,4 @@ navbar
 	//- 				input(type='hidden', id='strRqXMLID', name='strRqXML', value='')
 		div.col-md-2.content-right
 			.well {{content-right-html}}
-footer
+//- footer

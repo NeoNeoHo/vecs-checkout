@@ -3,7 +3,7 @@
 angular.module('webApp')
 	.controller('CheckoutController', function ($scope, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Payment, Promotion, Cart, Customer, Reward, Product, Config) {
 		var currentUser = Auth.getCurrentUser();
-		$scope.allow_amount = _.range(1,10);
+		$scope.allow_amount = $scope.allow_amount || _.range(1,10);
 		var SHIPMENT_EZSHIP_FEE = Config.SHIPPING_FEE.EZSHIP;
 		var SHIPMENT_HOME_FEE = Config.SHIPPING_FEE.HOME;
 		var SHIPMENT_OVERSEAS_FEE = Config.SHIPPING_FEE.OVERSEAS;
@@ -17,16 +17,12 @@ angular.module('webApp')
 
 		$scope.checkout_disabled = false;
 
-		$scope.with_shipping_collapsed = false;
-		$scope.with_payment_collapsed = true;
-		$scope.with_info_collapsed = true;
 		$scope.with_memo_collapsed = true;
-		$scope.with_voucher_collapsed = true;
+
 
 		$scope.store_select_text = '選擇超商門市';
-		$scope.urlParams = $location.search();
-		$scope.to_show_next_process = ($scope.urlParams['showCheckout']) ? $scope.urlParams['showCheckout'] : false;
-		$scope.shipping_info = {
+
+		$scope.shipping_info = $scope.shipping_info || {
 			country_id: 206,
 			payment_sel_str: null,
 			shipment_sel_str: null
@@ -47,7 +43,7 @@ angular.module('webApp')
 			lproduct.product_id = parseInt(lproduct.product_id);
 			return lproduct;
 		});
-		$scope.cart = {
+		$scope.cart = $scope.cart || {
 			products: clean_cart_cookies,
 			product_total_price: _.reduce(cart_cookies, function(sum, o){return sum+o.price*o.quantity}, 0),
 			discount: {
@@ -65,22 +61,23 @@ angular.module('webApp')
 		// #################################################################################
 		// 取得商品是否有discount的條件
 		Product.getProductsDetail($scope.cart.products).then(function(db_products) {
-			console.log('@@@@@@@@@');
+			console.log('getProductsDetail db_products:');
 			console.log(db_products);
-			console.log($scope.cart.products);
 			$scope.cart.products = _.map($scope.cart.products, function(product) {
+				console.log(product.product_id);
 				var db_product = _.find(db_products, {product_id: product.product_id});
 				if(db_product) {
 					product.price = db_product.price;
-					product.discount = db_product.discount;
+					product.discount = db_product.discount || [];
 					product.reward = db_product.reward;
 					product.model = db_product.model;
 					product.name = db_product.name;
 					product.spot_price = product.price.special_price;
 					product.option_price = _.reduce(_.pluck(product.option, 'price'), function(sum, num){return sum+num;}, 0);
+					console.log('getProductsDetail');
+					console.log(product);
 					checkDiscount(product.product_id);
 					product.total = (product.spot_price + product.option_price) * product.quantity;
-					console.log('total = '+ product.total);
 				} else {
 					product = {};
 				}
@@ -145,9 +142,8 @@ angular.module('webApp')
 		var checkDiscount = function(product_id) {
 			_.map($scope.cart.products, function(product) {
 				if(product.product_id !== product_id) return product;
-
 				var discounts = product.discount;
-				if(discounts.length > 0) {
+				if(_.size(discounts) > 0) {
 					var discount_available = _.sortBy(_.filter(discounts, function(discount) {
 						return discount.quantity <= product.quantity;
 					}), 'quantity');

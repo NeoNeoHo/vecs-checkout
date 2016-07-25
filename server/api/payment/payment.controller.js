@@ -191,7 +191,7 @@ export function redirectSuccess(req, res) {
 	parseString(xml, function(err, result) {
 		var content = result.CUBXML;
 		var order_id = content.ORDERINFO[0].ORDERNUMBER[0];
-		res.redirect('/success?order_id='+order_id);
+		res.redirect('/checkout/success?order_id='+order_id);
 	});
 };
 
@@ -201,7 +201,7 @@ export function redirectFailure(req, res) {
 	parseString(xml, function(err, result) {
 		var content = result.CUBXML;
 		var order_id = content.ORDERINFO[0].ORDERNUMBER[0];
-		res.redirect('/failure?order_id='+order_id);
+		res.redirect('/checkout/failure?order_id='+order_id);
 	});
 };
 

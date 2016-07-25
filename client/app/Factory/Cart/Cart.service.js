@@ -17,7 +17,7 @@ angular.module('webApp')
       return defer.promise;
     };
     var clear = function() {
-      window.location.href = Config.DIR_HOST + '/index.php?route=checkout/cart/clear';
+      window.location.href = Config.SERVER_HOST + '/index.php?route=checkout/cart/clear';
     };
     // Public API here
     return {

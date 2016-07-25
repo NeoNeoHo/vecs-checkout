@@ -55,6 +55,7 @@ angular.module('webApp')
 
 		var setPayOnStore = function(order_id) {
 			var defer = $q.defer();
+			var promises = [];
 			var update_dict = {
 				payment_method: PAY_ON_STORE_METHOD,
 				order_status_id: PAY_ON_STORE_SUCCESS_ORDER_STATUS_ID
