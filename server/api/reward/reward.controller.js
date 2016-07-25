@@ -30,7 +30,7 @@ function handleError(res, err_msg, statusCode) {
 
 // Update
 export function getCustomerReward(req, res) {
-	var customer_id = req.params.customer_id;
+	var customer_id = req.user._id;
 	var info = req.body;
 	mysql_pool.getConnection(function(err, connection){
 		if(err) handleError(res, err.message);

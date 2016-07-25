@@ -6,9 +6,9 @@ angular.module('webApp')
 		// ...
 
 		var meaningOfLife = 42;
-		var getFromCustomer = function(customer_id) {
+		var getFromCustomer = function() {
 			var defer = $q.defer();
-			$http.get('/api/rewards/'+customer_id)
+			$http.get('/api/rewards/')
 			.then(function(result) {
 				defer.resolve(result.data);
 			}, function(err) {

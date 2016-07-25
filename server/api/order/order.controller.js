@@ -264,10 +264,10 @@ var createOrderTotal = function(order_id = 0, shipping_info, cart) {
 	var defer = q.defer();
 	var insert_coll = [];
 	insert_coll.push(getOrderTotalDict(order_id, 'sub_total', '商品總計', cart.product_total_price, 1));
-	if(cart.discount.coupon > 0) insert_coll.push(getOrderTotalDict(order_id, 'coupon', '優惠券 - '+cart.discount.coupon_name, -cart.discount.coupon, 2));
-	if(cart.discount.reward > 0) insert_coll.push(getOrderTotalDict(order_id, 'reward', '紅利點數 - '+cart.discount.reward, -cart.discount.reward, 3));
+	if(cart.discount.coupon.saved_amount > 0) insert_coll.push(getOrderTotalDict(order_id, 'coupon', '優惠券 - '+cart.discount.coupon.name, -cart.discount.coupon.saved_amount, 2));
+	if(cart.discount.reward.saved_amount > 0) insert_coll.push(getOrderTotalDict(order_id, 'reward', '紅利點數 - '+cart.discount.reward.saved_amount, -cart.discount.reward.saved_amount, 3));
 	insert_coll.push(getOrderTotalDict(order_id, 'shipping', '運費 - '+shipping_info.shipment_sel_str, shipping_info.shipment_fee, 4));
-	if(cart.discount.voucher > 0) insert_coll.push(getOrderTotalDict(order_id, 'voucher', '禮券 - '+cart.discount.voucher_name, -cart.discount.voucher, 5));
+	if(cart.discount.voucher.saved_amount > 0) insert_coll.push(getOrderTotalDict(order_id, 'voucher', '禮券 - '+cart.discount.voucher.name, -cart.discount.voucher.saved_amount, 5));
 	insert_coll.push(getOrderTotalDict(order_id, 'total', '訂單總計', shipping_info.total, 6));
 	
 	var sql = insertBulkSql('oc_order_total', insert_coll);
@@ -319,6 +319,27 @@ var createCouponHistory = function(order_id = 0, customer_id = 0, coupon_id = 0,
 	mysql_pool.getConnection(function(err, connection) {
 		if(err) defer.reject(err);
 		connection.query('INSERT INTO oc_coupon_history SET ?;', insert_dict, function(err, rows) {
+			connection.release();
+			if(err) {
+				defer.reject(err);
+			}
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
+
+var createVoucherHistory = function(order_id = 0, voucher_id,  amount = 0) {
+	var defer = q.defer();
+	var insert_dict = {
+		order_id: order_id,
+		voucher_id: voucher_id,
+		amount: amount,
+		date_added: new Date()
+	};
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query('INSERT INTO oc_voucher_history SET ?;', insert_dict, function(err, rows) {
 			connection.release();
 			if(err) {
 				defer.reject(err);
@@ -399,7 +420,7 @@ export function create(req, res) {
 	var cart = req.body.cart;
 	var shipping_info = req.body.shipping_info;
 
-	shipping_info.total = cart.product_total_price + cart.shipment_fee - cart.discount.coupon - cart.discount.reward - cart.discount.voucher;
+	shipping_info.total = cart.product_total_price + cart.shipment_fee - cart.discount.coupon.saved_amount - cart.discount.reward.saved_amount - cart.discount.voucher.saved_amount;
 	
 	// Step 1. Create "Order"
 	createOrder(shipping_info, customer_id, customer_group_id, email, customer_ip).then(function(data) {
@@ -411,10 +432,11 @@ export function create(req, res) {
 		promises.push(createOrderProduct(order_id, cart));
 		promises.push(createOrderTotal(order_id, shipping_info, cart));
 
-		// Step 3. Create "Customer Reward" and "Coupon History" if Used
-		if(cart.discount.reward > 0) promises.push(createCutomerReward(order_id, customer_id, '使用於訂單 #'+order_id, -cart.discount.reward));
-		if(cart.discount.coupon > 0) promises.push(createCouponHistory(order_id, customer_id, cart.discount.coupon_id, -cart.discount.coupon));
-		
+		// Step 3. Create "Customer Reward" and "Coupon History" and "Voucher History" if Used
+		if(cart.discount.reward.saved_amount > 0) promises.push(createCutomerReward(order_id, customer_id, '使用於訂單 #'+order_id, -cart.discount.reward.saved_amount));
+		if(cart.discount.coupon.saved_amount > 0) promises.push(createCouponHistory(order_id, customer_id, cart.discount.coupon.id, -cart.discount.coupon.saved_amount));
+		if(cart.discount.voucher.saved_amount > 0) promises.push(createVoucherHistory(order_id, cart.discount.voucher.id, -cart.discount.voucher.saved_amount));
+			
 		q.all(promises).then(function(datas) {
 			var order_product_query_responses = datas[1];
 			var lpromises = [];

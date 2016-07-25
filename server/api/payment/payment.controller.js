@@ -81,10 +81,10 @@ export function getCathayRqXML(req, res) {
 };
 
 
-var updateOrderByCathayResponse = function(order_id, msg, order_status_id) {
+var updateOrderByCathayResponse = function(order_id, update_msg, order_status_id) {
 	var defer = q.defer();
 	var order_update_dict = {
-		payment_custom_field: msg, 
+		payment_custom_field: update_msg, 
 		order_status_id: order_status_id
 	};
 	var order_condition_dict = {
@@ -95,7 +95,7 @@ var updateOrderByCathayResponse = function(order_id, msg, order_status_id) {
 		order_id: order_id,
 		order_status_id: order_status_id,
 		notify: 0,
-		comment:msg,
+		comment:update_msg,
 		date_added: new Date()
 	};
 	var sql = updateDictSql('oc_order', order_update_dict, order_condition_dict);
@@ -126,10 +126,10 @@ export function getCathayCallback(req, res) {
 		var respXML = "<?xml version='1.0' encoding='UTF-8'?>";
 		respXML += "<MERCHANTXML>";
 		respXML += "<CAVALUE>" + CAVALUE + "</CAVALUE>";
-		
+		console.log(result);
 		if(err) {
 			console.log(err);
-			respXML += "<RETURL>http://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
+			respXML += "<RETURL>https://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
 			res.set('Content-Type', 'text/xml').send(respXML);
 		} else {
 			var content = result.CUBXML;
@@ -144,14 +144,15 @@ export function getCathayCallback(req, res) {
 			var update_msg = "授權時間:" + auth_time + ",授權狀態:" + auth_status + ",授權碼:" + auth_code + ",授權訊息:" + auth_msg + ",授權金額:" + amount;
 
 			if(auth_status !== '0000') {
-				respXML += "<RETURL>http://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
-				updateOrderByCathayResponse(order_number, msg, 10).then(function(result) {
+				respXML += "<RETURL>https://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
+				updateOrderByCathayResponse(order_number, update_msg, 10).then(function(result) {
 					res.set('Content-Type', 'text/xml').send(respXML);
 				}, function(err) {
 					console.log(err);
 					res.set('Content-Type', 'text/xml').send(respXML);
 				});
 			} else {
+				console.log(update_msg);
 				Order.lgetOrder(order_number).then(function(orders) {
 					var order = orders[0];
 					var order_status_id = order.order_status_id;
@@ -160,16 +161,16 @@ export function getCathayCallback(req, res) {
 					var server_ca_value = md5(api_config.CATHAY.STOREID + order.order_id + order.total + auth_status + auth_code + api_config.CATHAY.CUBKEY);
 					
 					if(server_ca_value === ca_value) {
-						respXML += "<RETURL>http://" + returl + "/api/payment/cathay/success/redirect</RETURL></MERCHANTXML>";	
-						updateOrderByCathayResponse(order.order_id, msg, next_order_status_id).then(function(result) {
+						respXML += "<RETURL>https://" + returl + "/api/payment/cathay/success/redirect</RETURL></MERCHANTXML>";	
+						updateOrderByCathayResponse(order.order_id, update_msg, next_order_status_id).then(function(result) {
 							res.set('Content-Type', 'text/xml').send(respXML);
 						}, function(err) {
 							console.log(err);
 							res.set('Content-Type', 'text/xml').send(respXML);
 						});
 					} else {
-						respXML += "<RETURL>http://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
-						updateOrderByCathayResponse(order.order_id, msg, 10).then(function(result) {
+						respXML += "<RETURL>https://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
+						updateOrderByCathayResponse(order.order_id, update_msg, 10).then(function(result) {
 							res.set('Content-Type', 'text/xml').send(respXML);
 						}, function(err) {
 							console.log(err);
@@ -177,7 +178,7 @@ export function getCathayCallback(req, res) {
 						});
 					}
 				}, function(err) {
-					respXML += "<RETURL>http://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
+					respXML += "<RETURL>https://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
 					res.set('Content-Type', 'text/xml').send(respXML);
 				});
 			}

@@ -41,7 +41,7 @@ function handleError(res, err_msg, statusCode) {
 export function show(req, res) {
 	var promises = [];
   var coupon_code = req.params.id;
-  var customer_id = req.params.customer_id; 
+  var customer_id = req.user._id; 
   if(!coupon_code) handleError(res, 'You should keyin a coupon_code !!');
   promises.push(getCoupon(coupon_code, customer_id));
   promises.push(getCouponCategoryToProduct(coupon_code));

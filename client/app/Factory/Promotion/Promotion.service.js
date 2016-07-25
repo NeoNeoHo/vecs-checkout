@@ -17,9 +17,9 @@ angular.module('webApp')
 			return defer.promise;
 		};
 
-		var getCoupon = function(couponNum, customer_id) {
+		var getCoupon = function(couponNum) {
 			var defer = $q.defer();
-			$http.get('/api/coupons/'+couponNum+'/'+customer_id).then(function(data) {
+			$http.get('/api/coupons/'+couponNum).then(function(data) {
 				defer.resolve(data.data);
 			}, function(err) {
 				defer.reject(err);
@@ -27,9 +27,9 @@ angular.module('webApp')
 			return defer.promise;
 		}
 
-		var calcCouponSaved = function(couponNum, customer_id, cart) {
+		var calcCouponSaved = function(couponNum, cart) {
 			var defer = $q.defer();
-			getCoupon(couponNum, customer_id).then(function(data) {
+			getCoupon(couponNum).then(function(data) {
 				var resolve_data = {
 					promotion_total: 0
 				};

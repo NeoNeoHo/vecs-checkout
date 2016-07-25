@@ -47,24 +47,37 @@ angular.module('webApp')
 			products: clean_cart_cookies,
 			product_total_price: _.reduce(cart_cookies, function(sum, o){return sum+o.price*o.quantity}, 0),
 			discount: {
-				reward: 0,
-				coupon: 0,
-				voucher: 0
+				reward: {
+					saved_amount: 0,
+					name: ''
+				},
+				coupon: {
+					saved_amount: 0,
+					name: '',
+					id: 0
+				},
+				voucher: {
+					saved_amount: 0,
+					name: '',
+					id: 0,
+					available_amount: 0
+				}
 			},
 			shipment_fee: 0,
 		};
 
-
+		$scope.discount_temp = $scope.discount_temp || {
+			coupon_name: '',
+			reward_points: '',
+			voucher_name: ''
+		};
 		// #########################  根據購物車的product_id,更新商品資料 ######################
 		// #########														   
 		// #########															   
 		// #################################################################################
 		// 取得商品是否有discount的條件
 		Product.getProductsDetail($scope.cart.products).then(function(db_products) {
-			console.log('getProductsDetail db_products:');
-			console.log(db_products);
 			$scope.cart.products = _.map($scope.cart.products, function(product) {
-				console.log(product.product_id);
 				var db_product = _.find(db_products, {product_id: product.product_id});
 				if(db_product) {
 					product.price = db_product.price;
@@ -74,8 +87,6 @@ angular.module('webApp')
 					product.name = db_product.name;
 					product.spot_price = product.price.special_price;
 					product.option_price = _.reduce(_.pluck(product.option, 'price'), function(sum, num){return sum+num;}, 0);
-					console.log('getProductsDetail');
-					console.log(product);
 					checkDiscount(product.product_id);
 					product.total = (product.spot_price + product.option_price) * product.quantity;
 				} else {
@@ -88,10 +99,7 @@ angular.module('webApp')
 			console.log(err);
 		});
 
-		$scope.promotion_list = $scope.cart.products;
-
 		currentUser.$promise.then(function(data) {
-			console.log(data);
 			$scope.shipping_info.firstname = data.firstname;
 			$scope.shipping_info.telephone = data.telephone;
 			getAddress();
@@ -101,7 +109,7 @@ angular.module('webApp')
 				address_id: data.address_id,
 				email: data.email
 			};
-			Reward.getFromCustomer(data.customer_id).then(function(reward) {
+			Reward.getFromCustomer().then(function(reward) {
 				$scope.rewards_customer_has_pts = (reward.points) ? reward.points : 0;
 			}, function(err) {
 				console.log(err.data);
@@ -110,20 +118,6 @@ angular.module('webApp')
 		
 		console.log('This is cart: ');
 		console.log($scope.cart);
-
-		$scope.goToAnchor = function(anchor) {
-			($location.hash() !== anchor) ? $location.hash(anchor) : $anchorScroll();
-			return true;
-		};
-
-		$scope.proceedNext = function() {
-			// $scope.shipping_info.shipment_sel_str = null;
-			$scope.shipping_info.payment_sel_str = null;
-
-			$scope.to_show_next_process = true;
-			$scope.goToAnchor('checkout_shipping');
-			return true;
-		};
 
 		var lstrcmp = function(collection, str) {
 			var result = _.some(collection, function(data){
@@ -267,62 +261,94 @@ angular.module('webApp')
 			});
 		};
 
-		var calcRewardSaved = function(reward_used_pts) {
-			if(reward_used_pts <= $scope.cart.product_total_price - $scope.cart.discount.coupon) {
-				return reward_used_pts;
-			} else {
-				return $scope.cart.product_total_price - $scope.cart.discount.coupon;
-			}
-			
-		};
-
-		$scope.calcPriceSaved = function() {
-			console.log('進來calcPriceSaved');
-			console.log($scope.reward_used_pts);
-			console.log($scope.coupon_name);
+		var calcRewardSaved = function(reward_used_pts, cart) {
 			var defer = $q.defer();
-			if($scope.reward_used_pts && $scope.reward_used_pts > 0) {
-				console.log($scope.reward_used_pts);
-				$scope.cart.discount.reward = calcRewardSaved($scope.reward_used_pts);
-			}
-			if($scope.coupon_name) {
-				Promotion.calcCouponSaved($scope.coupon_name, $scope.customer.customer_id, $scope.cart).then(function(data) {
-					$scope.cart.discount.coupon = data.coupon_saved_amount;
-					$scope.cart.discount.coupon_name = $scope.coupon_name;
-					$scope.cart.discount.coupon_id = data.coupon_id;
-					if(data.coupon_saved_amount == 0) {
-						$scope.coupon_name = '';
-						alert('您購買的商品並不適用此張優惠券');
-					} 
-					defer.resolve({data: data.coupon_saved_amount});
+			if(reward_used_pts <= 0) {
+				defer.resolve({saved_amount: 0, name: ''});
+			} else {
+				Reward.getFromCustomer().then(function(reward) {
+					var rewards = (reward.points) ? reward.points : 0;
+					if(reward_used_pts > rewards){
+						defer.reject('您並無這麼多的紅利點數喔');
+					} else {
+						if(reward_used_pts <= cart.product_total_price - cart.discount.coupon.saved_amount) {
+							defer.resolve({saved_amount: reward_used_pts, name: ''});
+						} else {
+							defer.resolve({saved_amount: cart.product_total_price - cart.discount.coupon.saved_amount, name: ''});
+						}
+					}
 				}, function(err) {
-					$scope.cart.discount.coupon = 0;
-					$scope.coupon_name = '';
-					alert(err.data);
 					defer.reject(err);
-				});	
-			}
-			else {
-				defer.resolve('');
+				});
 			}
 			return defer.promise;
 		};
 
-		$scope.applyVoucher = function() {
+		var calcVoucherSaved = function(voucher_name, cart) {
 			var defer = $q.defer();
-			if($scope.cart.discount.voucher_name) {
-				Promotion.getVoucher($scope.cart.discount.voucher_name).then(function(data) {
-					$scope.voucher_available_amount = data.available_amount; 
-					var discount_so_far = $scope.cart.discount.reward + $scope.cart.discount.coupon;
-					$scope.voucher_max_amount = (data.available_amount >= $scope.cart.product_total_price + $scope.cart.shipment_fee - discount_so_far) ? ($scope.cart.product_total_price + $scope.cart.shipment_fee - discount_so_far) : data.available_amount;
-					defer.resolve('')
+			if(voucher_name === '') {
+				defer.resolve({saved_amount: 0, name: ''});
+			} else {
+				Promotion.getVoucher(voucher_name).then(function(data) {
+					var available_amount = data.available_amount; 
+					var discount_so_far = cart.discount.reward.saved_amount + cart.discount.coupon.saved_amount;
+					var voucher_max_amount = (available_amount >= cart.product_total_price - discount_so_far) ? (cart.product_total_price - discount_so_far) : available_amount;
+					defer.resolve({saved_amount: voucher_max_amount, name: voucher_name, available_amount: available_amount, id: data.voucher_id})
 				}, function(err) {
 					alert(err.data);
 					defer.reject(err);
 				});
 			}
 			return defer.promise;
-		}
+		};
+
+		var calcCouponSaved = function(coupon_name, cart) {
+			var defer = $q.defer();
+			if(coupon_name === '') {
+				defer.resolve({saved_amount: 0, name: '', id: 0});
+			} else {
+				Promotion.calcCouponSaved(coupon_name, cart).then(function(data) {
+					if(data.coupon_saved_amount == 0) {
+						defer.reject('您購買的商品並不適用此張優惠券');
+					} else {
+						defer.resolve({saved_amount: data.coupon_saved_amount, name: coupon_name, id: data.coupon_id});
+					}
+				}, function(err) {
+					defer.reject(err);
+				});
+			}
+			return defer.promise;
+		};
+
+		$scope.calcPriceSaved = function() {
+			console.log('calcPriceSaved')
+			var defer = $q.defer();
+			calcRewardSaved($scope.discount_temp.reward_points, $scope.cart).then(function(resp_reward) {
+				$scope.cart.discount.reward = resp_reward;
+
+				calcCouponSaved($scope.discount_temp.coupon_name, $scope.cart).then(function(resp_coupon) {
+					$scope.cart.discount.coupon = resp_coupon;
+
+					calcVoucherSaved($scope.discount_temp.voucher_name, $scope.cart).then(function(resp_voucher) {
+						$scope.cart.discount.voucher = resp_voucher;
+						defer.resolve();
+					}, function(err) {
+						alert(err);
+						defer.reject(err);
+					});
+
+				}, function(err) {
+					alert(err);
+					defer.reject(err);
+				});
+
+			}, function(err) {
+				alert(err);
+				defer.reject(err);
+			});
+
+			return defer.promise;
+		};
 
 		$scope.proceedCheckout = function() {
 			$scope.checkout_disabled = true;
@@ -348,11 +374,9 @@ angular.module('webApp')
 				alert('商品價格及紅利點數有異，請洽客服人員，並將客服代碼『1201』告知客服人員，謝謝');
 			});
 
-			// Step 3. 檢查優惠內容
+			// Step 3. 檢查優惠內容與禮品券內容
 			$scope.calcPriceSaved().then(function(data) {}, function(err) {alert(err)}); 
 			
-			// Step 4. 檢查禮品券內容是否正確
-			$scope.applyVoucher().then(function(data) {}, function(err) {alert(err)});
 
 			// Step 5. 根據不同配送 付款方式，產生相對應後送動作
 			if(lstrcmp([SHIPPING_NAME.ship_to_home, SHIPPING_NAME.ship_to_overseas], shipment_method)) {

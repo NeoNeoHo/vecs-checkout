@@ -35,21 +35,6 @@ div
 			li 港澳，新加坡，馬來西亞一律 350元 ， 費用不包含保險，滿5000元可享免運
 			li 中國，韓國，日本，澳洲，紐西蘭，加拿大，美國，英國一律550元，費用不包含保險，滿6000元可享免運
 			li 其他地區請來信至 customer@vecsgardenia.com
-//- div.page-header.h4 是否使用禮品券
-//- div
-//- 	form(name="form_voucher")
-//- 		div.well
-//- 			.input-group.col-sm-6.col-sm-offset-3
-//- 				input.form-control(type="text", placeholder="輸入禮品券", ng-model="cart.discount.voucher_name")
-//- 				span.input-group-btn
-//- 					button.btn.btn-default(type="button", ng-click="applyVoucher()", ng-disabled="!cart.discount.voucher_name") 更新
-//- 			div(ng-show="voucher_available_amount") 
-//- 				p 禮品券還有 {{voucher_available_amount}} 元
-//- 				p 此筆購物最多可使用禮品券 {{voucher_max_amount}} 元
-//- 				.input-group(ng-class="{'has-error': form_voucher.input_voucher_amount.$error.max}",)
-//- 					input.form-control(name="input_voucher_amount", type="number", placeholder="輸入欲使用禮品券金額", ng-model="cart.discount.voucher" max="{{voucher_max_amount}}", ng-blur="form_voucher.input_voucher_amount.$error.max ? cart.discount.voucher=0 : 1;")
-//- 				div.help-block(ng-messages="form_voucher.input_voucher_amount.$error", ng-show="form_voucher.input_voucher_amount.$error.max")
-//- 					p(ng-message="max") 您最多只能使用{{voucher_max_amount}}元禮品券
 
 .page-header.h4 選擇付款方式
 	small(type="button", ng-show="shipping_info.payment_sel_str") {{shipping_info.payment_sel_str}}
@@ -129,19 +114,19 @@ div.panel.panel-default
 				td.text-right $ {{cart.product_total_price}}
 			tr(style="color:green")
 				td.text-right 折扣:
-				td.text-right - $ {{cart.discount.reward + cart.discount.coupon}}
+				td.text-right - $ {{cart.discount.reward.saved_amount + cart.discount.coupon.saved_amount}}
 			tr
 				td.text-right 運費:
 				td.text-right $ {{cart.shipment_fee}}
-			tr(ng-show="cart.discount.voucher > 0", style="color:green")
+			tr(ng-show="cart.discount.voucher.saved_amount > 0", style="color:green")
 				td.text-right 禮品券:
 				td.text-right 
-					| - $ {{cart.discount.voucher}}
+					| - $ {{cart.discount.voucher.saved_amount}}
 					br
-					small 尚餘 $ {{voucher_available_amount - cart.discount.voucher}}
+					small 尚餘 $ {{cart.discount.voucher.available_amount - cart.discount.voucher.saved_amount}}
 			tr.h2
 				td.text-right 總計
-				td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
+				td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward.saved_amount - cart.discount.coupon.saved_amount - cart.discount.voucher.saved_amount}}
 //- .row
 	div.well {{shipping_info}}
 .row

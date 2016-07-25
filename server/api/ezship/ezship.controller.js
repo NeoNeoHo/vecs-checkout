@@ -57,12 +57,12 @@ export function upsertHistory(req, res) {
 				// connection.query('update oc_customer_ezship_history set ? where customer_id = ?',[obj, customer_id] , function(err, rows) {
 					connection.release();
 					// if(err) handleError(res, err);
-					res.redirect('/?showCheckout=true');
+					res.redirect('/checkout/shipment_payment');
 				// });
 			}
 			else {
 				connection.release();
-				res.redirect('/?showCheckout=true');
+				res.redirect('/checkout/shipment_payment');
 			}
 		});
 	});
@@ -138,5 +138,5 @@ export function receiveOrder(req, res) {
 	var content = req.query;
 	if(!content) handleError(res, 'Err No content to update ezship order');
 	console.log(content);
-	res.redirect('/checkout/shipment_payment');
+	res.redirect('/showCheckout');
 }

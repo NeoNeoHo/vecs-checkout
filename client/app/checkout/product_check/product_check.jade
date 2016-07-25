@@ -64,17 +64,17 @@ div.panel.panel-default
 				.form-group
 					label.col-md-4.control-label(for="input_coupon") 使用折扣碼
 					.col-md-8
-						input.form-control(id="input_coupon", name="input_coupon", ng-model="coupon_name", type='text', aria-label="...", placeholder='我要使用折扣碼', ng-change="cart.discount.coupon = 0")
+						input.form-control(id="input_coupon", name="input_coupon", ng-model="discount_temp.coupon_name", type='text', aria-label="...", placeholder='我要使用折扣碼', ng-change="cart.discount.coupon.saved_amount = 0")
 				.form-group
 					label.col-md-4.control-label(for="input_rewards") 使用紅利點數折抵
 					.col-md-8
-						input.form-control(name="input_rewards", id="input_rewards",  ng-model="reward_used_pts", type='number', aria-label="...", ng-change="cart.discount.reward = 0", placeholder='我要使用紅利點數，可使用{{(cart.product_total_price - cart.discount.coupon > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price - cart.discount.coupon}}點', max="{{(cart.product_total_price - cart.discount.coupon > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price - cart.discount.coupon}}", min="0")
+						input.form-control(name="input_rewards", id="input_rewards",  ng-model="discount_temp.reward_points", type='number', aria-label="...", ng-change="cart.discount.reward.saved_amount = 0", placeholder='我要使用紅利點數，可使用{{(cart.product_total_price - cart.discount.coupon.saved_amount > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price - cart.discount.coupon.saved_amount}}點', max="{{(cart.product_total_price - cart.discount.coupon.saved_amount > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price - cart.discount.coupon.saved_amount}}", min="0")
 					div.help-block(ng-messages="checkout-form.input_rewards.$error", ng-show="checkout-form.input_rewards.$error.max")
 						p(ng-message="max") 您最多只能使用{{(cart.product_total_price - cart.discount.coupon > rewards_customer_has_pts) ? rewards_customer_has_pts : cart.product_total_price - cart.discount.coupon}}點紅利
 				.form-group
 					label.col-md-4.control-label(for="input_voucher") 使用禮品券
 					.col-md-8
-						input.form-control(id="input_voucher", name="input_voucher", ng-model="cart.discount.voucher_name", type='text', ng-change="cart.discount.voucher = 0")
+						input.form-control(id="input_voucher", name="input_voucher", ng-model="discount_temp.voucher_name", type='text', ng-change="cart.discount.voucher.saved_amount = 0")
 				.form-group
 					.col-md-8.col-md-offset-4
 						button.form-control.btn.btn-success.btn-sharp(ng-click="calcPriceSaved()", ng-disabled="checkout-form.input_rewards.$error.max") 更新價格
@@ -85,16 +85,16 @@ div.panel.panel-default
 						td.text-right $ {{cart.product_total_price}}
 					tr(style="color:green")
 						td.text-right 折扣:
-						td.text-right - $ {{cart.discount.reward + cart.discount.coupon}}
-					tr(ng-show="cart.discount.voucher > 0", style="color:green")
+						td.text-right - $ {{cart.discount.reward.saved_amount + cart.discount.coupon.saved_amount}}
+					tr(ng-show="cart.discount.voucher.saved_amount > 0", style="color:green")
 						td.text-right 禮品券:
 						td.text-right 
-							| - $ {{cart.discount.voucher}}
+							| - $ {{cart.discount.voucher.saved_amount}}
 							br
-							small 尚餘 $ {{voucher_available_amount - cart.discount.voucher}}
+							small 尚餘 $ {{cart.discount.voucher.available_amount - cart.discount.voucher.saved_amount}}
 					tr.h2
 						td.text-right 總計
-						td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
+						td.text-right $ {{cart.product_total_price - cart.discount.reward.saved_amount - cart.discount.coupon.saved_amount - cart.discount.voucher.saved_amount}}
 
 div.panel.panel-default.visible-xs
 	div.panel-body
@@ -105,16 +105,16 @@ div.panel.panel-default.visible-xs
 					td.text-right $ {{cart.product_total_price}}
 				tr(style="color:green")
 					td.text-right 折扣:
-					td.text-right - $ {{cart.discount.reward + cart.discount.coupon}}
-				tr(ng-show="cart.discount.voucher > 0", style="color:green")
+					td.text-right - $ {{cart.discount.reward.saved_amount + cart.discount.coupon.saved_amount}}
+				tr(ng-show="cart.discount.voucher.saved_amount > 0", style="color:green")
 					td.text-right 禮品券:
 					td.text-right 
-						| - $ {{cart.discount.voucher}}
+						| - $ {{cart.discount.voucher.saved_amount}}
 						br
-						small 尚餘 $ {{voucher_available_amount - cart.discount.voucher}}
+						small 尚餘 $ {{cart.discount.voucher.available_amount - cart.discount.voucher.saved_amount}}
 				tr.h2
 					td.text-right 小計
-					td.text-right $ {{cart.product_total_price - cart.discount.reward - cart.discount.coupon - cart.discount.voucher}}
+					td.text-right $ {{cart.product_total_price - cart.discount.reward.saved_amount - cart.discount.coupon.saved_amount - cart.discount.voucher.saved_amount}}
 div.row.panel.panel-body
 	button.col-md-3.col-xs-6.btn.btn-default.btn-sharp.btn-lg.text-justify(href="vecsgardenia.com/?route=checkout/cart") 繼續購物
 	button.col-md-3.col-xs-6.btn.btn-success.btn-sharp.btn-lg.pull-right.text-justify(ui-sref="checkout.shipment_payment") 選擇配送方式
