@@ -6,7 +6,7 @@ angular.module('webApp', [
   'webApp.constants',
   'ngAnimate',
   'ngCookies',
-  'ngMessages',
+  // 'ngMessages',
   'ngResource',
   'ngSanitize',
   'ui.router',

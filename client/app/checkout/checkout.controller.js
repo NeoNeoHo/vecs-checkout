@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('webApp')
-	.controller('CheckoutController', function ($scope, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Payment, Promotion, Cart, Customer, Reward, Product, Config) {
-		var currentUser = Auth.getCurrentUser();
+	.controller('CheckoutController', function ($scope, $state, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Payment, Promotion, Cart, Customer, Reward, Product, Config) {
+		$scope.currentUser = $scope.currentUser || Auth.getCurrentUser();
 		$scope.allow_amount = $scope.allow_amount || _.range(1,10);
 		var SHIPMENT_EZSHIP_FEE = Config.SHIPPING_FEE.EZSHIP;
 		var SHIPMENT_HOME_FEE = Config.SHIPPING_FEE.HOME;
@@ -15,22 +15,42 @@ angular.module('webApp')
 		$scope.SHIPPING_NAME = SHIPPING_NAME;
 		$scope.PAYMENT_NAME = PAYMENT_NAME;
 
+
+		$scope.checkout_first_step = function() {
+			$state.go('checkout.product_check');
+		};
+		$scope.checkout_second_step = function() {
+			if($scope.checkout_form.$valid){
+				$state.go('checkout.shipment_payment');
+			} else {
+				console.log($scope.checkout_form.$valid);
+			}
+		};
+		$scope.checkout_third_step = function() {
+			if($scope.checkout_form.$valid){
+				$state.go('checkout.final_confirm');
+			} else {
+				console.log($scope.checkout_form.$valid);
+			}
+		};
+
 		$scope.checkout_disabled = false;
-
 		$scope.with_memo_collapsed = true;
-
+		$scope.rewards_customer_has_pts = $scope.rewards_customer_has_pts || '';
 
 		$scope.store_select_text = '選擇超商門市';
 
 		$scope.shipping_info = $scope.shipping_info || {
+			firstname: '',
+			telephone: '',
 			country_id: 206,
 			payment_sel_str: null,
 			shipment_sel_str: null
 		};
 		$scope.payment_btn = {
-			store_pay: false,
-			hand_pay: false,
-			credit_pay: false
+			store_pay: true,
+			hand_pay: true,
+			credit_pay: true
 		};
 		$scope.with_city_ready = false;
 		$scope.with_district_ready = false;
@@ -76,44 +96,42 @@ angular.module('webApp')
 		// #########															   
 		// #################################################################################
 		// 取得商品是否有discount的條件
-		Product.getProductsDetail($scope.cart.products).then(function(db_products) {
-			$scope.cart.products = _.map($scope.cart.products, function(product) {
-				var db_product = _.find(db_products, {product_id: product.product_id});
-				if(db_product) {
-					product.price = db_product.price;
-					product.discount = db_product.discount || [];
-					product.reward = db_product.reward;
-					product.model = db_product.model;
-					product.name = db_product.name;
-					product.spot_price = product.price.special_price;
-					product.option_price = _.reduce(_.pluck(product.option, 'price'), function(sum, num){return sum+num;}, 0);
-					checkDiscount(product.product_id);
-					product.total = (product.spot_price + product.option_price) * product.quantity;
-				} else {
-					product = {};
-				}
-				return product;
-			});
-			$scope.updateCartTotal();
-		}, function(err) {
-			console.log(err);
-		});
-
-		currentUser.$promise.then(function(data) {
-			$scope.shipping_info.firstname = data.firstname;
-			$scope.shipping_info.telephone = data.telephone;
-			getAddress();
-			$scope.customer = {
-				customer_id: data.customer_id,
-				customer_group_id: data.customer_group_id,
-				address_id: data.address_id,
-				email: data.email
-			};
-			Reward.getFromCustomer().then(function(reward) {
-				$scope.rewards_customer_has_pts = (reward.points) ? reward.points : 0;
+		if(_.size($scope.cart.products) > 0 && !$scope.cart.products[0].spot_price) {
+			Product.getProductsDetail($scope.cart.products).then(function(db_products) {
+				$scope.cart.products = _.map($scope.cart.products, function(product) {
+					var db_product = _.find(db_products, {product_id: product.product_id});
+					if(db_product) {
+						product.price = db_product.price;
+						product.discount = db_product.discount || [];
+						product.reward = db_product.reward;
+						product.model = db_product.model;
+						product.name = db_product.name;
+						product.spot_price = product.price.special_price;
+						product.option_price = _.reduce(_.pluck(product.option, 'price'), function(sum, num){return sum+num;}, 0);
+						checkDiscount(product.product_id);
+						product.total = (product.spot_price + product.option_price) * product.quantity;
+					} else {
+						product = {};
+					}
+					return product;
+				});
+				$scope.updateCartTotal();
 			}, function(err) {
-				console.log(err.data);
+				console.log(err);
 			});
+		}
+
+		$scope.currentUser.$promise.then(function(data) {
+			$scope.shipping_info.firstname = $scope.shipping_info.firstname || data.firstname;
+			$scope.shipping_info.telephone = $scope.shipping_info.telephone || data.telephone;
+			if(!$scope.shipping_info.address) {getAddress();}
+			if(!$scope.rewards_customer_has_pts) {
+				Reward.getFromCustomer().then(function(reward) {
+					$scope.rewards_customer_has_pts = (reward.points) ? reward.points : 0;
+				}, function(err) {
+					console.log(err.data);
+				});
+			}
 		});
 		
 		console.log('This is cart: ');
@@ -178,6 +196,9 @@ angular.module('webApp')
 
 		$scope.setCities = function(country_id) {
 			$scope.with_city_ready = false;
+			if($scope.country_coll) {
+				$scope.shipping_info.country_d = _.find($scope.country_coll, {country_id: $scope.shipping_info.country_id});
+			}
 			Location.getCities(country_id).then(function(result) {
 				$scope.city_coll = result.cities;
 				$scope.with_city_ready = true;
@@ -188,6 +209,9 @@ angular.module('webApp')
 
 		$scope.setDistricts = function(city_id) {
 			$scope.with_district_ready = false;
+			if($scope.city_coll){
+				$scope.shipping_info.city_d = _.find($scope.city_coll, {zone_id: city_id});
+			}
 			Location.getDistricts(city_id).then(function(result) {
 				$scope.district_coll = result.districts;
 				$scope.with_district_ready = true;
@@ -196,18 +220,33 @@ angular.module('webApp')
 			});		
 		};
 
+		$scope.setDistrictName = function(district_id) {
+			if($scope.district_coll) {
+				$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: district_id});
+			}
+		};
+
+		$scope.setCityName = function(city_id) {
+			if($scope.city_coll){
+				$scope.shipping_info.city_d = _.find($scope.city_coll, {zone_id: city_id});
+			}
+		};
+
 		var getAddress = function() {
 			Location.getAddress().then(function(data) {
 				if(data) {
 					console.log('This is customer address: ');
 					console.log(data);
 					$scope.shipping_info.city_id = (data.zone_id) ? data.zone_id : 0;
+					$scope.shipping_info.city_d = {zone_id: data.zone_id, name: data.city_name};
 					$scope.setDistricts((data.zone_id) ? data.zone_id : '');
 
 					$scope.shipping_info.country_id = (data.country_id) ? data.country_id : 0;
+					$scope.shipping_info.country_d = {country_id: data.country_id, name: data.country_name};
 					$scope.setCities((data.country_id) ? data.country_id : 206);
 
 					$scope.shipping_info.district_id = (data.district_id) ? data.district_id : 0;
+					$scope.shipping_info.district_d = {district_id: data.district_id, name: data.district_name, postcode: data.postcode};
 					$scope.shipping_info.address = data.address_1 ? data.address_1 : '';
 				}
 			});
@@ -244,17 +283,14 @@ angular.module('webApp')
 			}
 			$scope.shipping_info.shipment_fee = $scope.cart.shipment_fee;
 		};
-		$scope.getEzshipStore = function(order_id) {
-			order_id = order_id ? order_id : 999999999;
-			Shipment.getEzshipStore(order_id).then(function(data) {
+		$scope.getEzshipStore = function() {
+			Shipment.getEzshipStore().then(function(data) {
 				console.log('This is ezship store info: ');
-				console.log(data);
 				$scope.store_select_text = '重新選擇超商';
 				$scope.ezship_store_info = data;
 				$scope.shipping_info.ezship_store_info = data;
-				$scope.shipping_info.shipment_sel_str = SHIPPING_NAME.ship_to_store;
-				$scope.setPaymentMethod(SHIPPING_NAME.ship_to_store);
-				$scope.with_shipping_collapsed = false;
+				// $scope.shipping_info.shipment_sel_str = $scope.shipping_info.shipment_sel_str || SHIPPING_NAME.ship_to_store;
+				// $scope.setPaymentMethod(SHIPPING_NAME.ship_to_store);
 			}, function(err) {
 				console.log(err);
 				$scope.ezship_store_info = null;

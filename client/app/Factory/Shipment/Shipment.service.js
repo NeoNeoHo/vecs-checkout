@@ -27,9 +27,9 @@ angular.module('webApp')
 			window.location = req_str;
 		};
 
-		var getEzshipStore = function(order_id) {
+		var getEzshipStore = function() {
 			var defer = $q.defer();
-			$http.get('/api/ezships/history/'+order_id).then(function(data) {
+			$http.get('/api/ezships/history/').then(function(data) {
 				defer.resolve(data.data[0]);
 			}, function(err) {
 				defer.reject(err);

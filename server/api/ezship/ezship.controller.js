@@ -70,8 +70,6 @@ export function upsertHistory(req, res) {
 
 export function getHistory(req, res) {
 	var customer_id = req.user._id;
-	var order_id = req.params.id;
-	if(!order_id) handleError(res, 'You should keyin an order_id !!');
 	mysql_pool.getConnection(function(err, connection){
 		if(err) { handleError(res, err); }
 		connection.query('select * from oc_customer_ezship_history where customer_id = ? order by ezship_history_id desc limit 1;',[customer_id] , function(err, result_coll) {

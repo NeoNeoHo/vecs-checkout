@@ -81,9 +81,9 @@ export function getAddress(req, res) {
 	var address_id = req.user.address_id;
 	mysql_pool.getConnection(function(err, connection){
 		if(err) handleError(res, err);
-		var sql = 'select a.*, b.name as city_name,  c.name as country_name from '+ mysql_config.db_prefix+'address a, ' + mysql_config.db_prefix + 'zone b, ' + mysql_config.db_prefix + 'country c where a.customer_id = ' + customer_id + ' and a.zone_id = b.zone_id and a.country_id = c.country_id order by a.address_id desc limit 1';
+		var sql = 'select a.*, b.name as city_name,  c.name as country_name, d.name as district_name, d.postcode as postcode from '+ mysql_config.db_prefix+'address a, ' + mysql_config.db_prefix + 'zone b, ' + mysql_config.db_prefix + 'country c, ' + mysql_config.db_prefix + 'district d where a.customer_id = ' + customer_id + ' and a.zone_id = b.zone_id and a.country_id = c.country_id and a.district_id = d.district_id order by a.address_id desc limit 1';
 		if(address_id){
-			sql = 'select a.*, b.name as city_name,  c.name as country_name from '+ mysql_config.db_prefix+'address a, ' + mysql_config.db_prefix + 'zone b, ' + mysql_config.db_prefix + 'country c where a.address_id = ' + address_id + ' and a.customer_id = ' + customer_id + ' and a.zone_id = b.zone_id and a.country_id = c.country_id';
+			sql = 'select a.*, b.name as city_name,  c.name as country_name, d.name as district_name, d.postcode as postcode from '+ mysql_config.db_prefix+'address a, ' + mysql_config.db_prefix + 'zone b, ' + mysql_config.db_prefix + 'country c, ' + mysql_config.db_prefix + 'district d where a.address_id = ' + address_id + ' and a.customer_id = ' + customer_id + ' and a.zone_id = b.zone_id and a.country_id = c.country_id and a.district_id = d.district_id';
 		}
 		connection.query(sql,[], function(err, rows) {
 			if(err) handleError(res, err);
