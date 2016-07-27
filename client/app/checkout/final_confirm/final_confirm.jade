@@ -89,7 +89,7 @@ div.panel.panel-default
 						td.text-right $ {{cart.shipment_fee}}
 					tr.h2
 						td.text-right 總計
-						td.text-right $ {{cart.product_total_price - cart.discount.reward.saved_amount - cart.discount.coupon.saved_amount - cart.discount.voucher.saved_amount}}
+						td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward.saved_amount - cart.discount.coupon.saved_amount - cart.discount.voucher.saved_amount}}
 
 div.visible-xs
 	.row
@@ -118,7 +118,7 @@ div.visible-xs
 					td.text-right $ {{cart.shipment_fee}}
 				tr.h2
 					td.text-right 總計
-					td.text-right $ {{cart.product_total_price - cart.discount.reward.saved_amount - cart.discount.coupon.saved_amount - cart.discount.voucher.saved_amount}}
+					td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward.saved_amount - cart.discount.coupon.saved_amount - cart.discount.voucher.saved_amount}}
 div.row.panel.panel-body
 	button.col-md-3.col-xs-4.btn.btn-default.btn-sharp.btn-lg.text-justify(ng-click="checkout_second_step()") 上一步
 	button.col-md-3.col-xs-7.btn.btn-default.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedCheckout()", ng-disabled="checkout_form.$invalid") 送出結帳

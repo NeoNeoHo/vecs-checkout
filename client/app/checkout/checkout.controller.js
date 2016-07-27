@@ -5,7 +5,7 @@ angular.module('webApp')
 		$rootScope.$state = $state;
 		$rootScope.$on('$stateChangeSuccess', function() {
    		var someElement = angular.element(document.getElementById('form-container'));
-    	$document.scrollToElementAnimated(someElement, 0, 1500);
+    	$document.scrollToElementAnimated(someElement, 0, 800);
 		});
 
 		$scope.currentUser = $scope.currentUser || Auth.getCurrentUser();
@@ -21,6 +21,8 @@ angular.module('webApp')
 		$scope.SHIPPING_NAME = SHIPPING_NAME;
 		$scope.PAYMENT_NAME = PAYMENT_NAME;
 		$scope.is_address_valid = $scope.is_address_valid || true;
+
+
 
 		$scope.checkout_first_step = function() {
 			$state.go('checkout.product_check');
@@ -383,6 +385,7 @@ angular.module('webApp')
 						defer.resolve();
 					}, function(err) {
 						alert(err);
+						$scope.discount_temp.voucher_name = '';
 						defer.reject(err);
 					});
 
@@ -486,5 +489,13 @@ angular.module('webApp')
 			$scope.form_action = $sce.trustAsResourceUrl("https://sslpayment.uwccb.com.tw/EPOSService/Payment/Mobile/OrderInitial.aspx");
 		} else {
 			$scope.form_action = $sce.trustAsResourceUrl("https://sslpayment.uwccb.com.tw/EPOSService/Payment/OrderInitial.aspx");
+		}
+
+		var searchUrlObject = $location.search();
+		console.log('url params');
+		console.log(searchUrlObject);
+		if(_.has(searchUrlObject, 'shipment') && searchUrlObject.shipment == 'ship_to_store') {
+			$scope.cart.shipment_sel_str = SHIPPING_NAME.ship_to_store;
+			$scope.setPaymentMethod(SHIPPING_NAME.ship_to_store);
 		}
 	});

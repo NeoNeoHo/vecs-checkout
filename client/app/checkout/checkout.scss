@@ -1,6 +1,4 @@
-.thing-form {
-  margin: 20px 0;
-}
+
 
 #banner {
   border-bottom: none;
@@ -29,7 +27,38 @@
   border-top: 1px solid #E5E5E5;
 }
 
+.logo {
+  padding: 0px 0px 30px 0px;
+}
 
+.navbar-toggle-vecs {
+  @extend .navbar-toggle;
+  background-color: #858735;
+  border: 1px solid #858735;
+  color: white;
+}
+.navbar-default .navbar-toggle-vecs:focus {
+  outline: none;
+  background-color: #858735;
+  border: 1px solid #858735;
+}
+.navbar-default .navbar-toggle-vecs:hover {
+  outline: none;
+  background-color: #858735;
+  border: 1px solid #858735;
+}
+.navbar-toggle-vecs .icon-bar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 1px;
+}
+.navbar-toggle-vecs .icon-bar + .icon-bar {
+  margin-top: 4px;
+}
+.navbar-default .navbar-toggle-vecs .icon-bar {
+  background-color: white;
+}
 
 .well {
   background-color: white;
@@ -47,6 +76,11 @@
   opacity: 0.3;
 }
 
+.navbar-default {
+  @extend .navbar-default;
+  background-color: transparent;
+  border-color: transparent;
+}
 a {
   color: black;
   text-decoration:none;
@@ -117,7 +151,15 @@ a {
 .btn-vecs {
   @extend .btn-default;
 }
-
+/*.btn-vecs:hover,*/
+.btn-vecs:focus,
+.btn-vecs:active,
+.btn-vecs.active,
+.open .dropdown-toggle.btn-vecs {
+  color: #000;
+  background-color: #bccd99 ;
+  border-color: #abc07c;
+}
 
 .disabled {
   disabled: true;
@@ -234,21 +276,21 @@ input.ng-touched.ng-valid, select.ng-touched.ng-valid, .form-check.ng-touched.ng
 /* left and right added to ensure full width */
 #form-views.ng-enter,
 #form-views.ng-leave      { position:absolute; left:30px; right:30px;
-    transition:0.9s all ease; -moz-transition:0.9s all ease; -webkit-transition:0.9s all ease; 
+    transition:0.6s all ease; -moz-transition:0.6s all ease; -webkit-transition:0.6s all ease; 
 }
     
 /* enter animation */
 #form-views.ng-enter            { 
-    -webkit-animation:slideInRight 0.9s both ease;
-  -moz-animation:slideInRight 0.9s both ease;
-  animation:slideInRight 0.9s both ease; 
+    -webkit-animation:slideInRight 0.6s both ease;
+  -moz-animation:slideInRight 0.6s both ease;
+  animation:slideInRight 0.6s both ease; 
 }
 
 /* leave animation */
 #form-views.ng-leave            { 
-    -webkit-animation:slideOutLeft 0.9s both ease;
-  -moz-animation:slideOutLeft 0.9s both ease;
-  animation:slideOutLeft 0.9s both ease;   
+    -webkit-animation:slideOutLeft 0.6s both ease;
+  -moz-animation:slideOutLeft 0.6s both ease;
+  animation:slideOutLeft 0.6s both ease;   
 }
 
 /* ANIMATIONS

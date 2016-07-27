@@ -57,12 +57,12 @@ export function upsertHistory(req, res) {
 				// connection.query('update oc_customer_ezship_history set ? where customer_id = ?',[obj, customer_id] , function(err, rows) {
 					connection.release();
 					// if(err) handleError(res, err);
-					res.redirect('/checkout/shipment_payment');
+					res.redirect('/checkout/shipment_payment/?shipment=ship_to_store');
 				// });
 			}
 			else {
 				connection.release();
-				res.redirect('/checkout/shipment_payment');
+				res.redirect('/checkout/shipment_payment/?shipment=ship_to_store');
 			}
 		});
 	});
