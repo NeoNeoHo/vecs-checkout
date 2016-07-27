@@ -33,6 +33,7 @@
 
 .well {
   background-color: white;
+  border-radius: 15px;
 }
 
 .well-focus {
@@ -48,10 +49,23 @@
 
 a {
   color: black;
+  text-decoration:none;
+  &:link {
+    text-decoration:none;
+    color: black;
+  };
+  &:visited {
+    text-decoration:none;
+    color: black;
+  };
+  &:active {
+    text-decoration:none;
+    color: black;
+  };
   &:hover {
     color: black;
-    // border-bottom: 5px solid $blockquote-border-color;
-  }
+    text-decoration:none;
+  };
 }
 
 .table-default > tbody > tr > th {
@@ -120,7 +134,7 @@ a {
 
 /* FORM VALIDATION STYLINGS
 ============================================================================= */
-input.ng-dirty.ng-invalid {
+.form-invalid {
   border-color: #a94442;
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
           box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
@@ -131,7 +145,29 @@ input.ng-dirty.ng-invalid {
   }
 }
 
-input.ng-touched.ng-valid, select.ng-touched.ng-valid {
+.form-valid {
+  border-color: #abc07c;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  &:focus {
+    border-color: #abc07c;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #c5d4a2;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #c5d4a2;
+  }
+}
+
+input.ng-dirty.ng-invalid, .form-check.ng-invalid {
+  border-color: #a94442;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  &:focus {
+    border-color: #843534;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;
+  }
+}
+
+input.ng-touched.ng-valid, select.ng-touched.ng-valid, .form-check.ng-touched.ng-valid {
   border-color: #abc07c;
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
           box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
@@ -176,18 +212,19 @@ input.ng-touched.ng-valid, select.ng-touched.ng-valid {
 /* form styling */
 #form-container                { background:white; margin-bottom:20px;
     border-radius:5px; }
-/*#form-container .page-header   { background:#151515; margin:0; padding:30px; 
-    border-top-left-radius:5px; border-top-right-radius:5px; color:white}
 
 /* numbered buttons */
 #status-buttons                 { padding: 20px 0px 20px 0px;}
-#status-buttons a               { display:inline-block; text-transform:uppercase; text-decoration:none;}
+/*#status-buttons a               { display:inline-block; text-transform:uppercase; text-decoration:none;}
 #status-buttons a:hover         { text-decoration:none; }
-
+*/
 /* numbered button in circle */
 #status-buttons .in-circle      { color:white; background:#d5e3e0; display:block; height:80px; margin:0 auto 10px; padding-top:10px; width:80px; 
     border-radius:50%; text-align: center;}
 #status-buttons a.active .in-circle   { background:#84ccc9; }
+#status-buttons p   { @extend .text-muted; }
+#status-buttons a.active p {color:black};
+
 
 /* ANIMATION STYLINGS
 ============================================================================= */
@@ -197,21 +234,21 @@ input.ng-touched.ng-valid, select.ng-touched.ng-valid {
 /* left and right added to ensure full width */
 #form-views.ng-enter,
 #form-views.ng-leave      { position:absolute; left:30px; right:30px;
-    transition:0.5s all ease; -moz-transition:0.5s all ease; -webkit-transition:0.5s all ease; 
+    transition:0.9s all ease; -moz-transition:0.9s all ease; -webkit-transition:0.9s all ease; 
 }
     
 /* enter animation */
 #form-views.ng-enter            { 
-    -webkit-animation:slideInRight 0.5s both ease;
-  -moz-animation:slideInRight 0.5s both ease;
-  animation:slideInRight 0.5s both ease; 
+    -webkit-animation:slideInRight 0.9s both ease;
+  -moz-animation:slideInRight 0.9s both ease;
+  animation:slideInRight 0.9s both ease; 
 }
 
 /* leave animation */
 #form-views.ng-leave            { 
-    -webkit-animation:slideOutLeft 0.5s both ease;
-  -moz-animation:slideOutLeft 0.5s both ease;
-  animation:slideOutLeft 0.5s both ease;   
+    -webkit-animation:slideOutLeft 0.9s both ease;
+  -moz-animation:slideOutLeft 0.9s both ease;
+  animation:slideOutLeft 0.9s both ease;   
 }
 
 /* ANIMATIONS

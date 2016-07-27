@@ -11,7 +11,8 @@ angular.module('webApp', [
   'ngSanitize',
   'ui.router',
   'ui.bootstrap',
-  'validation.match'
+  'validation.match',
+  'duScroll'
 ])
   .config(function($urlRouterProvider, $locationProvider) {
     $urlRouterProvider

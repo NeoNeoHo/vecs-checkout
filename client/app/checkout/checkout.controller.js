@@ -1,7 +1,13 @@
 'use strict';
 
 angular.module('webApp')
-	.controller('CheckoutController', function ($scope, $state, $anchorScroll , $location, $cookies, $http, $q, User, Auth,  Location, Shipment, Payment, Promotion, Cart, Customer, Reward, Product, Config) {
+	.controller('CheckoutController', function ($rootScope, $scope, $window, $state, $document, $location, $cookies, $sce, $http, $q, User, Auth,  Location, Shipment, Payment, Promotion, Cart, Customer, Reward, Product, Config) {
+		$rootScope.$state = $state;
+		$rootScope.$on('$stateChangeSuccess', function() {
+   		var someElement = angular.element(document.getElementById('form-container'));
+    	$document.scrollToElementAnimated(someElement, 0, 1500);
+		});
+
 		$scope.currentUser = $scope.currentUser || Auth.getCurrentUser();
 		$scope.allow_amount = $scope.allow_amount || _.range(1,10);
 		var SHIPMENT_EZSHIP_FEE = Config.SHIPPING_FEE.EZSHIP;
@@ -14,7 +20,7 @@ angular.module('webApp')
 		var PAYMENT_NAME = Config.PAYMENT_NAME;
 		$scope.SHIPPING_NAME = SHIPPING_NAME;
 		$scope.PAYMENT_NAME = PAYMENT_NAME;
-
+		$scope.is_address_valid = $scope.is_address_valid || true;
 
 		$scope.checkout_first_step = function() {
 			$state.go('checkout.product_check');
@@ -27,9 +33,16 @@ angular.module('webApp')
 			}
 		};
 		$scope.checkout_third_step = function() {
-			if($scope.checkout_form.$valid){
+			if(lstrcmp([SHIPPING_NAME.ship_to_home,SHIPPING_NAME.ship_to_overseas], $scope.shipping_info.shipment_sel_str)) {
+				$scope.is_address_valid = $scope.shipping_info.country_d && $scope.shipping_info.city_d && $scope.shipping_info.address;
+			}
+			if($scope.shipping_info.shipment_sel_str === SHIPPING_NAME.ship_to_store) {
+				$scope.is_address_valid = $scope.shipping_info.ezship_store_info;
+			}
+			if($scope.checkout_form.$valid && $scope.is_address_valid){
 				$state.go('checkout.final_confirm');
 			} else {
+				$scope.is_address_valid = false;
 				console.log($scope.checkout_form.$valid);
 			}
 		};
@@ -263,7 +276,7 @@ angular.module('webApp')
 			$scope.payment_btn.credit_pay = (lstrcmp([SHIPPING_NAME.ship_to_home,SHIPPING_NAME.ship_to_overseas, SHIPPING_NAME.ship_to_store], lmethod)) ? true : false;
 
 			
-			var total_price_with_discount = $scope.cart.product_total_price - $scope.cart.discount.reward - $scope.cart.discount.coupon;
+			var total_price_with_discount = $scope.cart.product_total_price - $scope.cart.discount.reward.saved_amount - $scope.cart.discount.coupon.saved_amount;
 			if(lmethod === SHIPPING_NAME.ship_to_home) {
 				$scope.shipping_info.country_id = 206;
 				$scope.setCities(206);
@@ -374,7 +387,9 @@ angular.module('webApp')
 					});
 
 				}, function(err) {
+					console.log(err);
 					alert(err);
+					$scope.discount_temp.coupon_name = '';
 					defer.reject(err);
 				});
 
@@ -387,6 +402,11 @@ angular.module('webApp')
 		};
 
 		$scope.proceedCheckout = function() {
+			if($scope.checkout_form.$invalid) {
+				alert('請檢查結帳資訊，謝謝');
+				$scope.checkout_second_step();
+				return 0;
+			}
 			$scope.checkout_disabled = true;
 
 			var shipping_promise = [];
@@ -408,6 +428,8 @@ angular.module('webApp')
 			}, function(err) {
 				console.log(err);
 				alert('商品價格及紅利點數有異，請洽客服人員，並將客服代碼『1201』告知客服人員，謝謝');
+				$scope.checkout_first_step();
+				return 0;
 			});
 
 			// Step 3. 檢查優惠內容與禮品券內容
@@ -429,6 +451,8 @@ angular.module('webApp')
 				shipping_promise.push(Shipment.setShipToEzship($scope.cart, $scope.shipping_info, payment_method));
 			} else {
 				alert('沒有配送方式');
+				$scope.checkout_second_step();
+				return 0;
 			}
 
 			// Step 5-1. 先處理配送方式，回傳訂單編號
@@ -458,4 +482,9 @@ angular.module('webApp')
 			console.log($scope.shipping_info);
 		};
 		$scope.getEzshipStore();
+		if($window.innerWidth <= 768){
+			$scope.form_action = $sce.trustAsResourceUrl("https://sslpayment.uwccb.com.tw/EPOSService/Payment/Mobile/OrderInitial.aspx");
+		} else {
+			$scope.form_action = $sce.trustAsResourceUrl("https://sslpayment.uwccb.com.tw/EPOSService/Payment/OrderInitial.aspx");
+		}
 	});

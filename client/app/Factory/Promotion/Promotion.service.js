@@ -22,7 +22,7 @@ angular.module('webApp')
 			$http.get('/api/coupons/'+couponNum).then(function(data) {
 				defer.resolve(data.data);
 			}, function(err) {
-				defer.reject(err);
+				defer.reject(err.data);
 			});
 			return defer.promise;
 		}

@@ -9,32 +9,35 @@
 				.row
 					div#status-buttons.text-center.col-md-8.col-md-offset-2
 						.row
-							a.col-md-4.col-xs-4(ui-sref-active="active", ui-sref=".product_check")
+							a.col-md-4.col-xs-4(ng-class="{'active': $state.is('checkout.product_check')}")
 								.in-circle 
 									span.h5 STEP
 									br
 									spna.h2 01
-								| 確認購物清單
-								br
-								| CHECK ORDER
-							a.col-md-4.col-xs-4(ui-sref-active="active", ui-sref=".shipment_payment")
+								p 確認購物清單
+									br
+									| CHECK ORDER
+							a.col-md-4.col-xs-4(ng-class="{'active': $state.is('checkout.shipment_payment')}")
 								.in-circle
 									span.h5 STEP 
 									br
 									span.h2 02
 									br
-								| 付款方式
-								br
-								| SELECT PAYMENT
-							a.col-md-4.col-xs-4(ui-sref-active="active", ui-sref=".final_confirm")
+								p 付款方式
+									br
+									| SELECT PAYMENT
+							a.col-md-4.col-xs-4(ng-class="{'active': $state.is('checkout.final_confirm')}")
 								.in-circle 
 									span.h5 STEP 
 									br
 									span.h2 03
-								| 最後確認
-								br
-								| COMFIRM ORDER
+								p 最後確認
+									br
+									| COMFIRM ORDER
 				.row
 					form.form-horizontal(name="checkout_form", novalidate)
 						div#form-views(ui-view="")
+
+form(method="post", id="cathay_order_form", action="{{form_action}}")
+	input(type='hidden', id='strRqXMLID', name='strRqXML', value='')
 //- footer
