@@ -36,6 +36,7 @@ export function isAuthenticated() {
 			// console.log(req.user);
 			mysql_pool.getConnection(function(err, connection){
 				if(err) handleError(res)(err);
+				var session_id = req.user.session_id || '';
 				connection.query('select * from oc_customer where customer_id = ?',[req.user._id], function(err, rows) {
 					connection.release();
 					if(err) next(err);
@@ -47,7 +48,8 @@ export function isAuthenticated() {
 							customer_group_id: rows[0].customer_group_id,
 							address_id: rows[0].address_id,
 							email: rows[0].email,
-							address_id: rows[0].address_id
+							address_id: rows[0].address_id,
+							session_id: session_id
 						};
 						// console.log(req.user);
 						next();

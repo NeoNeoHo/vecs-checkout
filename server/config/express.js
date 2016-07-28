@@ -18,8 +18,12 @@ import config from './environment';
 import passport from 'passport';
 import session from 'express-session';
 import connectMongo from 'connect-mongo';
+import connectRedis from 'connect-redis'
 import mongoose from 'mongoose';
-var mongoStore = connectMongo(session);
+// var mongoStore = connectMongo(session);
+import redis from 'redis';
+var redisStore = connectRedis(session);
+var client = redis.createClient();
 
 export default function(app) {
   var env = app.get('env');
@@ -37,12 +41,14 @@ export default function(app) {
   // We need to enable sessions for passport-twitter because it's an
   // oauth 1.0 strategy, and Lusca depends on sessions
   app.use(session({
-    secret: config.secrets.session,
+    secret: 'PHPSESSID',
     saveUninitialized: true,
     resave: false,
-    store: new mongoStore({
-      mongooseConnection: mongoose.connection,
-      db: 'web'
+    name: 'PHPSESSID',
+    store: new redisStore({
+      host: 'tcp://127.0.0.1',
+      port: 6379,
+      client: client
     })
   }));
 

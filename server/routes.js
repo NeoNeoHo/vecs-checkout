@@ -12,6 +12,7 @@ export default function(app) {
 	app.use('/api/customers', require('./api/customer'));
 	app.use('/api/rewards', require('./api/reward'));
 	app.use('/api/coupons', require('./api/coupon'));
+	app.use('/api/carts', require('./api/cart'));
 	app.use('/api/ezships', require('./api/ezship'));
 	app.use('/api/locations', require('./api/location'));
 	app.use('/api/orders', require('./api/order'));

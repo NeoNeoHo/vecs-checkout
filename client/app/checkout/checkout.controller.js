@@ -22,7 +22,11 @@ angular.module('webApp')
 		$scope.PAYMENT_NAME = PAYMENT_NAME;
 		$scope.is_address_valid = $scope.is_address_valid || true;
 
-
+		var session_id = 'PHPSESSID:' + $cookies.get('PHPSESSID');
+		console.log(session_id);
+		console.log($cookies.getAll());
+		console.log($cookies.get('vecs_cart'));
+		$http.get('/api/carts/session/'+123).then(function(res){}, function(err){});
 
 		$scope.checkout_first_step = function() {
 			$state.go('checkout.product_check');
