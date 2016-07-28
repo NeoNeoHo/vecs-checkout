@@ -1,16 +1,12 @@
-div.jumbotron.text-center.text-white.hidden-xs(style="background-image: url('../assets/images/checkout/03.jpg'); background-size: 100% auto;")
+div.jumbotron.text-center.text-white.hidden-xs(style="background-image: url('../assets/images/checkout/03.jpg'); background-size: 100% auto;", ng-click="backAndClearCart()")
 	h1 謝謝您的購買
 	p 期待您開心收到商品
-	p (訂單編號：
-		b {{order.order_id}}
-		| )
-div.well.text-center.visible-xs
+	button.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="backAndClearCart()", role="button") 回到官網首頁
+		span.glyphicon.glyphicon-home.pull-right
+div.well.text-center.visible-xs(style="border:0px solid black;")
 	h2 謝謝您的購買
 	p 期待您開心收到商品
-	p (訂單編號：
-		b {{order.order_id}}
-		| )
-		//- a.btn.btn-default.btn-lg(href="/users", role="button") 一探究竟
+	a.btn.btn-default.btn-lg(href="/users", role="button") 回到官網首頁
 .page-header.h4 
 	| 訂單資訊 （訂單編號：{{order.order_id}}）
 .row
@@ -29,6 +25,7 @@ div.well.text-center.visible-xs
 				td {{product.quantity}}
 				td {{product.total}}
 		em.pull-right ({{order.payment_method}} , {{order.shipping_method}})
+
 .page-header.h4 商品處理資訊
 .row
 	div.col-md-4
@@ -61,5 +58,5 @@ div.text-muted
 		li 若當次訂購享有跨產品或滿額贈禮優惠者，有需要取消或退貨時，需將當次訂購之商品全部取消或退貨。
 		li 辦理退換貨時，您需要負擔商品寄至本公司的郵資。
 
-button.col-md-3.col-xs-7.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="backAndClearCart()", role="button") 回到官網首頁
+button.col-md-3.col-xs-10.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="backAndClearCart()", role="button") 回到官網首頁
 	span.glyphicon.glyphicon-home.pull-right

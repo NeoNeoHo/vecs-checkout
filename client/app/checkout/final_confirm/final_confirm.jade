@@ -64,6 +64,13 @@ div.panel.panel-default
 					dt 付款方式
 					dd 
 						b {{shipping_info.payment_sel_str}}
+				dl
+					dt 訂單備註
+					dd
+						p
+							b(ng-show="shipping_info.comment") {{shipping_info.comment}}
+						p
+							b(ng-show="shipping_info.company_id") {{shipping_info.company_id}}
 			.col-md-2.hidden-xs
 				img.img-responsive(src="../assets/images/checkout/freeship.png", style="width:100%")
 			.col-md-4.pull-right.hidden-xs
@@ -123,4 +130,3 @@ div.row.panel.panel-body
 	button.col-md-3.col-xs-4.btn.btn-default.btn-sharp.btn-lg.text-justify(ng-click="checkout_second_step()") 上一步
 	button.col-md-3.col-xs-7.btn.btn-default.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedCheckout()", ng-disabled="checkout_form.$invalid") 送出結帳
 		span.glyphicon.glyphicon-circle-arrow-right.pull-right
-//- .well {{shipping_info}}
