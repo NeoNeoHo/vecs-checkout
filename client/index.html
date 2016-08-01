@@ -9,10 +9,12 @@
     <base href="/">
     <title></title>
     <meta name="description" content="">
-    <meta name="viewport" content="width=device-width">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <!-- build:css(client) app/vendor.css -->
       <!-- bower:css -->
+      <link rel="stylesheet" href="bower_components/angular-busy/dist/angular-busy.css" />
+      <link rel="stylesheet" href="bower_components/angular-spinkit/build/angular-spinkit.min.css" />
       <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css({.tmp,client}) app/app.css -->
@@ -57,6 +59,8 @@
       <script src="bower_components/angular-validation-match/dist/angular-validation-match.min.js"></script>
       <script src="bower_components/angular-animate/angular-animate.js"></script>
       <script src="bower_components/angular-scroll/angular-scroll.js"></script>
+      <script src="bower_components/angular-busy/dist/angular-busy.js"></script>
+      <script src="bower_components/angular-spinkit/build/angular-spinkit.js"></script>
       <!-- endbower -->
     <!-- endbuild -->
 
@@ -66,7 +70,7 @@
       <script src="app/admin/admin.module.js"></script>
       <script src="components/auth/auth.module.js"></script>
       <script src="components/util/util.module.js"></script>
-      <script src="app/checkout/final_confirm/final_confirm.js"></script>
+      <script src="app/checkout/failure/failure.js"></script>
       <script src="app/Factory/Order/Order.service.js"></script>
       <script src="app/Factory/Payment/Payment.service.js"></script>
       <script src="app/Factory/Product/Product.service.js"></script>
@@ -84,7 +88,9 @@
       <script src="app/app.constant.js"></script>
       <script src="app/checkout/checkout.controller.js"></script>
       <script src="app/checkout/checkout.js"></script>
+      <script src="app/checkout/failure/failure.controller.js"></script>
       <script src="app/Factory/Config/Config.service.js"></script>
+      <script src="app/checkout/final_confirm/final_confirm.js"></script>
       <script src="app/checkout/product_check/product_check.js"></script>
       <script src="app/checkout/shipment_payment/shipment_payment.js"></script>
       <script src="app/checkout/success/success.controller.js"></script>

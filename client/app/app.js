@@ -12,11 +12,12 @@ angular.module('webApp', [
   'ui.router',
   'ui.bootstrap',
   'validation.match',
-  'duScroll'
+  'duScroll',
+  'angular-spinkit'
 ])
   .config(function($urlRouterProvider, $locationProvider) {
     $urlRouterProvider
-      .otherwise('/');
+      .otherwise('/checkout/product_check');
 
     $locationProvider.html5Mode(true);
   });

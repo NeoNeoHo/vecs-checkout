@@ -10,6 +10,9 @@ angular.module('webApp')
 			var defer = $q.defer();
 			$http.get('/api/rewards/')
 			.then(function(result) {
+				if(result.data.points && result.data.points < 0) {
+					result.data.points = 0;
+				}
 				defer.resolve(result.data);
 			}, function(err) {
 				defer.reject(err);

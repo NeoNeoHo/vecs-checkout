@@ -85,6 +85,7 @@ angular.module('webApp')
 			};
 			$http.put('/api/locations/address/', {address: address_to_update})
 			.then(function(result) {
+				console.log('我結束updateAddress');
 				defer.resolve(result);
 			}, function(err) {
 				defer.reject(err);

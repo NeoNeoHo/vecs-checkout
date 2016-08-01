@@ -46,6 +46,7 @@ angular.module('webApp')
 			promises.push(Order.updateOrder(order_id, update_dict));
 			promises.push(Order.insertOrderHistory(order_id, insert_dict));
 			$q.all(promises).then(function(datas) {
+				Order.sendOrderSucessMail(order_id);
 				defer.resolve({checkout_status: 1, order_id: order_id});
 			}, function(err) {
 				defer.reject(err);
@@ -70,6 +71,7 @@ angular.module('webApp')
 			promises.push(Order.updateOrder(order_id, update_dict));
 			promises.push(Order.insertOrderHistory(order_id, insert_dict));
 			$q.all(promises).then(function(datas) {
+				Order.sendOrderSucessMail(order_id);
 				defer.resolve({checkout_status: 1, order_id: order_id});
 			}, function(err) {
 				defer.reject(err);

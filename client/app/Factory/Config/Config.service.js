@@ -2,13 +2,18 @@
 
 angular.module('webApp')
 	.factory('Config', function ($q, $http) {
-		var DIR_IMAGE_PATH = 'https://www.vecsgardenia.com/image/';
-		var DIR_HOST = 'https://love.vecsgardenia.com.tw';
-		var SERVER_HOST = 'https://vecsgardenia.com.tw';
-		var COOKIES_DOMAIN = 'vecsgardenia.com.tw';
-		// var DIR_HOST = 'http://61.220.72.50:9001';
-		// var DIR_HOST = 'http://localhost';
-		// var COOKIES_DOMAIN = 'localhost'
+		var DIR_IMAGE_PATH = 'https://www.vecsgardenia.com/image';
+
+		// var DIR_COOKIES = 'vecsgardenia.com.tw';
+		// var DIR_COOKIES = '61.220.72.50';
+		var DIR_COOKIES = 'localhost';
+
+		var DIR_DOMAIN = 'http://' + DIR_COOKIES;
+		
+		// var DIR_NODE_SUBDOMAIN = 'https://love.' + DIR_COOKIES;
+		var DIR_NODE_SUBDOMAIN = 'http:' + DIR_COOKIES + ':9001';
+		
+		
 
 		var SHIPPING_FEE = {
 			EZSHIP: 60,
@@ -45,9 +50,9 @@ angular.module('webApp')
 		// Public API here
 		return {
 			DIR_IMAGE_PATH: DIR_IMAGE_PATH,
-			DIR_HOST: DIR_HOST,
-			SERVER_HOST: SERVER_HOST,
-			COOKIES_DOMAIN: COOKIES_DOMAIN,
+			DIR_COOKIES: DIR_COOKIES,
+			DIR_DOMAIN: DIR_DOMAIN,
+			DIR_NODE_SUBDOMAIN: DIR_NODE_SUBDOMAIN,
 			SHIPPING_FEE: SHIPPING_FEE,
 			FREE_SHIPPING_CONDICTION: FREE_SHIPPING_CONDICTION,
 			PAYMENT_NAME: PAYMENT_NAME,

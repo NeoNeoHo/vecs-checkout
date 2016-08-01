@@ -44,11 +44,11 @@ export function upsertHistory(req, res) {
 	if(!content) handleError(res, 'Err No content to update ezship order');
 	var obj = {
 		customer_id : customer_id,
-		stCate : content.stCate,
-		stCode : content.stCode,
-		stName : content.stName,
-		stAddr : content.stAddr,
-		stTel : content.stTel
+		stCate : content.stCate || '',
+		stCode : content.stCode || '',
+		stName : content.stName || '',
+		stAddr : content.stAddr || '',
+		stTel : content.stTel || ''
 	};
 	mysql_pool.getConnection(function(err, connection){
 		if(err) handleError(res, err);
@@ -57,12 +57,12 @@ export function upsertHistory(req, res) {
 				// connection.query('update oc_customer_ezship_history set ? where customer_id = ?',[obj, customer_id] , function(err, rows) {
 					connection.release();
 					// if(err) handleError(res, err);
-					res.redirect('/checkout/shipment_payment/?shipment=ship_to_store');
+					res.redirect(HOST_PATH + '/checkout/shipment_payment?shipment=ship_to_store');
 				// });
 			}
 			else {
 				connection.release();
-				res.redirect('/checkout/shipment_payment/?shipment=ship_to_store');
+				res.redirect(HOST_PATH + '/checkout/shipment_payment?shipment=ship_to_store');
 			}
 		});
 	});

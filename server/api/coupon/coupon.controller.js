@@ -49,7 +49,7 @@ export function show(req, res) {
   promises.push(getCouponHistory(coupon_code));
 
   q.all(promises).then(function(results) {
-  	var coupon = results[0][0], coupon_category = results[1], coupon_product = results[2], coupon_history = results[3];
+  	var coupon = results[0][0] || results[0], coupon_category = results[1], coupon_product = results[2], coupon_history = results[3];
   	var lresponse = {'status': true};
     if (coupon.length == 0) { lresponse.status = false}
     else {
@@ -63,7 +63,8 @@ export function show(req, res) {
   	respondWithResult(res, lresponse);
     // respondWithResult(res, results);
   }, function(err) {
-  	handleError(res, err.message);
+    console.log(err);
+  	res.status(400).json(err);
   });
 }
 
@@ -78,7 +79,7 @@ var getCoupon = function(code, customer_id) {
     connection.query('select * from oc_coupon where code = ? and date_start <= ? and date_end >= ?;',[code, today, today] , function(err, rows) {
       connection.release();
       if(err) defer.reject(err);
-      if(rows.length == 0) defer.reject(new Error('沒有此一折扣碼，或此優惠碼已過期'));
+      // if(_.size(rows) == 0) defer.reject({data: '沒有此一折扣碼，或此優惠碼已過期'});
       defer.resolve(rows);
     });
   });

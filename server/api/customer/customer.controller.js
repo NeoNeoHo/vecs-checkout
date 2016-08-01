@@ -68,8 +68,7 @@ export function get(req, res) {
 export function updateCart(req, res) {
 	var cart = req.body.cart_products;
 	var customer_id = req.user._id;
-	// console.log(cart);
-	// console.log(customer_id);
+
 	var result = _.reduce(cart, function(result, product) {
 		result[new Buffer(serialize({"product_id":product.product_id}), 'ascii').toString('base64')] = product.quantity;
 		return result;
@@ -93,7 +92,4 @@ export function clearCart(req, res) {
 	var customer_id = req.user._id;
 	console.log('clearCart');
 	res.redirect(api_config.DIR_PATH+'index.php?route=checkout/cart/clear');
-	// request.get(api_config.DIR_PATH+'index.php?route=checkout/cart/clear', function(err, resp, body) {
-	// 	res.status(200).json(body);
-	// });
 }

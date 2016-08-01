@@ -13,11 +13,13 @@ import _ from 'lodash';
 import db_config from '../../config/db_config.js';
 import q from 'q';
 import api_config from '../../config/api_config.js';
+
 import md5 from 'md5';
 
 var parseString = require('xml2js').parseString;
 
 var Order = require('../order/order.controller.js');
+var Mail = require('../mandrill/mandrill.controller.js');
 var mysql_pool = db_config.mysql_pool;
 var mysql_config = db_config.mysql_config;  
 
@@ -119,7 +121,6 @@ var updateOrderByCathayResponse = function(order_id, update_msg, order_status_id
 
 export function getCathayCallback(req, res) {
 	var strRsXML = req.body.strRsXML;
-
 	parseString(strRsXML, function(err, result) {	
 		var returl = api_config.CATHAY_RETURN_URL;
 		var CAVALUE = md5(returl+api_config.CATHAY.CUBKEY);
@@ -132,17 +133,23 @@ export function getCathayCallback(req, res) {
 			respXML += "<RETURL>https://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
 			res.set('Content-Type', 'text/xml').send(respXML);
 		} else {
-			var content = result.CUBXML;
-			var ca_value = content.CAVALUE[0];
-			var store_id = content.ORDERINFO[0].STOREID[0];
-			var order_number = content.ORDERINFO[0].ORDERNUMBER[0];
-			var amount = content.ORDERINFO[0].AMOUNT[0];
-			var auth_status = content.AUTHINFO[0].AUTHSTATUS[0];
-			var auth_code = content.AUTHINFO[0].AUTHCODE[0];
-			var auth_time = content.AUTHINFO[0].AUTHTIME[0];
-			var auth_msg = content.AUTHINFO[0].AUTHMSG[0];		
-			var update_msg = "授權時間:" + auth_time + ",授權狀態:" + auth_status + ",授權碼:" + auth_code + ",授權訊息:" + auth_msg + ",授權金額:" + amount;
-
+			try {
+				var content = result.CUBXML;
+				var ca_value = content.CAVALUE[0];
+				var store_id = content.ORDERINFO[0].STOREID[0];
+				var order_number = content.ORDERINFO[0].ORDERNUMBER[0];
+				var amount = content.ORDERINFO[0].AMOUNT[0];
+				var auth_status = content.AUTHINFO[0].AUTHSTATUS[0];
+				var auth_code = content.AUTHINFO[0].AUTHCODE[0];
+				var auth_time = content.AUTHINFO[0].AUTHTIME[0];
+				var auth_msg = content.AUTHINFO[0].AUTHMSG[0];		
+				var update_msg = "授權時間:" + auth_time + ",授權狀態:" + auth_status + ",授權碼:" + auth_code + ",授權訊息:" + auth_msg + ",授權金額:" + amount;
+			}
+			catch (e) {
+				console.log(e);
+				respXML += "<RETURL>https://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
+				res.set('Content-Type', 'text/xml').send(respXML);	
+			}
 			if(auth_status !== '0000') {
 				respXML += "<RETURL>https://" + returl + "/api/payment/cathay/failure/redirect</RETURL></MERCHANTXML>";
 				updateOrderByCathayResponse(order_number, update_msg, 10).then(function(result) {
@@ -163,6 +170,7 @@ export function getCathayCallback(req, res) {
 					if(server_ca_value === ca_value) {
 						respXML += "<RETURL>https://" + returl + "/api/payment/cathay/success/redirect</RETURL></MERCHANTXML>";	
 						updateOrderByCathayResponse(order.order_id, update_msg, next_order_status_id).then(function(result) {
+							Mail.sendOrderSuccess(order.order_id);
 							res.set('Content-Type', 'text/xml').send(respXML);
 						}, function(err) {
 							console.log(err);
@@ -187,22 +195,38 @@ export function getCathayCallback(req, res) {
 };
 
 export function redirectSuccess(req, res) {
-	var xml = req.body.strOrderInfo;
-	// xml = "<?xml version='1.0' encoding='UTF-8'?><CUBXML><CAVALUE>d83161127a66cc9615a8691bda034f18</CAVALUE><ORDERINFO><STOREID>010990046</STOREID><ORDERNUMBER>35010</ORDERNUMBER></ORDERINFO></CUBXML>"
-	parseString(xml, function(err, result) {
-		var content = result.CUBXML;
-		var order_id = content.ORDERINFO[0].ORDERNUMBER[0];
-		res.redirect('/checkout/success?order_id='+order_id);
-	});
+	try {
+		var xml = req.body.strOrderInfo;
+		// xml = "<?xml version='1.0' encoding='UTF-8'?><CUBXML><CAVALUE>d83161127a66cc9615a8691bda034f18</CAVALUE><ORDERINFO><STOREID>010990046</STOREID><ORDERNUMBER>35010</ORDERNUMBER></ORDERINFO></CUBXML>"
+		parseString(xml, function(err, result) {
+			var content = result.CUBXML;
+			var order_id = content.ORDERINFO[0].ORDERNUMBER[0];
+			res.redirect('/checkout/success?order_id='+order_id);
+		});
+	}
+	catch (e) {
+		console.log(e);
+		res.redirect('/checkout/failure?msg=please_contact_cs');
+	}
 };
 
 export function redirectFailure(req, res) {
-	var xml = req.body.strOrderInfo;
-	// xml = "<?xml version='1.0' encoding='UTF-8'?><CUBXML><CAVALUE>d83161127a66cc9615a8691bda034f18</CAVALUE><ORDERINFO><STOREID>010990046</STOREID><ORDERNUMBER>35010</ORDERNUMBER></ORDERINFO></CUBXML>"
-	parseString(xml, function(err, result) {
-		var content = result.CUBXML;
-		var order_id = content.ORDERINFO[0].ORDERNUMBER[0];
-		res.redirect('/checkout/failure?order_id='+order_id);
-	});
+	try {
+		var xml = req.body.strOrderInfo;
+		// xml = "<?xml version='1.0' encoding='UTF-8'?><CUBXML><CAVALUE>d83161127a66cc9615a8691bda034f18</CAVALUE><ORDERINFO><STOREID>010990046</STOREID><ORDERNUMBER>35010</ORDERNUMBER></ORDERINFO></CUBXML>"
+		parseString(xml, function(err, result) {
+			var content = result.CUBXML;
+			var order_id = content.ORDERINFO[0].ORDERNUMBER[0];
+			Order.deleteOrderResidual(order_id).then(function(result) {
+				res.redirect('/checkout/failure?order_id='+order_id);
+			}, function(err) {
+				res.redirect('/checkout/failure?order_id='+order_id);
+			});
+		});
+	}
+	catch (e) {
+		console.log(e);
+		res.redirect('/checkout/failure?msg=please_contact_cs');
+	}
 };
 

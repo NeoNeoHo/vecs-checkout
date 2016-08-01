@@ -3,7 +3,7 @@
 (function() {
 
 angular.module('webApp.auth')
-  .run(function($rootScope, $state, Auth) {
+  .run(function($rootScope, $state, Auth, Config) {
     // Redirect to login if route requires auth and the user is not logged in, or doesn't have required role
     $rootScope.$on('$stateChangeStart', function(event, next) {
       if (!next.authenticate) {
@@ -29,7 +29,7 @@ angular.module('webApp.auth')
           }
           // console.log('xxxxxx');
           event.preventDefault();
-          window.location = 'http://61.220.72.50/';
+          window.location = Config.DIR_DOMAIN;
           // $state.go('login');
         });
       }

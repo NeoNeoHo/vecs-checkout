@@ -11,6 +11,11 @@
   letter-spacing: -1px;
 }
 
+.spinning-class {
+  width:400px;
+  height: 400px;
+}
+
 .hero-unit {
   position: relative;
   padding: 30px 15px;
@@ -122,13 +127,11 @@ a {
 }
 
 .text-green {
-  color: green;
+  color: #99ab70;
 }
 .btn-sharp {
   @extend .btn-default;
-  border-radius: 0px;
-  padding-top: 2px;
-  padding-bottom: 2px;
+  //border-radius: 0px;
 }
 
 .btn-group-seperated {
@@ -150,12 +153,28 @@ a {
 
 .btn-vecs {
   @extend .btn-default;
+  color: #000;
+  background-color: #bccd99 ;
+  border-color: #abc07c;
 }
-/*.btn-vecs:hover,*/
+.btn-vecs:hover,
 .btn-vecs:focus,
 .btn-vecs:active,
 .btn-vecs.active,
 .open .dropdown-toggle.btn-vecs {
+  color: #000;
+  background-color: #99ab70;
+  border-color: #898c3d;
+}
+
+.btn-vecs-default {
+  @extend .btn-default;
+}
+/*.btn-vecs:hover,*/
+.btn-vecs-default:focus,
+.btn-vecs-default:active,
+.btn-vecs-default.active,
+.open .dropdown-toggle.btn-vecs-default {
   color: #000;
   background-color: #bccd99 ;
   border-color: #abc07c;
@@ -274,6 +293,7 @@ input.ng-touched.ng-valid, select.ng-touched.ng-valid, .form-check.ng-touched.ng
 
 /* basic styling for entering and leaving */
 /* left and right added to ensure full width */
+
 #form-views.ng-enter,
 #form-views.ng-leave      { position:absolute; left:30px; right:30px;
     transition:0.6s all ease; -moz-transition:0.6s all ease; -webkit-transition:0.6s all ease; 
@@ -297,25 +317,25 @@ input.ng-touched.ng-valid, select.ng-touched.ng-valid, .form-check.ng-touched.ng
 ============================================================================= */
 /* slide out to the left */
 @keyframes slideOutLeft {
-  to    { transform: translateX(-200%); }
+  to    { transform: translateX(-300%); }
 }
 @-moz-keyframes slideOutLeft {  
-  to    { -moz-transform: translateX(-200%); }
+  to    { -moz-transform: translateX(-300%); }
 }
 @-webkit-keyframes slideOutLeft {
-  to    { -webkit-transform: translateX(-200%); }
+  to    { -webkit-transform: translateX(-300%); }
 }
 
 /* slide in from the right */
 @keyframes slideInRight {
-  from  { transform:translateX(200%); }
+  from  { transform:translateX(300%); }
   to    { transform: translateX(0); }
 }
 @-moz-keyframes slideInRight {
-  from  { -moz-transform:translateX(200%); }
+  from  { -moz-transform:translateX(300%); }
   to    { -moz-transform: translateX(0); }
 }
 @-webkit-keyframes slideInRight {
-  from  { -webkit-transform:translateX(200%); }
+  from  { -webkit-transform:translateX(300%); }
   to    { -webkit-transform: translateX(0); }
 }

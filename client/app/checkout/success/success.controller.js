@@ -2,6 +2,7 @@
 
 angular.module('webApp')
 	.controller('SuccessCtrl', function ($scope, $location, Order, $cookies, Config, Cart, Customer) {
+		Cart.clear();
 		$scope.message = 'Hello';
 		var urlParams = $location.search();
 		var order_id = urlParams['order_id'] ? urlParams['order_id'] : 0;
@@ -16,8 +17,8 @@ angular.module('webApp')
 		}, function(err) {
 			console.log(err);
 		});
-		// $cookies.remove('vecs_cart', {domain: Config.COOKIES_DOMAIN});
-		$scope.backAndClearCart = function() {
-			Cart.clear();
+		// $cookies.remove('vecs_cart', {domain: Config.DIR_COOKIES});
+		$scope.backToHome = function() {
+			window.location.href = Config.DIR_DOMAIN;
 		}
 	});

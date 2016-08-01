@@ -6,7 +6,8 @@ var auth = require('../../auth/auth.service');
 
 var router = express.Router();
 
-router.get('/session/:session_id', auth.isAuthenticated(), controller.getSession);
-
+router.get('/session/', auth.isAuthenticated(), controller.getSession);
+router.put('/session/', auth.isAuthenticated(), controller.updateProducts);
+router.delete('/session/', auth.isAuthenticated(), controller.deleteCart);
 
 module.exports = router;

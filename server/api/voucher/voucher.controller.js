@@ -46,7 +46,7 @@ export function show(req, res) {
 	promises.push(getVoucherHistory(voucher_code));
 
 	q.all(promises).then(function(results) {
-		var voucher = results[0][0], voucher_history = results[1];
+		var voucher = results[0][0] || results[0], voucher_history = results[1];
 		console.log(results);
 		var lresponse = {
 			'status': true,
@@ -80,7 +80,7 @@ var getVoucher = function(code) {
 		connection.query(sql, function(err, rows) {
 			connection.release();
 			if(err) defer.reject(err);
-			if(rows.length == 0) defer.reject(new Error('沒有此一禮券'));
+			// if(rows.length == 0) defer.reject(new Error('沒有此一禮券'));
 			defer.resolve(rows);
 		});
 	});

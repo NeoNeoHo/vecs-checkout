@@ -35,7 +35,9 @@ angular.module('webApp')
 			});
 			return defer.promise;	
 		};
-
+ 
+		// Also Create its usage record of "Coupon", "Reward", "Voucher"
+		// -----------------------
 		var createOrder = function(cart, shipping_info) {
 			var defer = $q.defer();
 			$http.post('/api/orders/order/', {cart: cart, shipping_info: shipping_info})
@@ -68,6 +70,31 @@ angular.module('webApp')
 			});
 			return defer.promise;			
 		};
+		
+		var getOrder = function(order_id) {
+			var defer = $q.defer();
+			$http.get('/api/orders/order/'+order_id)
+			.then(function(result) {
+				defer.resolve(result.data);
+			}, function(err) {
+				defer.reject(err);
+			});
+			return defer.promise;	
+		};
+
+		var sendOrderSucessMail = function(order_id) {
+			var defer = $q.defer();
+			console.log('#####@@@@@@#######');
+			$http.post('/api/mandrills/order/success/', {order_id: order_id})
+			.then(function(result) {
+				defer.resolve(result);
+			}, function(err) {
+				defer.reject(err);
+			});
+			return defer.promise;				
+		};
+
+
 		// Public API here
 		return {
 			someMethod: function () {
@@ -78,6 +105,7 @@ angular.module('webApp')
 			insertOrderHistory: insertOrderHistory,
 			getOrder: getOrder,
 			getOrderProducts: getOrderProducts,
-			getStatusLevel: getStatusLevel
+			getStatusLevel: getStatusLevel,
+			sendOrderSucessMail: sendOrderSucessMail
 		};
 	});

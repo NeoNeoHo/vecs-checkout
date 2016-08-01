@@ -2,9 +2,7 @@
 
 angular.module('webApp')
 	.factory('Shipment', function ($http, $q, $filter, $cookies, Location, Order, Config) {
-		// Service logic
-		// ...
-		var PRODUCTION_ENV = Config.DIR_HOST;
+
 
 		var SHIP_TO_HOME_METHOD = Config.SHIPPING_NAME.ship_to_home;
 		var SHIP_TO_HOME_ORDER_STATUS_ID = 51;
@@ -21,7 +19,7 @@ angular.module('webApp')
 			var url = 'https://map.ezship.com.tw/ezship_map_web.jsp';
 			var suID = '?suID=' + $filter('encodeURI')('shipping@vecsgardenia.com');
 			var processID = '&processID=' + order_id;
-			var rtURL = '&rtURL=' + $filter('encodeURI')(PRODUCTION_ENV+'/api/ezships/history/');
+			var rtURL = '&rtURL=' + $filter('encodeURI')(Config.DIR_NODE_SUBDOMAIN+'/api/ezships/history/');
 			var webPara = '&webPara='+checkoutToken;
 			var req_str = url+suID+processID+rtURL+webPara;
 			window.location = req_str;
@@ -38,6 +36,7 @@ angular.module('webApp')
 		};
 
 		var setShipToHome = function(cart, shipping_info, payment_method=Config.PAYMENT_NAME.store_pay) {
+			console.log('我在shiptohome');
 			var defer = $q.defer();
 			var promises = [];
 			var insert_order_dict = {};

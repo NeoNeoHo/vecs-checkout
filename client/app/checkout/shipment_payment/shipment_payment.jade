@@ -6,34 +6,34 @@ div
 	div.btn-group-lg.hidden-xs
 		.row
 			.col-md-4
-				label.btn.btn-vecs.btn-lg.form-check.col-sm-12(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_overseas", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_overseas)", required) 
+				label.btn.btn-vecs-default.btn-lg.form-check.col-sm-12(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_overseas", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_overseas)", required) 
 					div.col-md-12.hidden-xs {{SHIPPING_NAME.ship_to_overseas}}
 						span 
 						img(src='../assets/images/checkout/airplane.png', style="height:40px")
 			.col-md-4		
-				label.btn.btn-vecs.btn-lg.form-check.col-sm-12(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_home", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_home)", required) 
+				label.btn.btn-vecs-default.btn-lg.form-check.col-sm-12(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_home", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_home)", required) 
 					div.col-md-12.hidden-xs {{SHIPPING_NAME.ship_to_home}}
 						span  
 						img(src='../assets/images/checkout/house.png', style="height:40px")
 			.col-md-4
-				label.btn.btn-vecs.btn-lg.form-check.col-sm-12(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_store", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_store)", required) 
+				label.btn.btn-vecs-default.btn-lg.form-check.col-sm-12(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_store", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_store)", required) 
 					div.col-md-12.hidden-xs {{SHIPPING_NAME.ship_to_store}}
 						span  
 						img(src='../assets/images/checkout/family.png', style="height:40px")
 						img(src='../assets/images/checkout/hilife.png', style="height:40px")
 						img(src='../assets/images/checkout/ok1.png', style="height:40px")
 	div.btn-group-vertical.btn-group-lg.visible-xs
-		label.btn.btn-vecs.form-check(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_overseas", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_overseas)", required) 
+		label.btn.btn-vecs-default.form-check(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_overseas", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_overseas)", required) 
 			.row
 				.col-xs-9.text-center {{SHIPPING_NAME.ship_to_overseas}}
 				.col-xs-3
 					img.img-responsive.center-block(src='../assets/images/checkout/airplane.png', style="width:30px")
-		label.btn.btn-vecs.form-check(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_home", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_home)", required) 
+		label.btn.btn-vecs-default.form-check(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_home", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_home)", required) 
 			.row
 				.col-xs-9.text-center {{SHIPPING_NAME.ship_to_home}}
 				.col-xs-3
 					img.img-responsive.center-block(src='../assets/images/checkout/house.png', style="width:30px")
-		label.btn.btn-vecs.form-check(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_store", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_store)", required) 
+		label.btn.btn-vecs-default.form-check(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_store", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_store)", required) 
 			.row
 				.col-xs-9.text-center {{SHIPPING_NAME.ship_to_store}}
 				.col-xs-3
@@ -47,7 +47,7 @@ div
 					p 地址為: 
 						strong {{ezship_store_info.stAddr}}
 				.row
-					button.btn.btn-vecs.form-control(ng-click="setEzshipStore()", ng-class="{'form-invalid': shipping_info.shipment_sel_str == SHIPPING_NAME.ship_to_store && !shipping_info.ezship_store_info}") {{store_select_text}}
+					button.btn.btn-vecs-default.form-control(ng-click="setEzshipStore()", ng-class="{'form-invalid': shipping_info.shipment_sel_str == SHIPPING_NAME.ship_to_store && !shipping_info.ezship_store_info}") {{store_select_text}}
 				.row
 					br
 					li.text-center 
@@ -65,11 +65,11 @@ div.row
 	.col-xs-12
 		.row
 			div.col-md-4.col-xs-12(ng-show="payment_btn.credit_pay")
-				label.btn.btn-vecs.btn-lg.col-xs-12(name="input_payment", ng-model="shipping_info.payment_sel_str", uib-btn-radio="PAYMENT_NAME.credit_pay", required) {{PAYMENT_NAME.credit_pay}}
+				label.btn.btn-vecs-default.btn-lg.col-xs-12(name="input_payment", ng-model="shipping_info.payment_sel_str", uib-btn-radio="PAYMENT_NAME.credit_pay", required) {{PAYMENT_NAME.credit_pay}}
 			div.col-md-4.col-xs-12(ng-show="payment_btn.hand_pay")
-				label.btn.btn-vecs.btn-lg.col-xs-12(name="input_payment", ng-model="shipping_info.payment_sel_str", uib-btn-radio="PAYMENT_NAME.hand_pay", required) {{PAYMENT_NAME.hand_pay}}
+				label.btn.btn-vecs-default.btn-lg.col-xs-12(name="input_payment", ng-model="shipping_info.payment_sel_str", uib-btn-radio="PAYMENT_NAME.hand_pay", required) {{PAYMENT_NAME.hand_pay}}
 			div.col-md-4.col-xs-12(ng-show="payment_btn.store_pay")
-				label.btn.btn-vecs.btn-lg.col-xs-12(name="input_payment", ng-model="shipping_info.payment_sel_str", uib-btn-radio="PAYMENT_NAME.store_pay", required) {{PAYMENT_NAME.store_pay}}
+				label.btn.btn-vecs-default.btn-lg.col-xs-12(name="input_payment", ng-model="shipping_info.payment_sel_str", uib-btn-radio="PAYMENT_NAME.store_pay", required) {{PAYMENT_NAME.store_pay}}
 				.small.text-muted
 					br
 					li 若訂購金額高於NTD6000，無法提供此項服務。
@@ -153,8 +153,7 @@ div.panel.panel-default
 		button.col-md-3.col-xs-4.btn.btn-default.btn-sharp.btn-lg.text-justify(ng-click="checkout_first_step()") 上一步
 		div.col-md-3.col-xs-7.pull-right
 			.row
-				button.col-xs-12.btn.btn-default.btn-sharp.btn-lg.text-justify(ng-click="checkout_third_step()", ng-disabled="checkout_form.$invalid", ng-class="{'btn-danger': checkout_form.$invalid}") 下一步
+				button.col-xs-12.btn.btn-vecs.btn-sharp.btn-lg.text-justify(ng-click="checkout_third_step()", ng-disabled="checkout_form.$invalid", ng-class="{'btn-danger': checkout_form.$invalid}") 下一步
 					span.glyphicon.glyphicon-circle-arrow-right.pull-right
 			.row(ng-show="checkout_form.$invalid || !is_address_valid")
 				p.text-danger --請檢查以上填寫的送貨資料 
-//- .well {{shipping_info}}

@@ -215,6 +215,50 @@ var createOrderProduct = function(order_id, cart) {
 			if(err) {
 				defer.reject(err);
 			}
+			if(!Array.isArray(rows)) {
+				defer.resolve([rows]);
+			} else {
+				defer.resolve(rows);
+			}
+		});
+	});
+	return defer.promise;
+};
+
+var reduceProductQuantity = function(cart) {
+	var products = cart.products;
+	var defer = q.defer();
+	var update_sql = _.reduce(products, function(sql, product) {
+		sql += 'update oc_product set quantity = quantity - ' + product.quantity + ' where product_id = ' + product.product_id + ';';
+		return sql;
+	}, '');
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query(update_sql, function(err, rows) {
+			connection.release();
+			if(err) {
+				defer.reject(err);
+			}
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
+
+var increaseProductQuantity = function(cart) {
+	var products = cart.products;
+	var defer = q.defer();
+	var update_sql = _.reduce(products, function(sql, product) {
+		sql += 'update oc_product set quantity = quantity + ' + product.quantity + ' where product_id = ' + product.product_id + ';';
+		return sql;
+	}, '');
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query(update_sql, function(err, rows) {
+			connection.release();
+			if(err) {
+				defer.reject(err);
+			}
 			defer.resolve(rows);
 		});
 	});
@@ -426,33 +470,45 @@ export function create(req, res) {
 	createOrder(shipping_info, customer_id, customer_group_id, email, customer_ip).then(function(data) {
 		var order_id = data.insertId;
 		var promises = [];
+		try {
+			// Step 2. Create "Order History" and "Order Product" and "Order Total" and "Product Stock Quantity"
+			promises.push(createOrderHistory(order_id, shipping_info.order_status_id));
+			promises.push(createOrderProduct(order_id, cart));
+			promises.push(createOrderTotal(order_id, shipping_info, cart));
+			promises.push(reduceProductQuantity(cart));
 
-		// Step 2. Create "Order History" and "Order Product" and "Order Total"
-		promises.push(createOrderHistory(order_id, shipping_info.order_status_id));
-		promises.push(createOrderProduct(order_id, cart));
-		promises.push(createOrderTotal(order_id, shipping_info, cart));
-
-		// Step 3. Create "Customer Reward" and "Coupon History" and "Voucher History" if Used
-		if(cart.discount.reward.saved_amount > 0) promises.push(createCutomerReward(order_id, customer_id, '使用於訂單 #'+order_id, -cart.discount.reward.saved_amount));
-		if(cart.discount.coupon.saved_amount > 0) promises.push(createCouponHistory(order_id, customer_id, cart.discount.coupon.id, -cart.discount.coupon.saved_amount));
-		if(cart.discount.voucher.saved_amount > 0) promises.push(createVoucherHistory(order_id, cart.discount.voucher.id, -cart.discount.voucher.saved_amount));
-			
+			// Step 3. Create "Customer Reward" and "Coupon History" and "Voucher History" if Used
+			if(cart.discount.reward.saved_amount > 0) promises.push(createCutomerReward(order_id, customer_id, '使用於訂單 #'+order_id, -cart.discount.reward.saved_amount));
+			if(cart.discount.coupon.saved_amount > 0) promises.push(createCouponHistory(order_id, customer_id, cart.discount.coupon.id, -cart.discount.coupon.saved_amount));
+			if(cart.discount.voucher.saved_amount > 0) promises.push(createVoucherHistory(order_id, cart.discount.voucher.id, -cart.discount.voucher.saved_amount));
+		}
+		catch (e) {
+			res.status(400).json(e);
+		}
 		q.all(promises).then(function(datas) {
 			var order_product_query_responses = datas[1];
 			var lpromises = [];
 			for(var i = 0; i < cart.products.length; i++) {
 				if(cart.products[i].option.length > 0) {
-					// Step 4. Create "Order Option"
-					lpromises.push(createOrderOption(order_id, order_product_query_responses[i].insertId, cart.products[i].option));
+					try {
+						// Step 4. Create "Order Option"
+						lpromises.push(createOrderOption(order_id, order_product_query_responses[i].insertId, cart.products[i].option));
+					}
+					catch (e) {
+						res.status(400).json(e);
+					}
 				}
 			}
 			if(lpromises.length > 0) {
+				console.log('進入order option create');
 				q.all(lpromises).then(function(data) {
+					console.log('離開order create');
 					res.status(200).json({order_id: order_id});
 				}, function(err) {
 					res.status(400).send(err);
 				});
 			} else {
+				console.log('離開order create');
 				res.status(200).json({order_id: order_id});
 			}
 		}, function(err) {
@@ -515,20 +571,6 @@ export function insertOrderHistory(req, res) {
 	});
 };
 
-export function lgetOrder(order_id) {
-	var defer = q.defer();
-	mysql_pool.getConnection(function(err, connection) {
-		if(err) defer.reject(err);
-		connection.query('SELECT * FROM oc_order WHERE order_id = ?', [order_id], function(err, rows) {
-			connection.release();
-			if(err) defer.reject(err);
-			if(_.size(rows) == 0) defer.reject('Error: getOrder no such order_id');	
-			defer.resolve(rows);
-		});
-	});
-	return defer.promise;
-};
-
 export function getOrder(req, res) {
 	var order_id = req.params.order_id;
 	var customer_id = req.user._id;
@@ -585,4 +627,52 @@ export function getOrderProducts(req, res) {
 	}, function(err) {
 		res.status(400).json(err);
 	});
+};
+
+export function deleteOrderResidual(order_id) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		lgetOrderProduct(order_id).then(function(order_products) {
+
+			// Step 1. Recover the stock quantity for products
+			increaseProductQuantity({products: order_products}).then(function(result) {
+				var sql = 'delete from oc_coupon_history where order_id = ' + order_id + ';';
+				sql += 'delete from oc_customer_reward where order_id = ' + order_id + ';';
+				sql += 'delete from oc_voucher_history where order_id = ' + order_id + ';';
+				
+				// Step 2. Delete all the records of this order_id
+				connection.query(sql, function(err, rows) {
+					connection.release();
+					if(err) {
+						defer.reject(err);
+					} else {
+						defer.resolve(rows);
+					}
+				});
+			}, function(err) {
+				connection.release();
+				defer.reject(err);
+				
+			});
+		}, function(err) {
+			connection.release();
+			defer.reject(err);
+		});
+	});
+	return defer.promise;
+};
+
+export function lgetOrder(order_id) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query('SELECT * FROM oc_order WHERE order_id = ?', [order_id], function(err, rows) {
+			connection.release();
+			if(err) defer.reject(err);
+			if(_.size(rows) == 0) defer.reject('Error: getOrder no such order_id');	
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
 };

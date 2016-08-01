@@ -1,40 +1,55 @@
 div.panel.panel-default
 	div.panel-body
-		table#checkout_cart_table.table.checkout-cart.table-default
+		table#checkout_cart_table_final.table.checkout-cart.table-default.hidden-xs
 			tr
-				th.col-md-6.col-xs-6.text-center 商品名稱
-				th.col-md-2.col-xs-2 數量
-				th.col-md-2.hidden-xs 單價
-				th.col-md-2.col-xs-3 總價
+				th.col-md-6.text-center 商品名稱
+				th.col-md-2 數量
+				th.col-md-2 單價
+				th.col-md-2 總價
 			tr(ng-repeat="product in cart.products")
 				td.cart-name
-					div.col-md-4.col-xs-12
+					div.col-md-4
 						a(ng-href="{{product.href}}")
-							img.img-responsive(ng-attr-title="{{product.name}}", ng-src="{{product.thumb}}")
-					div.col-md-8.col-xs-12
+							img.img-responsive(ng-attr-title="{{product.name}}", ng-src="{{product.image}}", style="width:100%")
+					div.col-md-8
 						a(ng-href="{{product.href}}")
 							h5 {{product.name}}
 						h6(ng-repeat="option_product in product.option") {{option_product.value}}
 						h6(ng-show="product.reward") + 紅利 {{product.reward}} 點  
-				td.cart-quantity
-					div.input-group {{product.quantity}}
-
-				td.cart-price.hidden-md.hidden-sm.hidden-xs  
+				td.cart-quantity {{product.quantity}}
+				td.cart-price
 					| $ {{product.spot_price + product.option_price}}
 					del.text-red(ng-show="product.price.unit_price > product.spot_price") 
 						| $ {{product.price.unit_price + product.option_price}} 
 					div.text-green(ng-repeat="discount_condition in product.discount")
 						p(ng-hide="discount_condition.quantity <= product.quantity") 加{{discount_condition.quantity - product.quantity}}件，每件再折{{product.spot_price - discount_condition.price}}元
 				td.cart-total $ {{product.total}}
-					div.visible-xs.text-green(ng-repeat="discount_condition in product.discount")
+		table#checkout_cart_table_final_xs.table.checkout-cart.table-default.visible-xs
+			tr
+				th.col-xs-8.text-center 商品名稱
+				th.col-xs-4 數量
+			tr(ng-repeat-start="product in cart.products")
+				td(rowspan="2").cart-name
+					div.col-xs-12
+						a(ng-href="{{product.href}}")
+							img.img-responsive(ng-attr-title="{{product.name}}", ng-src="{{product.image}}", style="width:100%", ng-loading)
+				td.cart-quantity 
+					h3 {{product.quantity}}件
+			tr
+				td(colspan="2") 
+					h3 $ {{product.spot_price + product.option_price}}
+						small /件
+					del.text-red(ng-show="product.price.unit_price > product.spot_price") 
+						| $ {{product.price.unit_price + product.option_price}} 
+			tr(ng-repeat-end)
+				td(colspan="3", style="border-top:0px solid black;")
+					div
+						a(ng-href="{{product.href}}")
+							h5 {{product.name}}
+						span(ng-repeat="option_product in product.option") {{option_product.value}}，
+						h6(ng-show="product.reward") + 紅利 {{product.reward}} 點  
+					div.text-green(ng-repeat="discount_condition in product.discount")
 						p(ng-hide="discount_condition.quantity <= product.quantity") 加{{discount_condition.quantity - product.quantity}}件，每件再折{{product.spot_price - discount_condition.price}}元
-
-		.row
-			.col-md-4.col-xs-6.col-md-offset-8.col-xs-offset-6
-				table.table
-					tr
-						td.text-right 小計:
-						td.text-right $ {{cart.product_total_price}}
 
 div.panel.panel-default
 	div.panel-body
@@ -123,10 +138,13 @@ div.visible-xs
 				tr
 					td.text-right 運費:
 					td.text-right $ {{cart.shipment_fee}}
-				tr.h2
+				tr.h3
 					td.text-right 總計
 					td.text-right $ {{cart.product_total_price + cart.shipment_fee - cart.discount.reward.saved_amount - cart.discount.coupon.saved_amount - cart.discount.voucher.saved_amount}}
+div.loading(ng-show="cross_obj.is_submitted") Loading
 div.row.panel.panel-body
 	button.col-md-3.col-xs-4.btn.btn-default.btn-sharp.btn-lg.text-justify(ng-click="checkout_second_step()") 上一步
-	button.col-md-3.col-xs-7.btn.btn-default.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedCheckout()", ng-disabled="checkout_form.$invalid") 送出結帳
-		span.glyphicon.glyphicon-circle-arrow-right.pull-right
+	button.col-md-3.col-xs-7.btn.btn-default.btn-sharp.btn-lg.pull-right.text-justify(ng-click="proceedCheckout()", ng-disabled="checkout_form.$invalid || cross_obj.is_submitted") 送出結帳
+		span.glyphicon.glyphicon-circle-arrow-right.pull-right(ng-show="!cross_obj.is_submitted")
+		i.fa.fa-spinner.fa-pulse.fa-1x.fa-fw.pull-right(ng-show="cross_obj.is_submitted")
+		span.sr-only(ng-show="cross_obj.is_submitted") Loading ...

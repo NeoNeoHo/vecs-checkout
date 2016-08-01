@@ -6,7 +6,7 @@ div.navbar.navbar-default.navbar-static-top(ng-controller='NavbarController')
         span.icon-bar
         span.icon-bar
         span.icon-bar
-      a.navbar-brand(href='https://vecsgardenia.com') 嘉丹妮爾
+      a.navbar-brand.hidden-xs(href='https://vecsgardenia.com.tw') 嘉丹妮爾
 
     div#navbar-main.navbar-collapse.collapse(uib-collapse='nav.isCollapsed')
       //- ul.nav.navbar-nav
@@ -17,30 +17,40 @@ div.navbar.navbar-default.navbar-static-top(ng-controller='NavbarController')
       //-     a(ui-sref='admin') Admin
 
       ul.nav.navbar-nav.navbar-right.small
-        li(ng-hide='nav.isLoggedIn()', ui-sref-active='active')
-          a(ui-sref='signup') Sign up
+        //- li(ng-hide='nav.isLoggedIn()', ui-sref-active='active')
+        //-   a(ui-sref='signup') Sign up
 
-        li(ng-hide='nav.isLoggedIn()', ui-sref-active='active')
-          a(ui-sref='login') Login
+        //- li(ng-hide='nav.isLoggedIn()', ui-sref-active='active')
+        //-   a(ui-sref='login') Login
 
         li(ng-show='nav.isLoggedIn()')
           a 您好，{{ nav.getCurrentUser().firstname }}
 
         li(ng-show='nav.isLoggedIn()', ui-sref-active='active')
-          a(href="#") 會員中心
+          a(href="https://vecsgardenia.com.tw/index.php?route=account/account") 會員中心
 
         li(ng-show='nav.isLoggedIn()')
           a(href="https://vecsgardenia.com.tw/index.php?route=account/logout") 登出
+        
+        li.visible-xs(role="navigation")
+          a(href="https://vecsgardenia.com.tw/") 所有商品
+            span.caret
+        
+        li.visible-xs(role="navigation")
+          a(href="https://vecsgardenia.com.tw/ourStars") 莞婷的親身推薦
+        
+        li.visible-xs(role="navigation")
+          a(href="http://blog.vecsgardenia.com.tw/") VECS 小教室
 .container
   .row
-    a(href="https://vecsgardenia.com")
+    a(href="https://vecsgardenia.com.tw")
       img.img-responsive.center-block.logo(src="../assets/images/checkout/vecslogoweb.jpg")
   .row.hidden-xs
     ul.nav.nav-tabs.nav-justified
       li(role="navigation")
-        a(href="#") 所有商品
+        a(href="https://vecsgardenia.com.tw/") 所有商品
           span.caret
       li(role="navigation")
-        a(href="#") 莞婷的親身推薦
+        a(href="https://vecsgardenia.com.tw/ourStars") 莞婷的親身推薦
       li(role="navigation")
-        a(href="#") VECS 小教室
+        a(href="http://blog.vecsgardenia.com.tw/") VECS 小教室

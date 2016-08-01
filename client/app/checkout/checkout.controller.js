@@ -4,8 +4,8 @@ angular.module('webApp')
 	.controller('CheckoutController', function ($rootScope, $scope, $window, $state, $document, $location, $cookies, $sce, $http, $q, User, Auth,  Location, Shipment, Payment, Promotion, Cart, Customer, Reward, Product, Config) {
 		$rootScope.$state = $state;
 		$rootScope.$on('$stateChangeSuccess', function() {
-   		var someElement = angular.element(document.getElementById('form-container'));
-    	$document.scrollToElementAnimated(someElement, 0, 800);
+   			var someElement = angular.element(document.getElementById('form-container'));
+    		$document.scrollToElementAnimated(someElement, 0, 800);
 		});
 
 		$scope.currentUser = $scope.currentUser || Auth.getCurrentUser();
@@ -22,11 +22,40 @@ angular.module('webApp')
 		$scope.PAYMENT_NAME = PAYMENT_NAME;
 		$scope.is_address_valid = $scope.is_address_valid || true;
 
-		var session_id = 'PHPSESSID:' + $cookies.get('PHPSESSID');
-		console.log(session_id);
-		console.log($cookies.getAll());
-		console.log($cookies.get('vecs_cart'));
-		$http.get('/api/carts/session/'+123).then(function(res){}, function(err){});
+		$scope.shipping_info = $scope.shipping_info || {
+			firstname: '',
+			telephone: '',
+			country_id: 206,
+			payment_sel_str: null,
+			shipment_sel_str: null
+		};
+
+		Cart.getCart().then(function(cart) {
+			$scope.cart = cart;
+			$scope.cart.total_price_with_discount = cart.product_total_price - cart.discount.coupon.saved_amount - cart.discount.voucher.saved_amount;
+			$scope.currentUser.$promise.then(function(data) {
+				$scope.shipping_info.firstname = $scope.shipping_info.firstname || data.firstname;
+				$scope.shipping_info.telephone = $scope.shipping_info.telephone || data.telephone;
+			});
+			if(!$scope.shipping_info.address) {
+				getAddress();
+			}
+			Reward.getFromCustomer().then(function(reward) {
+				$scope.cart.rewards_customer_has_pts = (reward.points) ? reward.points : 0;
+				$scope.cart.rewards_available = ($scope.cart.total_price_with_discount > $scope.cart.rewards_customer_has_pts) ? $scope.cart.rewards_customer_has_pts : $scope.cart.total_price_with_discount;
+			}, function(err) {
+				console.log(err.data);
+				$state.go('checkout.failure');
+			});
+			var searchUrlObject = $location.search();
+			if(_.has(searchUrlObject, 'shipment') && searchUrlObject.shipment == 'ship_to_store') {
+				$scope.shipping_info.shipment_sel_str = SHIPPING_NAME.ship_to_store;
+				$scope.setPaymentMethod(SHIPPING_NAME.ship_to_store);
+			}
+		}, function(err) {
+			console.log(err);
+			$state.go('checkout.failure');
+		});
 
 		$scope.checkout_first_step = function() {
 			$state.go('checkout.product_check');
@@ -53,19 +82,15 @@ angular.module('webApp')
 			}
 		};
 
-		$scope.checkout_disabled = false;
-		$scope.with_memo_collapsed = true;
-		$scope.rewards_customer_has_pts = $scope.rewards_customer_has_pts || '';
+		$scope.cross_obj = {
+			temp_reward_use: '', 
+			DIR_DOMAIN: Config.DIR_DOMAIN,
+			is_submitted: false
+		};
 
 		$scope.store_select_text = '選擇超商門市';
 
-		$scope.shipping_info = $scope.shipping_info || {
-			firstname: '',
-			telephone: '',
-			country_id: 206,
-			payment_sel_str: null,
-			shipment_sel_str: null
-		};
+
 		$scope.payment_btn = {
 			store_pay: true,
 			hand_pay: true,
@@ -73,88 +98,8 @@ angular.module('webApp')
 		};
 		$scope.with_city_ready = false;
 		$scope.with_district_ready = false;
-		if(!$cookies.get('vecs_cart')) {
-			console.log('redirect to host');
-			window.location.href = 'http://' + Config.COOKIES_DOMAIN;
-		}
-		var cart_cookies = JSON.parse($cookies.get('vecs_cart'));
-		var clean_cart_cookies = _.map(cart_cookies, function(lproduct) {
-			lproduct.product_id = parseInt(lproduct.product_id);
-			return lproduct;
-		});
-		$scope.cart = $scope.cart || {
-			products: clean_cart_cookies,
-			product_total_price: _.reduce(cart_cookies, function(sum, o){return sum+o.price*o.quantity}, 0),
-			discount: {
-				reward: {
-					saved_amount: 0,
-					name: ''
-				},
-				coupon: {
-					saved_amount: 0,
-					name: '',
-					id: 0
-				},
-				voucher: {
-					saved_amount: 0,
-					name: '',
-					id: 0,
-					available_amount: 0
-				}
-			},
-			shipment_fee: 0,
-		};
 
-		$scope.discount_temp = $scope.discount_temp || {
-			coupon_name: '',
-			reward_points: '',
-			voucher_name: ''
-		};
-		// #########################  根據購物車的product_id,更新商品資料 ######################
-		// #########														   
-		// #########															   
-		// #################################################################################
-		// 取得商品是否有discount的條件
-		if(_.size($scope.cart.products) > 0 && !$scope.cart.products[0].spot_price) {
-			Product.getProductsDetail($scope.cart.products).then(function(db_products) {
-				$scope.cart.products = _.map($scope.cart.products, function(product) {
-					var db_product = _.find(db_products, {product_id: product.product_id});
-					if(db_product) {
-						product.price = db_product.price;
-						product.discount = db_product.discount || [];
-						product.reward = db_product.reward;
-						product.model = db_product.model;
-						product.name = db_product.name;
-						product.spot_price = product.price.special_price;
-						product.option_price = _.reduce(_.pluck(product.option, 'price'), function(sum, num){return sum+num;}, 0);
-						checkDiscount(product.product_id);
-						product.total = (product.spot_price + product.option_price) * product.quantity;
-					} else {
-						product = {};
-					}
-					return product;
-				});
-				$scope.updateCartTotal();
-			}, function(err) {
-				console.log(err);
-			});
-		}
 
-		$scope.currentUser.$promise.then(function(data) {
-			$scope.shipping_info.firstname = $scope.shipping_info.firstname || data.firstname;
-			$scope.shipping_info.telephone = $scope.shipping_info.telephone || data.telephone;
-			if(!$scope.shipping_info.address) {getAddress();}
-			if(!$scope.rewards_customer_has_pts) {
-				Reward.getFromCustomer().then(function(reward) {
-					$scope.rewards_customer_has_pts = (reward.points) ? reward.points : 0;
-				}, function(err) {
-					console.log(err.data);
-				});
-			}
-		});
-		
-		console.log('This is cart: ');
-		console.log($scope.cart);
 
 		var lstrcmp = function(collection, str) {
 			var result = _.some(collection, function(data){
@@ -162,49 +107,23 @@ angular.module('webApp')
 			});
 			return result;
 		}
-
-		var updateCartCookies = function(products) {
-			products = _.map(products, function(product) {
-				return _.pick(product, ['$$hashKey', 'option', 'product_id', 'quantity', 'href', 'thumb']);
-			});
-			$cookies.put('vecs_cart', JSON.stringify(products), {domain: Config.COOKIES_DOMAIN});
-		}
-
-		var checkDiscount = function(product_id) {
-			_.map($scope.cart.products, function(product) {
-				if(product.product_id !== product_id) return product;
-				var discounts = product.discount;
-				if(_.size(discounts) > 0) {
-					var discount_available = _.sortBy(_.filter(discounts, function(discount) {
-						return discount.quantity <= product.quantity;
-					}), 'quantity');
-					product.spot_price = (discount_available.length) ? discount_available[discount_available.length - 1].price : product.price.special_price;
-				}
-				return product;
-			});
-			return 0;		
+		var getDiscountPrice = function() {
+			var discount_price = $scope.cart.product_total_price - $scope.cart.discount.coupon.saved_amount - $scope.cart.discount.voucher.saved_amount - $scope.cart.discount.reward.saved_amount;
+			return discount_price;
+		};
+		var getAvailableReward = function() {
+			var total_price_with_discount_wo_reward = $scope.cart.product_total_price - $scope.cart.discount.coupon.saved_amount - $scope.cart.discount.voucher.saved_amount;
+			return (total_price_with_discount_wo_reward > $scope.cart.rewards_customer_has_pts) ? $scope.cart.rewards_customer_has_pts : total_price_with_discount_wo_reward;
+		};
+		$scope.updateCartTotal = function() {
+			$scope.cart = Cart.updateCartTotal($scope.cart);
+			$scope.cart.total_price_with_discount = getDiscountPrice();
+			$scope.cart.rewards_available = getAvailableReward();
 		};
 
-		var updateProductTotal = function() {
-			_.map($scope.cart.products, function(product) {
-				product.total = (product.spot_price + product.option_price) * product.quantity;
-				return product;
-			});
-			return 0;
-		};
-
-		$scope.updateCartTotal = function(product_id) {
-			checkDiscount(product_id);
-			updateProductTotal();
-			$scope.cart.product_total_price = _.reduce($scope.cart.products, function(sum, o){return sum+o.total}, 0);
-			updateCartCookies($scope.cart.products);
-			return true;
-		};
-
-		$scope.removeProduct = function(hash_key='') {
-			$scope.cart.products = _.reject($scope.cart.products, {$$hashKey: hash_key});
+		$scope.removeProduct = function(key='') {
+			$scope.cart.products = _.reject($scope.cart.products, {key: key});
 			$scope.updateCartTotal();
-			updateCartCookies($scope.cart.products);
 			return true;
 		};
 
@@ -255,7 +174,6 @@ angular.module('webApp')
 			Location.getAddress().then(function(data) {
 				if(data) {
 					console.log('This is customer address: ');
-					console.log(data);
 					$scope.shipping_info.city_id = (data.zone_id) ? data.zone_id : 0;
 					$scope.shipping_info.city_d = {zone_id: data.zone_id, name: data.city_name};
 					$scope.setDistricts((data.zone_id) ? data.zone_id : '');
@@ -268,13 +186,14 @@ angular.module('webApp')
 					$scope.shipping_info.district_d = {district_id: data.district_id, name: data.district_name, postcode: data.postcode};
 					$scope.shipping_info.address = data.address_1 ? data.address_1 : '';
 				}
+			}, function(err) {
+				console.log(err);
+				$state.go('checkout.failure');
 			});
 		};
 
 		$scope.setPaymentMethod = function(lmethod) {
 			$scope.shipping_info.shipment_sel_str = lmethod;
-			$scope.with_shipping_collapsed = true;
-			$scope.with_payment_collapsed = false;
 			$scope.shipping_info.payment_sel_str = null;
 			$scope.shipping_info.country_id = 206;
 			$scope.payment_btn.store_pay = (lstrcmp([SHIPPING_NAME.ship_to_store], lmethod)) ? true : false;
@@ -297,7 +216,7 @@ angular.module('webApp')
 					$scope.country_coll = result;
 					$scope.with_city_ready = false;
 				}, function(err) {
-					console.log(err);
+					$state.go('checkout.failure');
 				});
 			}
 			$scope.shipping_info.shipment_fee = $scope.cart.shipment_fee;
@@ -308,113 +227,77 @@ angular.module('webApp')
 				$scope.store_select_text = '重新選擇超商';
 				$scope.ezship_store_info = data;
 				$scope.shipping_info.ezship_store_info = data;
-				// $scope.shipping_info.shipment_sel_str = $scope.shipping_info.shipment_sel_str || SHIPPING_NAME.ship_to_store;
-				// $scope.setPaymentMethod(SHIPPING_NAME.ship_to_store);
 			}, function(err) {
-				console.log(err);
 				$scope.ezship_store_info = null;
 			});
 		};
 
-		var calcRewardSaved = function(reward_used_pts, cart) {
-			var defer = $q.defer();
-			if(reward_used_pts <= 0) {
-				defer.resolve({saved_amount: 0, name: ''});
-			} else {
-				Reward.getFromCustomer().then(function(reward) {
-					var rewards = (reward.points) ? reward.points : 0;
-					if(reward_used_pts > rewards){
-						defer.reject('您並無這麼多的紅利點數喔');
-					} else {
-						if(reward_used_pts <= cart.product_total_price - cart.discount.coupon.saved_amount) {
-							defer.resolve({saved_amount: reward_used_pts, name: ''});
-						} else {
-							defer.resolve({saved_amount: cart.product_total_price - cart.discount.coupon.saved_amount, name: ''});
-						}
-					}
-				}, function(err) {
-					defer.reject(err);
-				});
-			}
-			return defer.promise;
-		};
 
-		var calcVoucherSaved = function(voucher_name, cart) {
+		$scope.calcRewardSaved = function() {
+			console.log('calcRewardSaved');
 			var defer = $q.defer();
-			if(voucher_name === '') {
-				defer.resolve({saved_amount: 0, name: ''});
-			} else {
-				Promotion.getVoucher(voucher_name).then(function(data) {
-					var available_amount = data.available_amount; 
-					var discount_so_far = cart.discount.reward.saved_amount + cart.discount.coupon.saved_amount;
-					var voucher_max_amount = (available_amount >= cart.product_total_price - discount_so_far) ? (cart.product_total_price - discount_so_far) : available_amount;
-					defer.resolve({saved_amount: voucher_max_amount, name: voucher_name, available_amount: available_amount, id: data.voucher_id})
-				}, function(err) {
-					alert(err.data);
-					defer.reject(err);
-				});
-			}
-			return defer.promise;
-		};
-
-		var calcCouponSaved = function(coupon_name, cart) {
-			var defer = $q.defer();
-			if(coupon_name === '') {
-				defer.resolve({saved_amount: 0, name: '', id: 0});
-			} else {
-				Promotion.calcCouponSaved(coupon_name, cart).then(function(data) {
-					if(data.coupon_saved_amount == 0) {
-						defer.reject('您購買的商品並不適用此張優惠券');
-					} else {
-						defer.resolve({saved_amount: data.coupon_saved_amount, name: coupon_name, id: data.coupon_id});
-					}
-				}, function(err) {
-					defer.reject(err);
-				});
-			}
-			return defer.promise;
-		};
-
-		$scope.calcPriceSaved = function() {
-			console.log('calcPriceSaved')
-			var defer = $q.defer();
-			calcRewardSaved($scope.discount_temp.reward_points, $scope.cart).then(function(resp_reward) {
+			Promotion.calcRewardSaved($scope.cross_obj.temp_reward_use, $scope.cart).then(function(resp_reward) {
 				$scope.cart.discount.reward = resp_reward;
-
-				calcCouponSaved($scope.discount_temp.coupon_name, $scope.cart).then(function(resp_coupon) {
-					$scope.cart.discount.coupon = resp_coupon;
-
-					calcVoucherSaved($scope.discount_temp.voucher_name, $scope.cart).then(function(resp_voucher) {
-						$scope.cart.discount.voucher = resp_voucher;
-						defer.resolve();
-					}, function(err) {
-						alert(err);
-						$scope.discount_temp.voucher_name = '';
-						defer.reject(err);
-					});
-
-				}, function(err) {
-					console.log(err);
-					alert(err);
-					$scope.discount_temp.coupon_name = '';
-					defer.reject(err);
-				});
-
+				$scope.cart.total_price_with_discount = getDiscountPrice();
+				$scope.cart.rewards_available = getAvailableReward();
+				defer.resolve();
 			}, function(err) {
 				alert(err);
+				$scope.cart.discount.reward.saved_amount = 0;
+				$scope.cross_obj.temp_reward_use = '';
+				$scope.cart.total_price_with_discount = getDiscountPrice();
+				$scope.cart.rewards_available = getAvailableReward();
+				defer.reject(err);
+			});			
+			return defer.promise;
+		};
+
+		$scope.calcVoucherSaved = function() {
+			console.log('calcVoucherSaved');
+			var defer = $q.defer();
+			Promotion.calcVoucherSaved($scope.cart.discount.voucher.name, $scope.cart).then(function(resp_voucher) {
+				$scope.cart.discount.voucher = resp_voucher;
+				$scope.cart.total_price_with_discount = getDiscountPrice();
+				$scope.cart.rewards_available = getAvailableReward();
+				defer.resolve();
+			}, function(err) {
+				alert(err);
+				$scope.cart.discount.voucher.saved_amount = 0;
+				$scope.cart.discount.voucher.name = '';
+				$scope.cart.total_price_with_discount = getDiscountPrice();
+				$scope.cart.rewards_available = getAvailableReward();
 				defer.reject(err);
 			});
+			return defer.promise;
+		};
 
+		$scope.calcCouponSaved = function() {
+			console.log('calcCouponSaved');
+			var defer = $q.defer();
+			Promotion.calcCouponSaved($scope.cart.discount.coupon.name, $scope.cart).then(function(resp_coupon) {
+				$scope.cart.discount.coupon = resp_coupon;
+				$scope.cart.total_price_with_discount = getDiscountPrice();
+				$scope.cart.rewards_available = getAvailableReward();	
+				defer.resolve();			
+			}, function(err) {
+				alert(err);
+				$scope.cart.discount.coupon.saved_amount = 0;
+				$scope.cart.discount.coupon.name = '';
+				$scope.cart.total_price_with_discount = getDiscountPrice();
+				$scope.cart.rewards_available = getAvailableReward();
+				defer.reject(err);
+			});
 			return defer.promise;
 		};
 
 		$scope.proceedCheckout = function() {
+			$scope.cross_obj.is_submitted = true;
 			if($scope.checkout_form.$invalid) {
 				alert('請檢查結帳資訊，謝謝');
+				$scope.cross_obj.is_submitted = false;
 				$scope.checkout_second_step();
 				return 0;
 			}
-			$scope.checkout_disabled = true;
 
 			var shipping_promise = [];
 			var payment_promise = [];
@@ -434,13 +317,18 @@ angular.module('webApp')
 				console.log(data);
 			}, function(err) {
 				console.log(err);
-				alert('商品價格及紅利點數有異，請洽客服人員，並將客服代碼『1201』告知客服人員，謝謝');
+				$scope.cross_obj.is_submitted = false;
+				alert('商品價格及紅利點數有異，請洽客服人員，謝謝');
 				$scope.checkout_first_step();
 				return 0;
 			});
 
 			// Step 3. 檢查優惠內容與禮品券內容
-			$scope.calcPriceSaved().then(function(data) {}, function(err) {alert(err)}); 
+			// $scope.calcPriceSaved().then(function(data) {
+			// }, function(err) {
+			// 	$scope.cross_obj.is_submitted = false;
+			// 	alert(err)
+			// }); 
 			
 
 			// Step 5. 根據不同配送 付款方式，產生相對應後送動作
@@ -458,12 +346,14 @@ angular.module('webApp')
 				shipping_promise.push(Shipment.setShipToEzship($scope.cart, $scope.shipping_info, payment_method));
 			} else {
 				alert('沒有配送方式');
+				$scope.cross_obj.is_submitted = false;
 				$scope.checkout_second_step();
 				return 0;
 			}
 
 			// Step 5-1. 先處理配送方式，回傳訂單編號
 			$q.all(shipping_promise).then(function(resp_new_order_id_array) {
+				console.log('完成配送方式');
 				var resp_new_order_id = resp_new_order_id_array[0];
 				if(payment_method === PAYMENT_NAME.hand_pay) payment_promise.push(Payment.setPayOnDeliver(resp_new_order_id));
 				if(payment_method === PAYMENT_NAME.store_pay) payment_promise.push(Payment.setPayOnStore(resp_new_order_id));
@@ -474,32 +364,25 @@ angular.module('webApp')
 					console.log('完成付款部分: ');
 					var checkout_result = datas[0];
 					console.log(checkout_result);
-					// if(checkout_result.checkout_status == 1) {
+					if(payment_method !== PAYMENT_NAME.credit_pay) {
 						$location.path('/checkout/success').search({order_id: checkout_result.order_id}).hash('');
-					// }
+					}
 				}, function(err) {
+					$scope.cross_obj.is_submitted = false;
 					console.log('完成付款部分: ' + err);
+					$state.go('checkout.failure');
 				});
 			}, function(err) {
+				$scope.cross_obj.is_submitted = false;
 				console.log(err);
+				$state.go('checkout.failure');
 			});
-
-
-			Cart.updateCart($scope.cart.products).then(function(result) {}, function(err) {console.log(err)});
-			console.log($scope.shipping_info);
 		};
+
 		$scope.getEzshipStore();
 		if($window.innerWidth <= 768){
 			$scope.form_action = $sce.trustAsResourceUrl("https://sslpayment.uwccb.com.tw/EPOSService/Payment/Mobile/OrderInitial.aspx");
 		} else {
 			$scope.form_action = $sce.trustAsResourceUrl("https://sslpayment.uwccb.com.tw/EPOSService/Payment/OrderInitial.aspx");
-		}
-
-		var searchUrlObject = $location.search();
-		console.log('url params');
-		console.log(searchUrlObject);
-		if(_.has(searchUrlObject, 'shipment') && searchUrlObject.shipment == 'ship_to_store') {
-			$scope.cart.shipment_sel_str = SHIPPING_NAME.ship_to_store;
-			$scope.setPaymentMethod(SHIPPING_NAME.ship_to_store);
 		}
 	});
