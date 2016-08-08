@@ -67,7 +67,7 @@ export function getCathayRqXML(req, res) {
 	var customer_id = req.user._id;
 	Order.lgetOrder(order_id).then(function(orders) {
 		var order = orders[0];
-		order.total = 1;
+		// order.total = 1;
 		if(order.customer_id != customer_id) res.status(400).send('Error: This order is not yours.');
 		var CAVALUE = md5(api_config.CATHAY.STOREID + order_id + order.total + api_config.CATHAY.CUBKEY);
 		var rqXML = "<?xml version='1.0' encoding='UTF-8'?>";
@@ -163,7 +163,7 @@ export function getCathayCallback(req, res) {
 				Order.lgetOrder(order_number).then(function(orders) {
 					var order = orders[0];
 					var order_status_id = order.order_status_id;
-					order.total = 1;
+					// order.total = 1;
 					var next_order_status_id = api_config.CathayPaymentNextOrderStatusId(order_status_id);
 					var server_ca_value = md5(api_config.CATHAY.STOREID + order.order_id + order.total + auth_status + auth_code + api_config.CATHAY.CUBKEY);
 					

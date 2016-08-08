@@ -35,7 +35,7 @@ export function isAuthenticated() {
 		.use(function(req, res, next) {
 			// console.log(req.user);
 			mysql_pool.getConnection(function(err, connection){
-				if(err) handleError(res)(err);
+				if(err) res.status(401).send(err);
 				var session_id = req.user.session_id || '';
 				connection.query('select * from oc_customer where customer_id = ?',[req.user._id], function(err, rows) {
 					connection.release();

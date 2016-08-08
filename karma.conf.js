@@ -25,6 +25,7 @@ module.exports = function(config) {
       'client/bower_components/angular-scroll/angular-scroll.js',
       'client/bower_components/angular-busy/dist/angular-busy.js',
       'client/bower_components/angular-spinkit/build/angular-spinkit.js',
+      'client/bower_components/angular-ui-router-title/angular-ui-router-title.js',
       'client/bower_components/angular-mocks/angular-mocks.js',
       // endbower
       'client/app/app.js',

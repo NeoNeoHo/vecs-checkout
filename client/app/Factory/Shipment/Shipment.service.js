@@ -36,7 +36,7 @@ angular.module('webApp')
 		};
 
 		var setShipToHome = function(cart, shipping_info, payment_method=Config.PAYMENT_NAME.store_pay) {
-			console.log('我在shiptohome');
+			// console.log('我在shiptohome');
 			var defer = $q.defer();
 			var promises = [];
 			var insert_order_dict = {};
@@ -53,8 +53,8 @@ angular.module('webApp')
 			promises.push(Order.createOrder(cart, shipping_info));
 
 			$q.all(promises).then(function(datas) {
-				console.log('shipping: "Ship to Home" done !');
-				console.log(datas);
+				// console.log('shipping: "Ship to Home" done !');
+				// console.log(datas);
 				var order_id = datas[1].order_id
 
 				// Shipment Method Should Return "Order Id" For Later Use (Payment Method)
@@ -83,7 +83,7 @@ angular.module('webApp')
 			promises.push(Order.createOrder(cart, shipping_info));
 
 			$q.all(promises).then(function(datas) {
-				console.log('shipping: "Ship to Overseas" done !');
+				// console.log('shipping: "Ship to Overseas" done !');
 				var order_id = datas[1].order_id
 
 				// Shipment Method Should Return "Order Id" For Later Use (Payment Method)

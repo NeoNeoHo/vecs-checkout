@@ -338,31 +338,50 @@ angular.module('webApp')
 				$scope.shipping_info.district_d = _.find($scope.district_coll, {district_id: $scope.shipping_info.district_id});
 			}
 
-			if(shipment_method === SHIPPING_NAME.ship_to_home) { 
-				shipping_promise.push(Shipment.setShipToHome($scope.cart, $scope.shipping_info, payment_method));
-			} else if(shipment_method === SHIPPING_NAME.ship_to_overseas) {
-				shipping_promise.push(Shipment.setShipToOverseas($scope.cart, $scope.shipping_info, payment_method));
-			} else if(shipment_method === SHIPPING_NAME.ship_to_store) {
-				shipping_promise.push(Shipment.setShipToEzship($scope.cart, $scope.shipping_info, payment_method));
-			} else {
-				alert('沒有配送方式');
-				$scope.cross_obj.is_submitted = false;
-				$scope.checkout_second_step();
-				return 0;
+			switch (shipment_method) {
+				case SHIPPING_NAME.ship_to_home:
+					shipping_promise = Shipment.setShipToHome($scope.cart, $scope.shipping_info, payment_method);
+					break;
+				case SHIPPING_NAME.ship_to_overseas:
+					shipping_promise = Shipment.setShipToOverseas($scope.cart, $scope.shipping_info, payment_method);
+					break;
+				case SHIPPING_NAME.ship_to_store:
+					shipping_promise = Shipment.setShipToEzship($scope.cart, $scope.shipping_info, payment_method);
+					break;
+				default:
+					alert('請檢查配送方式，謝謝');
+					$scope.cross_obj.is_submitted = false;
+					$scope.checkout_second_step();
+					return 0;
+					break;
 			}
 
 			// Step 5-1. 先處理配送方式，回傳訂單編號
-			$q.all(shipping_promise).then(function(resp_new_order_id_array) {
+			shipping_promise.then(function(resp_new_order_id) {
 				console.log('完成配送方式');
-				var resp_new_order_id = resp_new_order_id_array[0];
-				if(payment_method === PAYMENT_NAME.hand_pay) payment_promise.push(Payment.setPayOnDeliver(resp_new_order_id));
-				if(payment_method === PAYMENT_NAME.store_pay) payment_promise.push(Payment.setPayOnStore(resp_new_order_id));
-				if(payment_method === PAYMENT_NAME.credit_pay) payment_promise.push(Payment.setPayByCreditCard(resp_new_order_id));
+
+				switch (payment_method) {
+					case PAYMENT_NAME.hand_pay:
+						payment_promise = Payment.setPayOnDeliver(resp_new_order_id);
+						break;
+					case PAYMENT_NAME.store_pay:
+						payment_promise = Payment.setPayOnStore(resp_new_order_id);
+						break;
+					case PAYMENT_NAME.credit_pay:
+						payment_promise = Payment.setPayByCreditCard(resp_new_order_id);
+						break;
+					default:
+						alert('請檢查付款方式，謝謝');
+						$scope.cross_obj.is_submitted = false;
+						$scope.checkout_second_step();
+						return 0;
+						break;						
+				}
 
 				// Step 5-2. 再處理付款方式，回傳訂單狀態與訂單編號
-				$q.all(payment_promise).then(function(datas) {
+				payment_promise.then(function(datas) {
 					console.log('完成付款部分: ');
-					var checkout_result = datas[0];
+					var checkout_result = datas;
 					console.log(checkout_result);
 					if(payment_method !== PAYMENT_NAME.credit_pay) {
 						$location.path('/checkout/success').search({order_id: checkout_result.order_id}).hash('');

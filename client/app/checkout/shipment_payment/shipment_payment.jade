@@ -25,19 +25,21 @@ div
 	div.btn-group-vertical.btn-group-lg.visible-xs
 		label.btn.btn-vecs-default.form-check(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_overseas", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_overseas)", required) 
 			.row
-				.col-xs-9.text-center {{SHIPPING_NAME.ship_to_overseas}}
-				.col-xs-3
+				.col-xs-6.text-center {{SHIPPING_NAME.ship_to_overseas}}
+				.col-xs-6
 					img.img-responsive.center-block(src='../assets/images/checkout/airplane.png', style="width:30px")
 		label.btn.btn-vecs-default.form-check(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_home", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_home)", required) 
 			.row
-				.col-xs-9.text-center {{SHIPPING_NAME.ship_to_home}}
-				.col-xs-3
+				.col-xs-6.text-center {{SHIPPING_NAME.ship_to_home}}
+				.col-xs-6
 					img.img-responsive.center-block(src='../assets/images/checkout/house.png', style="width:30px")
 		label.btn.btn-vecs-default.form-check(name="input_shipment", ng-model="shipping_info.shipment_sel_str", uib-btn-radio="SHIPPING_NAME.ship_to_store", ng-click="setPaymentMethod(SHIPPING_NAME.ship_to_store)", required) 
 			.row
-				.col-xs-9.text-center {{SHIPPING_NAME.ship_to_store}}
-				.col-xs-3
-					img.img-responsive.center-block(src='../assets/images/checkout/family.png', style="width:30px")
+				.col-xs-6.text-center {{SHIPPING_NAME.ship_to_store}}
+				.col-xs-6.center-block
+					img(src='../assets/images/checkout/family.png', style="width:30px")
+					img(src='../assets/images/checkout/hilife.png', style="height:30px")
+					img(src='../assets/images/checkout/ok1.png', style="height:30px")
 	div.well(ng-show="shipping_info.shipment_sel_str == SHIPPING_NAME.ship_to_store")
 		.row
 			.col-sm-6.col-sm-offset-3

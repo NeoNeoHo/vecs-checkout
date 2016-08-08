@@ -13,7 +13,8 @@ angular.module('webApp', [
   'ui.bootstrap',
   'validation.match',
   'duScroll',
-  'angular-spinkit'
+  'angular-spinkit',
+  'ui.router.title'
 ])
   .config(function($urlRouterProvider, $locationProvider) {
     $urlRouterProvider
