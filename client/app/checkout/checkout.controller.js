@@ -119,11 +119,17 @@ angular.module('webApp')
 			$scope.cart = Cart.updateCartTotal($scope.cart);
 			$scope.cart.total_price_with_discount = getDiscountPrice();
 			$scope.cart.rewards_available = getAvailableReward();
+			if($scope.cart.discount.coupon.saved_amount > 0) {
+				$scope.calcCouponSaved();
+			}
 		};
 
 		$scope.removeProduct = function(key='') {
 			$scope.cart.products = _.reject($scope.cart.products, {key: key});
 			$scope.updateCartTotal();
+			if($scope.cart.discount.coupon.saved_amount > 0) {
+				$scope.calcCouponSaved();
+			}
 			return true;
 		};
 
