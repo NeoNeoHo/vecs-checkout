@@ -22,6 +22,12 @@ angular.module('webApp')
 		$scope.PAYMENT_NAME = PAYMENT_NAME;
 		$scope.is_address_valid = $scope.is_address_valid || true;
 
+		$scope.cross_obj = {
+			temp_reward_use: '', 
+			DIR_DOMAIN: Config.DIR_DOMAIN,
+			is_submitted: false
+		};
+
 		$scope.shipping_info = $scope.shipping_info || {
 			firstname: '',
 			telephone: '',
@@ -52,6 +58,16 @@ angular.module('webApp')
 				$scope.shipping_info.shipment_sel_str = SHIPPING_NAME.ship_to_store;
 				$scope.setPaymentMethod(SHIPPING_NAME.ship_to_store);
 			}
+
+			if($cookies.get('vecs_coupon')) {
+				$scope.cart.discount.coupon.name = $cookies.get('vecs_coupon');
+				$scope.calcCouponSaved();
+			}
+
+			if($cookies.get('vecs_reward')) {
+				$scope.cross_obj.temp_reward_use = $cookies.get('vecs_reward');
+				$scope.calcRewardSaved();				
+			}
 		}, function(err) {
 			console.log(err);
 			$state.go('checkout.failure');
@@ -80,12 +96,6 @@ angular.module('webApp')
 				$scope.is_address_valid = false;
 				console.log($scope.checkout_form.$valid);
 			}
-		};
-
-		$scope.cross_obj = {
-			temp_reward_use: '', 
-			DIR_DOMAIN: Config.DIR_DOMAIN,
-			is_submitted: false
 		};
 
 		$scope.store_select_text = '選擇超商門市';
@@ -246,6 +256,10 @@ angular.module('webApp')
 				$scope.cart.discount.reward = resp_reward;
 				$scope.cart.total_price_with_discount = getDiscountPrice();
 				$scope.cart.rewards_available = getAvailableReward();
+				var date = new Date();
+				var expired_min = 5;
+				date.setTime(date.getTime() + (expired_min * 60 * 1000));
+				$cookies.put('vecs_reward', $scope.cross_obj.temp_reward_use, {domain: Config.DIR_COOKIES, expires: date});
 				defer.resolve();
 			}, function(err) {
 				alert(err);
@@ -283,7 +297,11 @@ angular.module('webApp')
 			Promotion.calcCouponSaved($scope.cart.discount.coupon.name, $scope.cart).then(function(resp_coupon) {
 				$scope.cart.discount.coupon = resp_coupon;
 				$scope.cart.total_price_with_discount = getDiscountPrice();
-				$scope.cart.rewards_available = getAvailableReward();	
+				$scope.cart.rewards_available = getAvailableReward();
+				var date = new Date();
+				var expired_min = 5;
+				date.setTime(date.getTime() + (expired_min * 60 * 1000));
+				$cookies.put('vecs_coupon', $scope.cart.discount.coupon.name, {domain: Config.DIR_COOKIES, expires: date});
 				defer.resolve();			
 			}, function(err) {
 				alert(err);
