@@ -64,7 +64,8 @@ angular.module('webApp')
 				$scope.calcCouponSaved();
 			}
 
-			if($cookies.get('vecs_reward')) {
+			var temp_vecs_reward = $cookies.get('vecs_reward');
+			if(temp_vecs_reward && typeof(temp_vecs_reward) === 'number') {
 				$scope.cross_obj.temp_reward_use = $cookies.get('vecs_reward');
 				$scope.calcRewardSaved();				
 			}
@@ -204,7 +205,7 @@ angular.module('webApp')
 				}
 			}, function(err) {
 				console.log(err);
-				$state.go('checkout.failure');
+				$state.go('failure');
 			});
 		};
 
@@ -252,23 +253,28 @@ angular.module('webApp')
 		$scope.calcRewardSaved = function() {
 			console.log('calcRewardSaved');
 			var defer = $q.defer();
-			Promotion.calcRewardSaved($scope.cross_obj.temp_reward_use, $scope.cart).then(function(resp_reward) {
-				$scope.cart.discount.reward = resp_reward;
-				$scope.cart.total_price_with_discount = getDiscountPrice();
-				$scope.cart.rewards_available = getAvailableReward();
-				var date = new Date();
-				var expired_min = 5;
-				date.setTime(date.getTime() + (expired_min * 60 * 1000));
-				$cookies.put('vecs_reward', $scope.cross_obj.temp_reward_use, {domain: Config.DIR_COOKIES, expires: date});
+			if(typeof($scope.cross_obj.temp_reward_use) === 'number') {
+				Promotion.calcRewardSaved($scope.cross_obj.temp_reward_use, $scope.cart).then(function(resp_reward) {
+					$scope.cart.discount.reward = resp_reward;
+					$scope.cart.total_price_with_discount = getDiscountPrice();
+					$scope.cart.rewards_available = getAvailableReward();
+					var date = new Date();
+					var expired_min = 5;
+					date.setTime(date.getTime() + (expired_min * 60 * 1000));
+					$cookies.put('vecs_reward', scope.cart.discount.reward.saved_amount, {domain: Config.DIR_COOKIES, expires: date});
+					defer.resolve();
+				}, function(err) {
+					alert(err);
+					$scope.cart.discount.reward.saved_amount = 0;
+					$scope.cross_obj.temp_reward_use = '';
+					$scope.cart.total_price_with_discount = getDiscountPrice();
+					$scope.cart.rewards_available = getAvailableReward();
+					$cookies.remove('vecs_reward');
+					defer.reject(err);
+				});
+			} else {
 				defer.resolve();
-			}, function(err) {
-				alert(err);
-				$scope.cart.discount.reward.saved_amount = 0;
-				$scope.cross_obj.temp_reward_use = '';
-				$scope.cart.total_price_with_discount = getDiscountPrice();
-				$scope.cart.rewards_available = getAvailableReward();
-				defer.reject(err);
-			});			
+			}		
 			return defer.promise;
 		};
 
@@ -309,6 +315,7 @@ angular.module('webApp')
 				$scope.cart.discount.coupon.name = '';
 				$scope.cart.total_price_with_discount = getDiscountPrice();
 				$scope.cart.rewards_available = getAvailableReward();
+				$cookies.remove('vecs_coupon');
 				defer.reject(err);
 			});
 			return defer.promise;

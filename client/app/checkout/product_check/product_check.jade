@@ -97,11 +97,11 @@ div.panel.panel-default
 				.form-group
 					label.col-md-4.col-xs-12.control-label(for="input_rewards") 使用紅利點數折抵
 					.col-md-5.col-xs-8
-						input.form-control(name="input_rewards", id="input_rewards",  ng-model="cross_obj.temp_reward_use", type='number', aria-label="...", ng-change="cart.discount.reward.saved_amount = 0", placeholder='可使用{{cart.rewards_available}}點', max="{{cart.rewards_available}}", min="0")
+						input.form-control(name="input_rewards", id="input_rewards",  ng-model="cross_obj.temp_reward_use", type='number', aria-label="...", ng-change="cart.discount.reward.saved_amount = 0", placeholder='您可使用{{cart.rewards_available}}點', max="{{cart.rewards_available}}", min="0")
 					.col-md-3.col-xs-4
 						button.form-control.btn.btn-vecs(ng-click="calcRewardSaved()", ng-disabled="checkout_form.input_rewards.$error.max") 確認
 					div.help-block(ng-messages="checkout_form.input_rewards.$error", ng-show="checkout_form.input_rewards.$error.max")
-						p(ng-message="max") 您最多只能使用{{cart.rewards_available}}點紅利
+						p(ng-message="max") 您此筆訂單最多使用{{cart.rewards_available}}點紅利
 				.form-group
 					label.col-md-4.col-xs-12.control-label(for="input_voucher") 使用禮品券
 					.col-md-5.col-xs-8
