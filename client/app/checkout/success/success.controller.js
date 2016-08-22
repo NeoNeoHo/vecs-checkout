@@ -4,6 +4,7 @@ angular.module('webApp')
 	.controller('SuccessCtrl', function ($scope, $location, Order, $cookies, Config, Cart, Customer) {
 		Cart.clear();
 		$scope.message = 'Hello';
+		$scope.order_totals = '';
 		var urlParams = $location.search();
 		var order_id = urlParams['order_id'] ? urlParams['order_id'] : 0;
 		Order.getOrderProducts(order_id).then(function(order) {
@@ -33,6 +34,12 @@ angular.module('webApp')
 			}
 			ga('ecommerce:send');
 			// console.log(order);
+
+			Order.getOrderTotals(order_id).then(function(order_totals) {
+				$scope.order_totals = order_totals;
+			}, function(err) {
+
+			});
 		}, function(err) {
 			console.log(err);
 		});

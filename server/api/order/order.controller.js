@@ -585,6 +585,20 @@ export function getOrder(req, res) {
 	});
 };
 
+export function getOrderTotals(req, res) {
+	var order_id = req.params.order_id;
+	var customer_id = req.user._id;
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) res.status(400).json(err);
+		connection.query('SELECT * FROM oc_order_total WHERE order_id = ? order by sort_order asc', [order_id], function(err, rows) {
+			connection.release();
+			if(err) res.status(400).json(err);
+			if(_.size(rows) == 0) res.status(400).send('Error: getOrderTotal no such order_id');	
+			res.status(200).json(rows);
+		});
+	});	
+};
+
 export function getOrderProducts(req, res) {
 	var order_id = req.params.order_id;
 	var customer_id = req.user._id;

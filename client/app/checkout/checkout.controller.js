@@ -64,9 +64,8 @@ angular.module('webApp')
 				$scope.calcCouponSaved();
 			}
 
-			var temp_vecs_reward = $cookies.get('vecs_reward');
-			if(temp_vecs_reward && typeof(temp_vecs_reward) === 'number') {
-				$scope.cross_obj.temp_reward_use = $cookies.get('vecs_reward');
+			if($cookies.get('vecs_reward')) {
+				$scope.cross_obj.temp_reward_use = parseInt($cookies.get('vecs_reward'));
 				$scope.calcRewardSaved();				
 			}
 		}, function(err) {
@@ -253,7 +252,7 @@ angular.module('webApp')
 		$scope.calcRewardSaved = function() {
 			console.log('calcRewardSaved');
 			var defer = $q.defer();
-			if(typeof($scope.cross_obj.temp_reward_use) === 'number') {
+			if(!isNaN($scope.cross_obj.temp_reward_use)) {
 				Promotion.calcRewardSaved($scope.cross_obj.temp_reward_use, $scope.cart).then(function(resp_reward) {
 					$scope.cart.discount.reward = resp_reward;
 					$scope.cart.total_price_with_discount = getDiscountPrice();

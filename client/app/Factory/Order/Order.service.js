@@ -25,6 +25,17 @@ angular.module('webApp')
 			return defer.promise;	
 		};
 
+		var getOrderTotals = function(order_id) {
+			var defer = $q.defer();
+			$http.get('/api/orders/orderTotals/'+order_id)
+			.then(function(result) {
+				defer.resolve(result.data);
+			}, function(err) {
+				defer.reject(err);
+			});
+			return defer.promise;				
+		};
+
 		var getOrderProducts = function(order_id) {
 			var defer = $q.defer();
 			$http.get('/api/orders/orderProducts/'+order_id)
@@ -104,6 +115,7 @@ angular.module('webApp')
 			updateOrder: updateOrder,
 			insertOrderHistory: insertOrderHistory,
 			getOrder: getOrder,
+			getOrderTotals: getOrderTotals,
 			getOrderProducts: getOrderProducts,
 			getStatusLevel: getStatusLevel,
 			sendOrderSucessMail: sendOrderSucessMail
