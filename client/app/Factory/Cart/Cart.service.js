@@ -42,6 +42,7 @@ angular.module('webApp')
 		};
 
 		var updateSession = function(cart_products) {
+			var defer = $q.defer();
 			var update_products = _.map(cart_products, function(product) {
 				if(product.key) {
 					return {product_key: product.key, quantity: product.quantity};
@@ -49,7 +50,7 @@ angular.module('webApp')
 					defer.reject('no product key');
 				}
 			});
-			var defer = $q.defer();
+			
 			$http.put('/api/carts/session/', {update_products: update_products})
 			.then(function(result) {
 				defer.resolve(result);

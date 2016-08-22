@@ -9,7 +9,7 @@ angular.module('webApp')
 		});
 
 		$scope.currentUser = $scope.currentUser || Auth.getCurrentUser();
-		$scope.allow_amount = $scope.allow_amount || _.range(1,10);
+		$scope.allow_amount = $scope.allow_amount || _.range(1,20);
 		var SHIPMENT_EZSHIP_FEE = Config.SHIPPING_FEE.EZSHIP;
 		var SHIPMENT_HOME_FEE = Config.SHIPPING_FEE.HOME;
 		var SHIPMENT_OVERSEAS_FEE = Config.SHIPPING_FEE.OVERSEAS;
@@ -51,7 +51,7 @@ angular.module('webApp')
 				$scope.cart.rewards_available = ($scope.cart.total_price_with_discount > $scope.cart.rewards_customer_has_pts) ? $scope.cart.rewards_customer_has_pts : $scope.cart.total_price_with_discount;
 			}, function(err) {
 				console.log(err.data);
-				$state.go('checkout.failure');
+				$state.go('failure');
 			});
 			var searchUrlObject = $location.search();
 			if(_.has(searchUrlObject, 'shipment') && searchUrlObject.shipment == 'ship_to_store') {
@@ -71,7 +71,7 @@ angular.module('webApp')
 			}
 		}, function(err) {
 			console.log(err);
-			$state.go('checkout.failure');
+			$state.go('failure');
 		});
 
 		$scope.checkout_first_step = function() {
@@ -233,7 +233,7 @@ angular.module('webApp')
 					$scope.country_coll = result;
 					$scope.with_city_ready = false;
 				}, function(err) {
-					$state.go('checkout.failure');
+					$state.go('failure');
 				});
 			}
 			$scope.shipping_info.shipment_fee = $scope.cart.shipment_fee;
@@ -261,7 +261,7 @@ angular.module('webApp')
 					var date = new Date();
 					var expired_min = 5;
 					date.setTime(date.getTime() + (expired_min * 60 * 1000));
-					$cookies.put('vecs_reward', scope.cart.discount.reward.saved_amount, {domain: Config.DIR_COOKIES, expires: date});
+					$cookies.put('vecs_reward', $scope.cart.discount.reward.saved_amount, {domain: Config.DIR_COOKIES, expires: date});
 					defer.resolve();
 				}, function(err) {
 					alert(err);
@@ -420,12 +420,12 @@ angular.module('webApp')
 				}, function(err) {
 					$scope.cross_obj.is_submitted = false;
 					console.log('完成付款部分: ' + err);
-					$state.go('checkout.failure');
+					$state.go('failure');
 				});
 			}, function(err) {
 				$scope.cross_obj.is_submitted = false;
 				console.log(err);
-				$state.go('checkout.failure');
+				$state.go('failure');
 			});
 		};
 
