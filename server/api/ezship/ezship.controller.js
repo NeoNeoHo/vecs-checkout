@@ -15,6 +15,7 @@ import db_config from '../../config/db_config.js';
 import api_config from '../../config/api_config.js';
 import request from 'request';
 import url from 'url';
+import request_retry from 'requestretry';
 
 var mysql_pool = db_config.mysql_pool;
 var mysql_config = db_config.mysql_config;  
@@ -112,7 +113,8 @@ export function sendOrder(req, res) {
 				rtn_url: HOST_PATH + '/api/ezships/receiveOrder/',
 				web_para: 'fjdofijasdifosdjf'
 			};
-			request.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict}, function(err, lhttpResponse, body) {
+
+			request_retry.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict, maxAttempts: 5, retryDelay: 500}, function(err, lhttpResponse, body) {
 				if(err) {
 					console.log(err);
 					res.status(400).json(err);

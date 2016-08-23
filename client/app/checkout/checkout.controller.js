@@ -15,6 +15,7 @@ angular.module('webApp')
 		var SHIPMENT_OVERSEAS_FEE = Config.SHIPPING_FEE.OVERSEAS;
 		var FREESHIPPING_FEE = Config.FREE_SHIPPING_CONDICTION.EZSHIP;
 		var FREESHIPPING_OVERSEAS_FEE = Config.FREE_SHIPPING_CONDICTION.OVERSEAS;
+		$scope.EZSHIP_PRICE_UPPER_BOUND = Config.EZSHIP_PRICE_UPPER_BOUND;
 
 		var SHIPPING_NAME = Config.SHIPPING_NAME;
 		var PAYMENT_NAME = Config.PAYMENT_NAME;
@@ -204,7 +205,7 @@ angular.module('webApp')
 				}
 			}, function(err) {
 				console.log(err);
-				$state.go('failure');
+				// $state.go('failure');
 			});
 		};
 

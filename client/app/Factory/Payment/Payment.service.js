@@ -74,6 +74,7 @@ angular.module('webApp')
 				Order.sendOrderSucessMail(order_id);
 				defer.resolve({checkout_status: 1, order_id: order_id});
 			}, function(err) {
+				
 				defer.reject(err);
 			});
 			return defer.promise;

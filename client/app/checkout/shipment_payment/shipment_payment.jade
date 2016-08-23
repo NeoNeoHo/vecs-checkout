@@ -71,7 +71,7 @@ div.row
 			div.col-md-4.col-xs-12(ng-show="payment_btn.hand_pay")
 				label.btn.btn-vecs-default.btn-lg.col-xs-12(name="input_payment", ng-model="shipping_info.payment_sel_str", uib-btn-radio="PAYMENT_NAME.hand_pay", required) {{PAYMENT_NAME.hand_pay}}
 			div.col-md-4.col-xs-12(ng-show="payment_btn.store_pay")
-				label.btn.btn-vecs-default.btn-lg.col-xs-12(name="input_payment", ng-model="shipping_info.payment_sel_str", uib-btn-radio="PAYMENT_NAME.store_pay", required) {{PAYMENT_NAME.store_pay}}
+				label.btn.btn-vecs-default.btn-lg.col-xs-12(name="input_payment", ng-model="shipping_info.payment_sel_str", uib-btn-radio="PAYMENT_NAME.store_pay", required, ng-disabled="cart.total_price_with_discount > EZSHIP_PRICE_UPPER_BOUND") {{PAYMENT_NAME.store_pay}}
 				.small.text-muted
 					br
 					li 若訂購金額高於NTD6000，無法提供此項服務。

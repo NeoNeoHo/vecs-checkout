@@ -105,7 +105,17 @@ angular.module('webApp')
 			return defer.promise;				
 		};
 
-
+		var sendErrorLogMail = function(order_id, error_log) {
+			var defer = $q.defer();
+			console.log('#####@@@@@@#######');
+			$http.post('/api/mandrills/order/errorLog/', {order_id: order_id, error_log: error_log})
+			.then(function(result) {
+				defer.resolve(result);
+			}, function(err) {
+				defer.reject(err);
+			});
+			return defer.promise;				
+		};
 		// Public API here
 		return {
 			someMethod: function () {
@@ -118,6 +128,7 @@ angular.module('webApp')
 			getOrderTotals: getOrderTotals,
 			getOrderProducts: getOrderProducts,
 			getStatusLevel: getStatusLevel,
-			sendOrderSucessMail: sendOrderSucessMail
+			sendOrderSucessMail: sendOrderSucessMail,
+			sendErrorLogMail: sendErrorLogMail
 		};
 	});
