@@ -12,6 +12,7 @@ router.get('/orderProducts/:order_id', auth.isAuthenticated(), controller.getOrd
 router.post('/order/', auth.isAuthenticated(), controller.create);
 router.post('/orderHistory/', auth.isAuthenticated(), controller.insertOrderHistory);
 router.put('/order/:order_id', auth.isAuthenticated(), controller.updateOrder);
+router.delete('/discount/:order_id', auth.isAuthenticated(), controller.deleteOrderResidual);
 // router.delete('/orderResidual/:order_id', auth.isAuthenticated(), controller.deleteOrderResidual);
 
 module.exports = router;

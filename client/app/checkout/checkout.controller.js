@@ -52,7 +52,9 @@ angular.module('webApp')
 				$scope.cart.rewards_available = ($scope.cart.total_price_with_discount > $scope.cart.rewards_customer_has_pts) ? $scope.cart.rewards_customer_has_pts : $scope.cart.total_price_with_discount;
 			}, function(err) {
 				console.log(err.data);
-				$state.go('failure');
+				$scope.cart.rewards_customer_has_pts = 0;
+				$scope.cart.rewards_available = 0;
+				// $state.go('failure');
 			});
 			var searchUrlObject = $location.search();
 			if(_.has(searchUrlObject, 'shipment') && searchUrlObject.shipment == 'ship_to_store') {
@@ -71,7 +73,8 @@ angular.module('webApp')
 			}
 		}, function(err) {
 			console.log(err);
-			$state.go('failure');
+			window.location.href = Config.DIR_DOMAIN;
+			// $state.go('failure');
 		});
 
 		$scope.checkout_first_step = function() {
@@ -233,7 +236,7 @@ angular.module('webApp')
 					$scope.country_coll = result;
 					$scope.with_city_ready = false;
 				}, function(err) {
-					$state.go('failure');
+					// $state.go('failure');
 				});
 			}
 			$scope.shipping_info.shipment_fee = $scope.cart.shipment_fee;

@@ -114,11 +114,16 @@ export function sendOrder(req, res) {
 				web_para: 'fjdofijasdifosdjf'
 			};
 
-			request_retry.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict, maxAttempts: 5, retryDelay: 500}, function(err, lhttpResponse, body) {
+			request_retry.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict, maxAttempts: 3, retryDelay: 5000}, function(err, lhttpResponse, body) {
 				if(err) {
+					// console.log('The number of request attempts: ' + lhttpResponse.attempts);
+					console.log('######### ezship request fails , order_id: ###########');
 					console.log(err);
+					console.log(order_dict);
 					res.status(400).json(err);
 				} else {
+					console.log('The number of request attempts: ' + lhttpResponse.attempts);
+					console.log(order_dict);
 					var result = (lhttpResponse) ? url.parse(lhttpResponse.headers.location, true).query : {order_status: 'Error'};
 					if(result.order_status !== 'S01') {
 						res.status(400).json({ezship_order_status: result.order_status, msg: '設定超商失敗'});

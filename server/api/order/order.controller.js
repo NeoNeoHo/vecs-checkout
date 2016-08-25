@@ -644,34 +644,22 @@ export function getOrderProducts(req, res) {
 };
 
 export function deleteOrderResidual(order_id) {
+	console.log('######  Cancel Order Discount Record for : ' + order_id);
 	var defer = q.defer();
 	mysql_pool.getConnection(function(err, connection) {
 		if(err) defer.reject(err);
-		lgetOrderProduct(order_id).then(function(order_products) {
-
-			// Step 1. Recover the stock quantity for products
-			increaseProductQuantity({products: order_products}).then(function(result) {
-				var sql = 'delete from oc_coupon_history where order_id = ' + order_id + ';';
-				sql += 'delete from oc_customer_reward where order_id = ' + order_id + ';';
-				sql += 'delete from oc_voucher_history where order_id = ' + order_id + ';';
-				
-				// Step 2. Delete all the records of this order_id
-				connection.query(sql, function(err, rows) {
-					connection.release();
-					if(err) {
-						defer.reject(err);
-					} else {
-						defer.resolve(rows);
-					}
-				});
-			}, function(err) {
-				connection.release();
-				defer.reject(err);
-				
-			});
-		}, function(err) {
+		var sql = 'delete from oc_coupon_history where order_id = ' + order_id + ';';
+		sql += 'delete from oc_customer_reward where order_id = ' + order_id + ';';
+		sql += 'delete from oc_voucher_history where order_id = ' + order_id + ';';
+		
+		// Step 2. Delete all the records of this order_id
+		connection.query(sql, function(err, rows) {
 			connection.release();
-			defer.reject(err);
+			if(err) {
+				defer.reject(err);
+			} else {
+				defer.resolve(rows);
+			}
 		});
 	});
 	return defer.promise;

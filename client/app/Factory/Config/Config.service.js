@@ -5,8 +5,8 @@ angular.module('webApp')
 		var DIR_IMAGE_PATH = 'https://www.vecsgardenia.com/image';
 
 		// var DIR_COOKIES = 'vecsgardenia.com';
-		// var DIR_COOKIES = '61.220.72.50';
-		var DIR_COOKIES = 'localhost';
+		var DIR_COOKIES = '61.220.72.50';
+		// var DIR_COOKIES = 'localhost';
 
 		var DIR_DOMAIN = 'http://' + DIR_COOKIES;
 		

@@ -153,6 +153,7 @@ angular.module('webApp')
 					});
 				}, function(err) {
 					console.log(err);
+					Order.cancelDiscount(order_id);
 					Order.sendErrorLogMail(order_id, err);
 					defer.reject(err);					
 				});

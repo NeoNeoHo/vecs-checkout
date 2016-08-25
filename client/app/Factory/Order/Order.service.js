@@ -116,6 +116,18 @@ angular.module('webApp')
 			});
 			return defer.promise;				
 		};
+
+		var cancelDiscount = function(order_id) {
+			var defer = $q.defer();
+			console.log('#####Cancel Discount Record #######');
+			$http.delete('/api/orders/discount/'+order_id)
+			.then(function(result) {
+				defer.resolve(result);
+			}, function(err) {
+				defer.reject(err);
+			});
+			return defer.promise;				
+		};
 		// Public API here
 		return {
 			someMethod: function () {
@@ -129,6 +141,7 @@ angular.module('webApp')
 			getOrderProducts: getOrderProducts,
 			getStatusLevel: getStatusLevel,
 			sendOrderSucessMail: sendOrderSucessMail,
-			sendErrorLogMail: sendErrorLogMail
+			sendErrorLogMail: sendErrorLogMail,
+			cancelDiscount: cancelDiscount
 		};
 	});
