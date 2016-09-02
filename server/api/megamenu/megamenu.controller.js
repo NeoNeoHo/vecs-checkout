@@ -12,10 +12,11 @@ var mysql_config = db_config.mysql_config;
 
 var getTree = function() {
 	var defer = q.defer();
-	request.get('http://localhost/index.php?route=api/megamenu/getTree', function(err, Response, body) {
-		var content = JSON.parse(body);
-		var treemenu = content.treemenu;
+	request.get('https://vecsgardenia.com/index.php?route=api/megamenu/getTree', function(err, Response, body) {
+		// var content = JSON.parse(body);
+		// var treemenu = content.treemenu;
 		// console.log(treemenu);
+		var treemenu = '<div></div>';
 		defer.resolve(treemenu);
 	});
 	return defer.promise;

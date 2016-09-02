@@ -109,6 +109,8 @@ var UnserializeToCartColl = function(cart_obj) {
 			_.forEach(_.keys(obj.option), function(option_key) {
 				option_promises.push(getProductOptions(option_key, obj.option[option_key], obj.product_key));
 			});
+		} else {
+			obj.option = [];
 		}
 		return obj;
 	});
