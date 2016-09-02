@@ -143,5 +143,5 @@ export function receiveOrder(req, res) {
 	var content = req.query;
 	if(!content) handleError(res, 'Err No content to update ezship order');
 	console.log(content);
-	res.redirect('/showCheckout');
+	// res.redirect('/showCheckout');
 }

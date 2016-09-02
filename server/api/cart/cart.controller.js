@@ -28,6 +28,63 @@ var mysql_config = db_config.mysql_config;
 // ####
 // ####
 // ###############################################################################################################################
+var getProductOptionValue = function(product_option_value_ids) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query('SELECT * from ' + mysql_config.db_prefix + 'product_option_value where product_option_value_id in (?)', [product_option_value_ids], function(err, rows) {
+			connection.release();
+			if(err) defer.reject(err);
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
+
+var getOptionDetail= function(option_id, option_value_id) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) defer.reject(err);
+		connection.query('SELECT a.name as name, b.name as value from ' + mysql_config.db_prefix + 'option_description a, ' + mysql_config.db_prefix + 'option_value_description b where a.option_id = ? and a.language_id = 2 and b.option_value_id = ? and b.language_id = 2', [option_id, option_value_id], function(err, rows) {
+			connection.release();
+			if(err) defer.reject(err);
+			var result = rows[0] || rows;
+			defer.resolve(result);
+		});
+	});
+	return defer.promise;
+};
+
+var getProductOptions = function(product_option_id, product_option_value_ids, product_key){
+	var defer = q.defer();
+	getProductOptionValue(product_option_value_ids).then(function(rows) {
+		var promises = [];
+		var results = [];
+		_.forEach(rows, function(row) {
+			results.push({product_option_id: product_option_id, product_option_value_id: row.product_option_value_id, price: row.price})
+			promises.push(getOptionDetail(row.option_id, row.option_value_id));
+		});
+		q.all(promises).then(function(datas) {
+			for(var i = 0; i<_.size(datas); i++) {
+				results[i].name = datas[i].name;
+				results[i].value = datas[i].value;
+			}
+			var result_obj = {
+				product_key: product_key,
+				option: results
+			};
+			// console.log(results);
+			defer.resolve(result_obj);
+		}, function(err) {
+			console.log(err);
+			defer.reject(err);
+		});
+	}, function(err) {
+		console.log(err);
+		defer.reject(err);
+	});
+	return defer.promise;
+};
 
 var cartCollToSerialize = function(cart_coll) {
 	var result = _.reduce(cart_coll, function(result, product) {
@@ -40,12 +97,39 @@ var cartCollToSerialize = function(cart_coll) {
 };
 
 var UnserializeToCartColl = function(cart_obj) {
+	var defer = q.defer();
+	var option_promises = [];
 	var cart_coll = _.map(_.keys(cart_obj), function(lkey){
 		var obj = unserialize(new Buffer(lkey, 'base64'), 'ascii');
 		obj.quantity = cart_obj[lkey];
+		obj.product_key = lkey;
+		obj.key = lkey;
+		obj.href = api_config.DIR_PATH + 'index.php?route=product/product&product_id=' + obj.product_id;
+		if(obj.option){
+			_.forEach(_.keys(obj.option), function(option_key) {
+				option_promises.push(getProductOptions(option_key, obj.option[option_key], obj.product_key));
+			});
+		}
 		return obj;
 	});
-	return cart_coll;
+	if(_.size(option_promises) == 0) {
+		defer.resolve(cart_coll);
+	}
+	q.all(option_promises).then(function(datas) {
+		_.forEach(datas, function(lproduct_option) {
+			_.map(cart_coll, function(obj){
+				if(obj.product_key == lproduct_option.product_key){
+					obj.option = lproduct_option.option;
+				}
+				return obj;
+			});
+		});
+		defer.resolve(cart_coll);
+	}, function(err) {
+		defer.resolve(cart_coll);
+	});
+	
+	return defer.promise;
 }
 
 var jsonToPHPSerializeSession = function(obj) {
@@ -81,20 +165,24 @@ var getSession = function(session_id) {
 export function getSession(req, res) {
 	var session_id = api_config.SESSION_ID + ':' +req.user.session_id;
 	var sess_obj = '';
+	console.log(session_id);
 	try {
 		client.get(session_id, function(err, reply) {
 			// 1. Unserialize PHP Session To readable JSON format
 			if(reply){
 				sess_obj = PHPUnserialize.unserializeSession(reply);
-				res.status(200).json(sess_obj);
+				// 2. Unserialize cart string to cart JSON
+				UnserializeToCartColl(sess_obj.cart).then(function(data) {
+					var cart_coll = data;
+					// 3. Assign cart JSON back to sess_obj
+					sess_obj.cart = cart_coll;
+					// 4. Return JSON
+					res.status(200).json(sess_obj);
+				});
+				
 			} else {
 				res.status(400).send('no session');
 			}
-			// 2. Unserialize cart string to cart JSON
-			// var cart_coll = UnserializeToCartColl(sess_obj.cart);
-			// 3. Assign cart JSON back to sess_obj
-			// sess_obj.cart = cart_coll;
-			// 4. Return JSON
 		});	
 	}
 	catch (e) {

@@ -16,6 +16,7 @@ export default function(app) {
 	app.use('/api/ezships', require('./api/ezship'));
 	app.use('/api/locations', require('./api/location'));
 	app.use('/api/mandrills', require('./api/mandrill'));
+	app.use('/api/megamenus', require('./api/megamenu'));
 	app.use('/api/orders', require('./api/order'));
 	app.use('/api/products', require('./api/product'));
 	app.use('/api/payment', require('./api/payment'));

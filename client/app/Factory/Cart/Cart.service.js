@@ -81,68 +81,84 @@ angular.module('webApp')
 			updateCartCookiesSession(cart.products);
 			return cart;
 		};
-
+		var getSession = function() {
+			var defer = $q.defer();
+			$http.get('/api/carts/session/')
+			.then(function(result) {
+				console.log(result);
+				defer.resolve(result);
+			}, function(err) {
+				console.log(err);
+				defer.reject(err);
+			});
+			return defer.promise;
+		};
 		var getCart = function() {
 			var defer = $q.defer();
-			// if(cart_cache) defer.resolve(cart_cache);
-			if(!$cookies.get('vecs_cart')) {
-				console.log('redirect to host');
-				window.location.href = Config.DIR_DOMAIN;
-			}
-			var cart_cookies = JSON.parse($cookies.get('vecs_cart'));
-			var clean_cart_cookies = _.map(cart_cookies, function(lproduct) {
-				lproduct.product_id = parseInt(lproduct.product_id);
-				return lproduct;
-			});
-			var cart = {
-				products: clean_cart_cookies,
-				product_total_price: _.reduce(cart_cookies, function(sum, o){return sum+o.price*o.quantity}, 0),
-				discount: {
-					reward: {
-						saved_amount: 0,
-						name: ''
-					},
-					coupon: {
-						saved_amount: 0,
-						name: '',
-						id: 0
-					},
-					voucher: {
-						saved_amount: 0,
-						name: '',
-						id: 0,
-						available_amount: 0
-					}
-				},
-				shipment_fee: 0,
-			};
+			// if(!$cookies.get('vecs_cart')) {
+			// 	console.log('redirect to host');
+			// 	window.location.href = Config.DIR_DOMAIN;
+			// }
+			// var cart_cookies = JSON.parse($cookies.get('vecs_cart'));
+			getSession().then(function(result) {
+				var cart_cookies = result.data.cart;
 
-			Product.getProductsDetail(cart.products).then(function(db_products) {
-				cart.products = _.map(cart.products, function(product) {
-					var db_product = _.find(db_products, {product_id: product.product_id});
-					if(db_product) {
-						product.price = db_product.price;
-						product.discount = db_product.discount || [];
-						product.reward = db_product.reward;
-						product.model = db_product.model;
-						product.name = db_product.name;
-						product.image = db_product.image;
-						product.spot_price = product.price.special_price;
-						product.option_price = _.reduce(_.pluck(product.option, 'price'), function(sum, num){return sum+num;}, 0);
-						
-						product.total = (product.spot_price + product.option_price) * product.quantity;
-					} else {
-						product = {};
-					}
-					return product;
+				var clean_cart_cookies = _.map(cart_cookies, function(lproduct) {
+					lproduct.product_id = parseInt(lproduct.product_id);
+					return lproduct;
 				});
-				cart = updateCartTotal(cart);
-				// cart_cache = cart;
-				defer.resolve(cart);
+				console.log(cart_cookies);
+				var cart = {
+					products: clean_cart_cookies,
+					product_total_price: _.reduce(cart_cookies, function(sum, o){return sum+o.price*o.quantity}, 0),
+					discount: {
+						reward: {
+							saved_amount: 0,
+							name: ''
+						},
+						coupon: {
+							saved_amount: 0,
+							name: '',
+							id: 0
+						},
+						voucher: {
+							saved_amount: 0,
+							name: '',
+							id: 0,
+							available_amount: 0
+						}
+					},
+					shipment_fee: 0,
+				};
+
+				Product.getProductsDetail(cart.products).then(function(db_products) {
+					cart.products = _.map(cart.products, function(product) {
+						var db_product = _.find(db_products, {product_id: product.product_id});
+						if(db_product) {
+							product.price = db_product.price;
+							product.discount = db_product.discount || [];
+							product.reward = db_product.reward;
+							product.model = db_product.model;
+							product.name = db_product.name;
+							product.image = db_product.image;
+							product.spot_price = product.price.special_price;
+							product.option_price = _.reduce(_.pluck(product.option, 'price'), function(sum, num){return sum+num;}, 0);
+							
+							product.total = (product.spot_price + product.option_price) * product.quantity;
+						} else {
+							product = {};
+						}
+						return product;
+					});
+					cart = updateCartTotal(cart);
+					// cart_cache = cart;
+					defer.resolve(cart);
+				}, function(err) {
+					defer.reject(err);
+				});
 			}, function(err) {
 				defer.reject(err);
 			});
-
 			return defer.promise;
 		};
 
@@ -159,6 +175,7 @@ angular.module('webApp')
 			getCart: getCart,
 			updateCartTotal: updateCartTotal,
 			updateSession: updateSession,
-			clear: clear
+			clear: clear,
+			getSession: getSession
 		};
 	});

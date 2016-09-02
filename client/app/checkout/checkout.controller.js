@@ -43,6 +43,7 @@ angular.module('webApp')
 			$scope.currentUser.$promise.then(function(data) {
 				$scope.shipping_info.firstname = $scope.shipping_info.firstname || data.firstname;
 				$scope.shipping_info.telephone = $scope.shipping_info.telephone || data.telephone;
+				$scope.shipping_info.email = $scope.shipping_info.email || data.email;
 			});
 			if(!$scope.shipping_info.address) {
 				getAddress();
@@ -431,7 +432,6 @@ angular.module('webApp')
 				$state.go('failure');
 			});
 		};
-
 		$scope.getEzshipStore();
 		if($window.innerWidth <= 768){
 			$scope.form_action = $sce.trustAsResourceUrl("https://sslpayment.uwccb.com.tw/EPOSService/Payment/Mobile/OrderInitial.aspx");
