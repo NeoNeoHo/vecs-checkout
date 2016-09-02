@@ -505,6 +505,7 @@ export function create(req, res) {
 					console.log('離開order create');
 					res.status(200).json({order_id: order_id});
 				}, function(err) {
+					console.log(err);
 					res.status(400).send(err);
 				});
 			} else {

@@ -13,10 +13,12 @@ var mysql_config = db_config.mysql_config;
 var getTree = function() {
 	var defer = q.defer();
 	request.get('https://vecsgardenia.com/index.php?route=api/megamenu/getTree', function(err, Response, body) {
-		// var content = JSON.parse(body);
-		// var treemenu = content.treemenu;
+		console.log(body);
+		// console.log(Response);
+		var content = JSON.parse(body);
+		var treemenu = content.treemenu;
 		// console.log(treemenu);
-		var treemenu = '<div></div>';
+		// var treemenu = '<div></div>';
 		defer.resolve(treemenu);
 	});
 	return defer.promise;

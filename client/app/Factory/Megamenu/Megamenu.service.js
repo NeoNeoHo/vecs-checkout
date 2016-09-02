@@ -4,10 +4,9 @@ angular.module('webApp')
 	.factory('Megamenu', function ($q, $http) {
 		var getTree = function() {
 			var defer = $q.defer();
-			$http.get('/api/megamenus/')
-			.then(function(result) {
-				// console.log(result.data);
-				defer.resolve(result.data);
+			// $http.get('/api/megamenus/')
+			$http.get('https://vecsgardenia.com/index.php?route=api/megamenu/getTree').then(function(result) {
+				defer.resolve(result.data.treemenu);
 			}, function(err) {
 				defer.reject(err);
 			});

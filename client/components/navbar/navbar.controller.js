@@ -17,10 +17,8 @@ angular.module('webApp')
 		$scope.trustAsHtml = function(string) {
     		return $sce.trustAsHtml(string);
 		};
-		var aa = 105808847;
 		Megamenu.getTree().then(function(data) {
 			$scope.megamenu = data;
-			// console.log(data);
 		}, function(err) {});
 	});
 

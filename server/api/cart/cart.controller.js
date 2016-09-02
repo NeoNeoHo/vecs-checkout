@@ -68,6 +68,7 @@ var getProductOptions = function(product_option_id, product_option_value_ids, pr
 			for(var i = 0; i<_.size(datas); i++) {
 				results[i].name = datas[i].name;
 				results[i].value = datas[i].value;
+				results[i].type = datas[i].name;
 			}
 			var result_obj = {
 				product_key: product_key,
