@@ -114,7 +114,7 @@ export function sendOrder(req, res) {
 				web_para: 'fjdofijasdifosdjf'
 			};
 
-			request_retry.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict, maxAttempts: 3, retryDelay: 5000}, function(err, lhttpResponse, body) {
+			request_retry.post({url: 'https://www.ezship.com.tw/emap/ezship_request_order_api.jsp', form: order_dict, maxAttempts: 4, retryDelay: 1200}, function(err, lhttpResponse, body) {
 				if(err) {
 					// console.log('The number of request attempts: ' + lhttpResponse.attempts);
 					console.log('######### ezship request fails , order_id: ###########');

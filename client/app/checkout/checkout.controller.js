@@ -7,7 +7,8 @@ angular.module('webApp')
    			var someElement = angular.element(document.getElementById('form-container'));
     		$document.scrollToElementAnimated(someElement, 0, 800);
 		});
-
+		console.log('get token check!!');
+		console.log($cookies.get('vecs_token'));
 		$scope.currentUser = $scope.currentUser || Auth.getCurrentUser();
 		$scope.allow_amount = $scope.allow_amount || _.range(1,20);
 		var SHIPMENT_EZSHIP_FEE = Config.SHIPPING_FEE.EZSHIP;

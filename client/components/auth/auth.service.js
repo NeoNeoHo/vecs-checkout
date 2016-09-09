@@ -6,12 +6,10 @@ function AuthService($location, $http, $cookies, $q, appConfig, Util, User) {
   var safeCb = Util.safeCb;
   var currentUser = {};
   var userRoles = appConfig.userRoles || [];
-  // console.log('outside authservice get currentUser');
+  var searchUrlObject = $location.search();
+
   if ($cookies.get('vecs_token') && $location.path() !== '/logout') {
-    // console.log($cookies.get('vecs_token'));
     currentUser = User.get();
-    // console.log('inside authservice get currentUser');
-    // console.log(currentUser);
   }
 
   var Auth = {

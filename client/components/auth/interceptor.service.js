@@ -2,13 +2,15 @@
 
 (function() {
 
-function authInterceptor($rootScope, $q, $cookies, $injector, Util) {
+function authInterceptor($rootScope, $q, $cookies, $injector, Util, $location) {
   var state;
   return {
     // Add authorization token to headers
     request(config) {
+      var searchUrlObject = $location.search();
       config.headers = config.headers || {};
-      if ($cookies.get('vecs_token') && Util.isSameOrigin(config.url)) {
+      // if ($cookies.get('vecs_token') && Util.isSameOrigin(config.url)) {
+      if ($cookies.get('vecs_token')) {
         config.headers.Authorization = 'Bearer ' + $cookies.get('vecs_token');
       }
       return config;
