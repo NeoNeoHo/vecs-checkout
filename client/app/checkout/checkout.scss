@@ -47,6 +47,10 @@
   background-color: #858735;
   border: 1px solid #858735;
 }
+.navbar {
+  @extend .navbar;
+  min-height:30px;
+}
 .navbar-default .navbar-toggle-vecs:hover {
   outline: none;
   background-color: #858735;
@@ -81,11 +85,6 @@
   opacity: 0.3;
 }
 
-.navbar-default {
-  @extend .navbar-default;
-  background-color: transparent;
-  border-color: transparent;
-}
 a {
   color: black;
   text-decoration:none;
@@ -131,7 +130,7 @@ a {
 }
 .btn-sharp {
   @extend .btn-default;
-  //border-radius: 0px;
+  border-radius: 2px;
 }
 
 .btn-group-seperated {

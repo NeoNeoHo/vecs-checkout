@@ -18,7 +18,7 @@ import redis from 'redis';
 import unserialize from 'locutus/php/var/unserialize';
 import serialize from 'locutus/php/var/serialize';
 import PHPUnserialize from 'php-unserialize';
-var client = redis.createClient();
+
 
 var mysql_pool = db_config.mysql_pool;
 var mysql_config = db_config.mysql_config;  
@@ -147,6 +147,7 @@ var getSession = function(session_id) {
 	var defer = q.defer();
 	var sess_obj = '';
 	try {
+		var client = redis.createClient();
 		client.get(session_id, function(err, reply) {
 			if(err) defer.reject(err);
 			// 1. Unserialize PHP Session To readable JSON format
@@ -157,6 +158,7 @@ var getSession = function(session_id) {
 				defer.reject('no session');
 			}
 		});
+		client.quit();
 	}
 	catch (e) {
 		console.log(e);
@@ -170,6 +172,7 @@ export function getSession(req, res) {
 	var sess_obj = '';
 	console.log(session_id);
 	try {
+		var client = redis.createClient();
 		client.get(session_id, function(err, reply) {
 			// 1. Unserialize PHP Session To readable JSON format
 			if(reply){
@@ -186,7 +189,8 @@ export function getSession(req, res) {
 			} else {
 				res.status(400).send('no session');
 			}
-		});	
+		});
+		client.quit();
 	}
 	catch (e) {
 		console.log(e);
@@ -205,7 +209,10 @@ export function updateProducts(req, res) {
 					sess_obj.cart[product.product_key] = product.quantity;
 				}
 			});
-			client.set(session_id, jsonToPHPSerializeSession(sess_obj));
+			var client = redis.createClient();
+			client.set(session_id, jsonToPHPSerializeSession(sess_obj), function(err, result) {
+				client.quit();
+			});
 			res.status(200).json('ok');
 		} else {
 			res.status(200).json('ok');
@@ -221,7 +228,10 @@ export function deleteCart(req, res) {
 	getSession(session_id).then(function(sess_obj) {
 		if(sess_obj.cart){
 			delete sess_obj.cart;
-			client.set(session_id, jsonToPHPSerializeSession(sess_obj));
+			var client = redis.createClient();
+			client.set(session_id, jsonToPHPSerializeSession(sess_obj), function(err, result) {
+				client.quit();
+			});
 			res.status(200).json('ok');
 		} else {
 			res.status(200).json('ok');
