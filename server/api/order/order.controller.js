@@ -275,7 +275,7 @@ var createOrderOption = function(order_id, order_product_id, options) {
 			product_option_id: option.product_option_id,
 			product_option_value_id: option.product_option_value_id,
 			name: option.name,
-			value: option.value,
+			value: option.value || 0,
 			type: option.type
 		};
 	});
