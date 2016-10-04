@@ -1,5 +1,5 @@
 angular.module('webApp')
-	.controller('NavbarController', function($scope, $sce, Auth, Megamenu) {
+	.controller('NavbarController', function($scope, $sce, Auth, Megamenu, Referral, Promotion) {
 		$scope.menu = [
 			{
 				title: 'Home',
@@ -14,6 +14,16 @@ angular.module('webApp')
 		$scope.isLoggedIn = Auth.isLoggedIn;
 		$scope.isAdmin = Auth.isAdmin;
 		$scope.getCurrentUser = Auth.getCurrentUser;
+		Referral.withReferralQualified().then(function(result) {
+			Promotion.getModule('checkout', 'referral_notification').then(function(result) {
+				$scope.notification = $sce.trustAsHtml(result.setting);
+			}, function(err) {
+				$scope.notification = '';
+			});
+			
+		}, function(err) {
+			$scope.notification = '';
+		});
 		$scope.trustAsHtml = function(string) {
     		return $sce.trustAsHtml(string);
 		};

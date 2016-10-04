@@ -1,6 +1,11 @@
-footer.footer {
-  text-align: center;
-  padding: 30px 0;
+.footer {
+  padding: 0px 0;
   margin-top: 70px;
   border-top: 1px solid #E5E5E5;
+  background-color: #8b964a;
+  color: white;
+}
+.footer p {
+  margin: 10px 0px 5px 0px; 
+  letter-spacing: 0.2em;
 }

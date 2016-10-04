@@ -35,7 +35,19 @@ function handleError(res, err_msg, statusCode) {
   res.status(statusCode).send(err_msg);
 }
 
-
+var insertDictSql = function(table, insert_dict) {
+  var set_string = '';
+  _.forEach(_.pairs(insert_dict), function(pair) {
+    if(set_string.length == 0) {
+      set_string = pair[0] + ' = ' + mysql_pool.escape(pair[1]);
+    }
+    else {
+      set_string = set_string + ', ' + pair[0] + ' = ' + mysql_pool.escape(pair[1]);
+    }
+  });
+  var sql_string = 'insert into ' + table + ' set ' + set_string;
+  return sql_string;
+};
 
 // Gets a single Coupon from the DB
 export function show(req, res) {
@@ -134,3 +146,38 @@ var getCouponHistory = function(code) {
   return defer.promise;
 };
 
+export function createCoupon(coupon_option){
+  var defer = q.defer();
+  var date = new Date()
+  var insert_dict = {
+    name: coupon_option.name,
+    code: coupon_option.code,
+    type: coupon_option.type || 'F',
+    discount: coupon_option.discount || 0,
+    logged: 1,
+    shipping: 0,
+    total: coupon_option.total || 0,
+    date_start: coupon_option.date_start || date,
+    date_end: coupon_option.date_end || date.setDate(date.getDate() + 30),
+    uses_total: coupon_option.uses_total || 1,
+    uses_customer: coupon_option.uses_customer || 1,
+    status: 1,
+    date_added: new Date()
+  };
+  mysql_pool.getConnection(function(err, connection) {
+    if(err) {
+      defer.reject(err);
+    }
+    var sql = insertDictSql('oc_coupon', insert_dict);
+    connection.query(sql, function(err, result) {
+      connection.release();
+      if(err) {
+        defer.reject(err);
+      } else {
+        console.log('Create Coupon: ' + coupon_option.code + ' for ' + coupon_option.name);
+        defer.resolve(result);
+      }
+    });
+  });
+  return defer.promise;
+};

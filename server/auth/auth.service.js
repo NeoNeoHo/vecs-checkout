@@ -48,6 +48,7 @@ export function isAuthenticated() {
 							customer_group_id: rows[0].customer_group_id,
 							address_id: rows[0].address_id,
 							email: rows[0].email,
+							firstname: rows[0].firstname,
 							address_id: rows[0].address_id,
 							session_id: session_id
 						};

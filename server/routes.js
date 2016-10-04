@@ -13,6 +13,7 @@ export default function(app) {
 	app.use('/api/rewards', require('./api/reward'));
 	app.use('/api/coupons', require('./api/coupon'));
 	app.use('/api/carts', require('./api/cart'));
+	app.use('/api/dbModules', require('./api/dbModule'));
 	app.use('/api/ezships', require('./api/ezship'));
 	app.use('/api/locations', require('./api/location'));
 	app.use('/api/mandrills', require('./api/mandrill'));
@@ -20,6 +21,7 @@ export default function(app) {
 	app.use('/api/orders', require('./api/order'));
 	app.use('/api/products', require('./api/product'));
 	app.use('/api/payment', require('./api/payment'));
+	app.use('/api/referrals', require('./api/referral'));
 	app.use('/api/things', require('./api/thing'));
 	app.use('/api/vouchers', require('./api/voucher'));
 	app.use('/api/users', require('./api/user'));

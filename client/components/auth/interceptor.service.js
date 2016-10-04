@@ -9,6 +9,7 @@ function authInterceptor($rootScope, $q, $cookies, $injector, Util, $location) {
     request(config) {
       var searchUrlObject = $location.search();
       config.headers = config.headers || {};
+      $cookies.remove('vecs_token', {domain: 'checkout.vecsgardenia.com'});
       // if ($cookies.get('vecs_token') && Util.isSameOrigin(config.url)) {
       if ($cookies.get('vecs_token')) {
         config.headers.Authorization = 'Bearer ' + $cookies.get('vecs_token');

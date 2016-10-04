@@ -1,5 +1,6 @@
 div.home-default(ng-controller='NavbarController')
 	div.navbar.navbar-default.navbar-fixed-top.hidden-xs
+		ng-bind-html(ng-bind-html="notification")
 		div.container
 			div.navbar-header
 				button.navbar-toggle-vecs.pull-left(type='button', ng-click='isCollapsed = !isCollapsed')
@@ -39,7 +40,8 @@ div.home-default(ng-controller='NavbarController')
 					
 					li.visible-xs(role="navigation")
 						a(href="http://blog.vecsgardenia.com/") VECS 小教室
-	div.navbar.navbar-default.navbar-static-top.visible-xs
+	div.navbar.navbar-default.navbar-static-top.visible-xs.col-fullwidth-offset
+		ng-bind-html(ng-bind-html="notification")
 		div.container
 			div.navbar-header
 				button.navbar-toggle-vecs.pull-left(type='button', ng-click='isCollapsed = !isCollapsed')
@@ -47,7 +49,6 @@ div.home-default(ng-controller='NavbarController')
 					span.icon-bar
 					span.icon-bar
 					span.icon-bar
-				a.navbar-brand.hidden-xs(href='https://vecsgardenia.com') 嘉丹妮爾
 
 			div#navbar-main.navbar-collapse.collapse(uib-collapse='isCollapsed')
 				//- ul.nav.navbar-nav
@@ -83,7 +84,8 @@ div.home-default(ng-controller='NavbarController')
 		.inner(style="width:100%")
 			.logo-store#logo
 				a(href="https://vecsgardenia.com")
-					img.img-responsive.center-block.logo(src="../assets/images/checkout/vecslogoweb.jpg")
+					img.img-responsive.center-block.logo.hidden-xs(src="../assets/images/checkout/vecslogoweb.jpg")
+					img.img-responsive.center-block.visible-xs(src="../assets/images/checkout/vecslogoweb.jpg")
 		.row.hidden-xs
 			.mainnav-default#pav-mainnav
 				.mainnav-wrap

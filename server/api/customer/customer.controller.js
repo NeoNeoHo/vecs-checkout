@@ -16,6 +16,7 @@ import api_config from '../../config/api_config.js';
 import unserialize from 'locutus/php/var/unserialize';
 import serialize from 'locutus/php/var/serialize';
 import request from 'request';
+import q from 'q';
 var mysql_pool = db_config.mysql_pool;
 var mysql_config = db_config.mysql_config;  
 
@@ -92,4 +93,22 @@ export function clearCart(req, res) {
 	var customer_id = req.user._id;
 	console.log('clearCart');
 	res.redirect(api_config.DIR_PATH+'index.php?route=checkout/cart/clear');
+}
+
+export function lget(customer_id) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) {
+			defer.reject(err);
+		}
+		connection.query('SELECT * from '+ mysql_config.db_prefix + 'customer where customer_id = ? ',[customer_id] , function(err, rows) {
+			connection.release();
+			if(err) {
+				defer.reject(err);
+			}
+			var result = rows[0] || rows;
+			defer.resolve(result);
+		});
+	});
+	return defer.promise;
 }

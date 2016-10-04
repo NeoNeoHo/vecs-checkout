@@ -16,6 +16,7 @@ import q from 'q';
 import moment from 'moment';
 import mandrill from 'mandrill-api/mandrill';
 var Order = require('../order/order.controller.js');
+var Customer = require('../customer/customer.controller.js');
 var mandrill_client = new mandrill.Mandrill(api_config.MANDRILL_KEY);
 
 var mandrill_message_template = function(message_info, to_coll, merge_vars_coll, ga_campaign="md_order_success", tags=["default"]) {
@@ -152,48 +153,91 @@ var sendOrderSuccess = function(order_id) {
 	return defer.promise;
 };
 
-
-var sendInviteMail = function(customer_name, invite_name, invite_email, rc_url) {
+var sendReferralSuccessMail = function(referer_id, referee_id, coupon) {
 	var defer = q.defer();
-	var template_name = api_config.mandrill_template.invite_friend;
-	var template_content = [{
-		"name": "example name",
-		"content": "example content"
-	}];
-	var to_coll = [{
-		"email": invite_email,
-		"name": invite_name,
-		"type": "to"
-	}];
-	var merge_vars_coll = [{
-		"rcpt": invite_email,
-		"vars": [
-			{
-				"name": "RC_URL",
-				"content": rc_url+'&medium=mail'
-			}
-		]
-	}];
-	var message_info = {
-		from_name: customer_name + " via 嘉丹妮爾",
-		from_email: "customer@vecsgardenia.com",
-		subject: "與好姐妹一起加入嘉丹妮爾"
-	};
-	var message = mandrill_message_template(message_info, to_coll, merge_vars_coll, "invite_friend", ['referral']);
-	var async = false;
-	mandrill_client.messages.sendTemplate({"template_name": template_name, "template_content": template_content, "message": message, "async": async}, function(result) {
-	    console.log(result);
-	    defer.resolve(result);
-	}, function(e) {
-	    // Mandrill returns the error as an object with name and message keys
-	    console.log('A mandrill error occurred: ' + e.name + ' - ' + e.message);
-	    defer.reject(e);
-	    // A mandrill error occurred: Unknown_Subaccount - No subaccount exists with the id 'customer-123'
+	var promises = [];
+	promises.push(Customer.lget(referer_id));
+	promises.push(Customer.lget(referee_id));
+	q.all(promises).then(function(datas) {
+		var referer = datas[0][0] || datas[0];
+		var referee = datas[1][0] || datas[1];
+		// console.log(referer);
+		// console.log(referee);
+		if (!('email' in referer) || !('email' in referee)) {
+			console.log('either referer or referee customer info not valid');
+			defer.reject('either referer or referee customer info not valid');
+		} else {
+			// 1. PREPARATION OF REFERER MAIL
+			var template_name_1 = api_config.mandrill_template.invite_friend.success_to_referer;
+			var template_content = [{
+				"name": "example name",
+				"content": "example content"
+			}];
+			var to_coll_1 = [{
+				"email": referer.email,
+				"name": referer.firstname,
+				"type": "to"
+			}];
+			var merge_vars_coll_1 = [{
+				"rcpt": referer.email,
+				"vars": [
+					{
+						"name": "FRIEND_NAME",
+						"content": referee.firstname
+					}
+				]
+			}];
+			var message_info_1 = {
+				from_name: "嘉丹妮爾的好友分享",
+				from_email: "customer@vecsgardenia.com",
+				subject: "您的好友首次購物成功，讓我們一同恭喜他"
+			};
+			var message_1 = mandrill_message_template(message_info_1, to_coll_1, merge_vars_coll_1, "md_referral_success", ['referral_success']);
+			// 2. PREPARATION OF REFEREE MAIL
+			var template_name_2 = api_config.mandrill_template.invite_friend.success_to_referee;
+			var to_coll_2 = [{
+				"email": referee.email,
+				"name": referee.firstname,
+				"type": "to"
+			}];
+			var merge_vars_coll_2 = [{
+				"rcpt": referee.email,
+				"vars": [
+					{
+						"name": "COUPON",
+						"content": coupon
+					}
+				]
+			}];
+			var message_info_2 = {
+				from_name: "嘉丹妮爾的好友分享",
+				from_email: "customer@vecsgardenia.com",
+				subject: "恭喜您購物成功，這是" + referer.firstname + "分享給您的優惠碼"
+			};
+			var message_2 = mandrill_message_template(message_info_2, to_coll_2, merge_vars_coll_2, "md_referral_success", ['referral_success']);
+			var async = false;
+			var mandrill_promises = [];
+			mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_1, "template_content": template_content, "message": message_1, "async": async}));
+			mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_2, "template_content": template_content, "message": message_2, "async": async}));
+			q.all(mandrill_promises).then(function(results) {
+				console.log(results);
+				defer.resolve();
+			}, function(e) {
+				console.log('A mandrill error occurred: ' + e.name + ' - ' + e.message);
+				defer.reject(e);
+			});
+		}
+	}, function(err) {
+		defer.reject(err);
 	});
+
 	return defer.promise;
 };
 
+
+
 exports.sendOrderSuccess = sendOrderSuccess;
+exports.sendReferralSuccessMail = sendReferralSuccessMail;
 
 exports.sendOrderSuccessHttpPost = function(req, res){
 	console.log('######## sendOrderSucessHttpPost');
