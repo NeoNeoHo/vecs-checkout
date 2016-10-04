@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webApp')
-	.controller('CheckoutController', function ($rootScope, $scope, $window, $state, $document, $location, $cookies, $sce, $http, $q, User, Auth,  Location, Shipment, Payment, Promotion, Cart, Customer, Reward, Product, Config) {
+	.controller('CheckoutController', function ($rootScope, $scope, $window, $state, $document, $location, $cookies, $sce, $http, $q, User, Auth,  Location, Shipment, Payment, Promotion, Cart, Customer, Reward, Product, Config, Referral) {
 		$rootScope.$state = $state;
 		$rootScope.$on('$stateChangeSuccess', function() {
    			var someElement = angular.element(document.getElementById('form-container'));
@@ -9,6 +9,7 @@ angular.module('webApp')
 		});
 		console.log('get token check!!');
 		console.log($cookies.get('vecs_token'));
+
 		$scope.currentUser = $scope.currentUser || Auth.getCurrentUser();
 		$scope.allow_amount = $scope.allow_amount || _.range(1,20);
 		var SHIPMENT_EZSHIP_FEE = Config.SHIPPING_FEE.EZSHIP;
@@ -77,6 +78,12 @@ angular.module('webApp')
 			console.log(err);
 			window.location.href = Config.DIR_DOMAIN;
 			// $state.go('failure');
+		});
+
+		Referral.withReferralQualified().then(function(result) {
+			$scope.referral_reminder_text = '結帳滿千，輸入『 NM15off 』，即可享有15%的專屬優惠喔';
+		}, function(err) {
+			$scope.referral_reminder_text = '';
 		});
 
 		$scope.checkout_first_step = function() {

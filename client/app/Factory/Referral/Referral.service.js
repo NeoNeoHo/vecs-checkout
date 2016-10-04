@@ -17,8 +17,16 @@ angular.module('webApp')
 			var defer = $q.defer();
 			$http.get('/api/referrals/hasRC')
 			.then(function(result) {
+				var data = result.data;
+				if(!data.referral_code) {
+					defer.reject();
+				}
 				$http.get('/api/referrals/isFirstPurchase').then(function(result) {
-					defer.resolve(result);
+					if (result.data === 'no') {
+						defer.reject();
+					} else {
+						defer.resolve(result);
+					}
 				}, function(err) {
 					defer.reject(err);
 				});

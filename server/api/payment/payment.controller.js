@@ -176,8 +176,10 @@ export function getCathayCallback(req, res) {
 							Mail.sendOrderSuccess(order.order_id);
 
 							// Referral Program Start Here !!
-							console.log('START FERERRAL TEST');
-							Referral.startRewarding(order.customer_id, order.order_id);
+							if(order.total >= 1000) {
+								console.log('START FERERRAL TEST');
+								Referral.startRewarding(order.customer_id, order.order_id);
+							}
 							
 							res.set('Content-Type', 'text/xml').send(respXML);
 						}, function(err) {

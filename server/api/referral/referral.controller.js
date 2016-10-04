@@ -110,40 +110,52 @@ var insertBulkSql = function(table, insert_coll) {
 export function startRewarding(customer_id, order_id) {
 	var defer = q.defer();
 	var date = new Date();
+	console.log('####### START REWARDING #########');
 	hasReferralCode(customer_id).then(function(referee) {
-		isFirstTimePurchased(customer_id, order_id).then(function(data) {
-			var promises = [];
-			var comment = '與好友'+ referee.firstname +'(' + customer_id + ')分享的回饋紅利';
-			var coupon_code = referee.referral_code + ConvertBase.dec2hex(customer_id);
-			var coupon_option = {
-				name: 'ReferralCoupon_NewMember[' + customer_id + ']',
-				code: coupon_code,
-				type: api_config.REFERRAL.referee_coupon._type,
-				discount: api_config.REFERRAL.referee_coupon.discount,
-				logged: 1,
-				shipping: 0,
-				total: api_config.REFERRAL.referee_coupon.total,
-				date_start: date,
-				date_end:  '2030-01-01',
-				uses_total: 1,
-				uses_customer: 1,
-				status: 1,
-				date_added: new Date()
-			};
-			var referer_customer_id = ConvertBase.hex2dec(referee.referral_code);
-			promises.push(Reward.createReward(referer_customer_id, order_id, api_config.REFERRAL.referer_rewards, comment));
-			promises.push(Coupon.createCoupon(coupon_option));
-			q.all(promises).then(function(datas) {
-				Mail.sendReferralSuccessMail(referer_customer_id, customer_id, coupon_code);
-				defer.resolve('done');
+		if(!referee.referral_code) {
+			defer.reject('FAIL');
+		} else {
+			isFirstTimePurchased(customer_id, order_id).then(function(data) {
+				if(data === 'no') {
+					defer.reject(err); 
+				}
+				var promises = [];
+				var comment = '與好友'+ referee.firstname +'(' + customer_id + ')分享的回饋紅利';
+				var coupon_code = referee.referral_code + ConvertBase.dec2hex(customer_id);
+				var coupon_option = {
+					name: 'ReferralCoupon_NewMember[' + customer_id + ']',
+					code: coupon_code,
+					type: api_config.REFERRAL.referee_coupon._type,
+					discount: api_config.REFERRAL.referee_coupon.discount,
+					logged: 1,
+					shipping: 0,
+					total: api_config.REFERRAL.referee_coupon.total,
+					date_start: date,
+					date_end:  '2030-01-01',
+					uses_total: 1,
+					uses_customer: 1,
+					status: 1,
+					date_added: new Date()
+				};
+				var referer_customer_id = ConvertBase.hex2dec(referee.referral_code);
+				promises.push(Reward.createReward(referer_customer_id, order_id, api_config.REFERRAL.referer_rewards, comment));
+				promises.push(Coupon.createCoupon(coupon_option));
+				q.all(promises).then(function(datas) {
+					setTimeout(function() {
+						Mail.sendReferralSuccessMail(referer_customer_id, customer_id, coupon_code);
+					}, 10000);
+					console.log('####### FINISH REWARDING #########');
+					defer.resolve('done');
+				}, function(err) { 
+					console.log(err);
+					defer.reject(err); 
+				});
 			}, function(err) { 
 				console.log(err);
 				defer.reject(err); 
-			});
-		}, function(err) { 
-			console.log(err);
-			defer.reject(err); 
-		});
+			});			
+		}
+		
 	}, function(err) { 
 		console.log(err);
 		defer.reject(err); 
@@ -278,11 +290,7 @@ var hasReferralCode = function(customer_id) {
 			}
 			var result = results[0] || results;
 			if('referral_code' in result) {
-				if (result.referral_code !== null) {
-					defer.resolve(result);
-				} else {
-					defer.reject('no referral code');
-				}
+				defer.resolve(result);
 			} else {
 				defer.reject('no referral code');
 			}
@@ -303,9 +311,9 @@ var isFirstTimePurchased = function(customer_id, order_id) {
 				defer.reject(err);
 			}
 			if(_.size(results) == 0) {
-				defer.resolve('first time');
+				defer.resolve('yes');
 			} else {
-				defer.reject();
+				defer.resolve('no');
 			}
 		});
 	});

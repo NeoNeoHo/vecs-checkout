@@ -94,6 +94,8 @@ div.panel.panel-default
 						input.form-control(id="input_coupon", name="input_coupon", ng-model="cart.discount.coupon.name", type='text', aria-label="...", placeholder='我要使用折扣碼', ng-change="cart.discount.coupon.saved_amount = 0")
 					.col-md-3.col-xs-4
 						button.form-control.btn.btn-vecs(ng-click="calcCouponSaved()", ng-disabled="checkout_form.input_rewards.$error.max") 確認
+				.text-muted(ng-show="referral_reminder_text")
+					p {{referral_reminder_text}}
 				.form-group
 					label.col-md-4.col-xs-12.control-label(for="input_rewards") 使用紅利點數折抵
 					.col-md-5.col-xs-8
