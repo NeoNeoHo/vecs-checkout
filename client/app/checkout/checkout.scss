@@ -287,14 +287,14 @@ input.ng-touched.ng-valid, select.ng-touched.ng-valid, .form-check.ng-touched.ng
     border-radius:5px; }
 
 /* numbered buttons */
-#status-buttons                 { padding: 20px 0px 20px 0px;}
+#status-buttons                 { padding-top: 20px;}
 /*#status-buttons a               { display:inline-block; text-transform:uppercase; text-decoration:none;}
 #status-buttons a:hover         { text-decoration:none; }
 */
 /* numbered button in circle */
 #status-buttons .in-circle      { color:white; background:#d5e3e0; display:block; height:80px; margin:0 auto 10px; padding-top:10px; width:80px; 
     border-radius:50%; text-align: center;}
-#status-buttons a.active .in-circle   { background:#84ccc9; }
+#status-buttons a.active .in-circle   { background:#8b964a; }
 #status-buttons p   { @extend .text-muted; }
 #status-buttons a.active p {color:black};
 

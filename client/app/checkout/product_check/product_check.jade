@@ -147,7 +147,8 @@ div.visible-xs
 				tr.h3
 					td.text-right 小計
 					td.text-right $ {{cart.product_total_price - cart.discount.reward.saved_amount - cart.discount.coupon.saved_amount - cart.discount.voucher.saved_amount}}
-div.row.panel.panel-body
-	a.col-md-3.col-xs-4.btn.btn-default.btn-sharp.btn-lg.text-justify(ng-href="{{cross_obj.DIR_DOMAIN}}") 回官網
-	button.col-md-3.col-xs-7.btn.btn-vecs.btn-sharp.btn-lg.pull-right.text-justify(ng-click="checkout_second_step()") 下一步
-		span.glyphicon.glyphicon-circle-arrow-right.pull-right
+.row
+	div.panel.panel-body
+		a.col-md-3.col-xs-4.btn.btn-default.btn-sharp.btn-lg.text-justify(ng-href="{{cross_obj.DIR_DOMAIN}}") 回官網
+		button.col-md-3.col-xs-7.btn.btn-vecs.btn-sharp.btn-lg.pull-right.text-justify(ng-click="checkout_second_step()") 下一步
+			span.glyphicon.glyphicon-circle-arrow-right.pull-right
