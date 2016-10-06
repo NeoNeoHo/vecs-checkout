@@ -81,7 +81,7 @@ angular.module('webApp')
 		});
 
 		Referral.withReferralQualified().then(function(result) {
-			$scope.referral_reminder_text = '結帳滿千，輸入『 NM15off 』，即可享有15%的專屬優惠喔';
+			$scope.referral_reminder_text = '首次購物結帳滿千，即可享有15%的專屬優惠喔';
 		}, function(err) {
 			$scope.referral_reminder_text = '';
 		});

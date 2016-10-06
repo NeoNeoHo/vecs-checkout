@@ -135,7 +135,8 @@ export function startRewarding(customer_id, order_id) {
 					uses_total: 1,
 					uses_customer: 1,
 					status: 1,
-					date_added: new Date()
+					date_added: new Date(),
+					customer_id: customer_id
 				};
 				var referer_customer_id = ConvertBase.hex2dec(referee.referral_code);
 				promises.push(Reward.createReward(referer_customer_id, order_id, api_config.REFERRAL.referer_rewards, comment));

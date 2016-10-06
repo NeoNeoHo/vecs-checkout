@@ -83,16 +83,28 @@ export function show(req, res) {
 var getCoupon = function(code, customer_id) {
 	var today = moment().format('YYYY-MM-DD');
 	var defer = q.defer();
+  var customer_id = parseInt(customer_id);
   mysql_pool.getConnection(function(err, connection){
     if(err) { 
     	connection.release();
     	defer.reject(err);
     }
-    connection.query('select * from oc_coupon where code = ? and date_start <= ? and date_end >= ?;',[code, today, today] , function(err, rows) {
+    connection.query('select * from oc_coupon where code = ? and date_start <= ? and date_end >= ? limit 1;',[code, today, today] , function(err, rows) {
       connection.release();
       if(err) defer.reject(err);
-      // if(_.size(rows) == 0) defer.reject({data: '沒有此一折扣碼，或此優惠碼已過期'});
-      defer.resolve(rows);
+      var coupon = rows[0] || rows;
+
+      // 檢查此Coupon是否為專屬此會員的Coupon
+      if('customer_id' in coupon) {
+        coupon.customer_id = parseInt(coupon.customer_id);
+        if(coupon.customer_id !== 0 && coupon.customer_id !== customer_id) {
+          defer.reject({data:'此張優惠券屬於某位顧客'});
+        } else {
+          defer.resolve(rows);
+        }
+      } else {
+        defer.resolve(rows);
+      }
     });
   });
   return defer.promise;
@@ -162,7 +174,8 @@ export function createCoupon(coupon_option){
     uses_total: coupon_option.uses_total || 1,
     uses_customer: coupon_option.uses_customer || 1,
     status: 1,
-    date_added: new Date()
+    date_added: new Date(),
+    customer_id: coupon_option.customer_id || 0
   };
   mysql_pool.getConnection(function(err, connection) {
     if(err) {

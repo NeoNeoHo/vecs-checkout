@@ -193,7 +193,6 @@ export function getSession(req, res) {
 			// 1. Unserialize PHP Session To readable JSON format
 			if(reply){
 				sess_obj = PHPUnserialize.unserializeSession(reply);
-				console.log(sess_obj);
 				// 2. Unserialize cart string to cart JSON
 				UnserializeToCartColl(sess_obj.cart).then(function(data) {
 					var cart_coll = data;
