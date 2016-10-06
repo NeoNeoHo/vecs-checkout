@@ -4,6 +4,7 @@ node_modules
 .idea
 dist
 dist.tar.gz
+dist-origin.tar.gz
 /server/config/local.env.js
 /server/config/db_config.js
 /server/config/api_config.js

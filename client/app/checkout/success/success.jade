@@ -2,16 +2,21 @@
 	navbar
 .container#form-container
 	.row
-		div.col-xs-10.col-xs-offset-1
+		div.col-xs-12
 			div.jumbotron.text-center.text-white.hidden-xs(style="background-image: url('../assets/images/checkout/03.jpg'); background-size: 100% auto;", ng-click="backToHome()")
 				h1 謝謝您的購買
 				p 我們的出貨小組已經收到您的訂單
 				button.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="backToHome()", role="button") 回到官網首頁
 					span.glyphicon.glyphicon-home.pull-right
-			div.well.text-center.visible-xs(style="border:0px solid black;")
+			div.text-center.visible-xs(style="border:0px solid black;")
 				h2 謝謝您的購買
-				p 我們的出貨小組已經收到您的訂單
+				p 我們的出貨小組已經收到您的訂單，將會認真處理
 				a.btn.btn-default.btn-lg(ng-click="backToHome()", role="button") 回到官網首頁
+			.row
+				.col-xs-12
+
+					a(href="https://member.vecsgardenia.com/invite")
+						button.btn.btn-danger.bg-orange.btn-sharp.btn-lg.pull-right 分享給好友，推薦成功，立即獲得200購物金
 			.page-header.h4 
 				| 訂單資訊 （訂單編號：{{order.order_id}}）
 			.row

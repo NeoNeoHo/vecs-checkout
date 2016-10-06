@@ -373,6 +373,14 @@ angular.module('webApp')
 			// 	alert(err)
 			// }); 
 			
+			// Step 4. 處理特殊需求 Comment
+			if($scope.shipping_info.dmRequest) {
+				if($scope.shipping_info.comment) {
+					$scope.shipping_info.comment = $scope.shipping_info.comment + '; ' + '我不需要DM喔，謝謝';
+				} else {
+					$scope.shipping_info.comment = '我不需要DM喔，謝謝';
+				}	
+			}
 
 			// Step 5. 根據不同配送 付款方式，產生相對應後送動作
 			if(lstrcmp([SHIPPING_NAME.ship_to_home, SHIPPING_NAME.ship_to_overseas], shipment_method)) {

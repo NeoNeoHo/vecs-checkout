@@ -82,10 +82,12 @@ div.panel.panel-default
 				dl
 					dt 訂單備註
 					dd
-						p
-							b(ng-show="shipping_info.comment") {{shipping_info.comment}}
-						p
-							b(ng-show="shipping_info.company_id") {{shipping_info.company_id}}
+						p(ng-show="shipping_info.comment")
+							b {{shipping_info.comment}}
+						p(ng-show="shipping_info.company_id")
+							b 公司統編 : {{shipping_info.company_id}}
+						p(ng-show="shipping_info.dmRequest") 
+							b 我不需要DM喔，謝謝
 			.col-md-2.hidden-xs
 				img.img-responsive(src="../assets/images/checkout/freeship.png", style="width:100%")
 			.col-md-4.pull-right.hidden-xs

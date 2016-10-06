@@ -105,6 +105,18 @@ angular.module('webApp')
 			return defer.promise;				
 		};
 
+		var addPurchasedMailchimpList = function() {
+			var defer = $q.defer();
+			console.log('#####@@@@@@#######');
+			$http.get('/api/mailchimps/addlist/'+'purchased_list')
+			.then(function(result) {
+				defer.resolve(result);
+			}, function(err) {
+				defer.reject(err);
+			});
+			return defer.promise;				
+		};
+
 		var sendErrorLogMail = function(order_id, error_log) {
 			var defer = $q.defer();
 			console.log('#####@@@@@@#######');
@@ -142,6 +154,7 @@ angular.module('webApp')
 			getStatusLevel: getStatusLevel,
 			sendOrderSucessMail: sendOrderSucessMail,
 			sendErrorLogMail: sendErrorLogMail,
-			cancelDiscount: cancelDiscount
+			cancelDiscount: cancelDiscount,
+			addPurchasedMailchimpList: addPurchasedMailchimpList
 		};
 	});

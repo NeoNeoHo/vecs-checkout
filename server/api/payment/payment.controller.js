@@ -21,6 +21,7 @@ var parseString = require('xml2js').parseString;
 var Order = require('../order/order.controller.js');
 var Mail = require('../mandrill/mandrill.controller.js');
 var Referral = require('../referral/referral.controller.js');
+var Mailchimp = require('../mailchimp/mailchimp.controller.js');
 var mysql_pool = db_config.mysql_pool;
 var mysql_config = db_config.mysql_config;  
 
@@ -174,7 +175,9 @@ export function getCathayCallback(req, res) {
 						respXML += "<RETURL>https://" + returl + "/api/payment/cathay/success/redirect</RETURL></MERCHANTXML>";	
 						updateOrderByCathayResponse(order.order_id, update_msg, next_order_status_id).then(function(result) {
 							Mail.sendOrderSuccess(order.order_id);
-
+							Mailchimp.addMCListSubscribers(api_config.mailChimp_lists_ids['purchased_list'], {name: order.firstname, email: order.email, telephone: order.telephone}).then(function(result) {
+								console.log('add ' + order.firstname + '/' + order.email + ' to MailChimp List');
+							}, function(err) {});
 							// Referral Program Start Here !!
 							if(order.total >= 1000) {
 								console.log('START FERERRAL TEST');

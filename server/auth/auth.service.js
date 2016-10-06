@@ -50,7 +50,8 @@ export function isAuthenticated() {
 							email: rows[0].email,
 							firstname: rows[0].firstname,
 							address_id: rows[0].address_id,
-							session_id: session_id
+							session_id: session_id,
+							telephone: rows[0].telephone || 0
 						};
 						// console.log(req.user);
 						next();
