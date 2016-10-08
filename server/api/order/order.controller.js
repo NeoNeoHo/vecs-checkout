@@ -17,6 +17,11 @@ import moment from 'moment';
 var mysql_pool = db_config.mysql_pool;
 var mysql_config = db_config.mysql_config;  
 
+var SUCCESS_ORDER_STATUS_IDS = [60, 58, 57, 55, 54, 46, 45, 34, 32, 29, 28, 21, 20, 17];
+
+
+
+
 function respondWithResult(res, entity, statusCode) {
 	statusCode = statusCode || 200;
 	if (entity || entity[0]) {
@@ -679,3 +684,26 @@ export function lgetOrder(order_id) {
 	});
 	return defer.promise;
 };
+
+export function isFirstTimePurchased(customer_id) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if (err) {
+			connection.release();
+			defer.reject(err);
+		}
+		connection.query('select * from oc_order where customer_id = ? and order_status_id in (?)', [customer_id, SUCCESS_ORDER_STATUS_IDS], function(err, results) {
+			connection.release();
+			if (err) {
+				defer.reject(err);
+			}
+			if(_.size(results) == 0) {
+				defer.resolve('yes');
+			} else {
+				defer.resolve('no');
+			}
+		});
+	});
+	return defer.promise;	
+};
+

@@ -107,7 +107,7 @@ div.panel.panel-default
 		div.form-group.required
 			label.col-sm-2.col-xs-4.control-label.text-right(for='input_phone') 行動電話
 			div.col-md-4.col-sm-10.col-xs-8
-				input.form-control(type='tel', name='input_phone', ng-model="shipping_info.telephone", ng-minlength="10", required) 
+				input.form-control(type='number', name='input_phone', ng-model="shipping_info.telephone", ng-minlength="10" , placeholder='0912345678', required) 
 
 div.page-header.h4(ng-click="with_memo_collapsed = !with_memo_collapsed") 
 	img(src="../assets/images/checkout/logo_leaf.png", style="width:40px")

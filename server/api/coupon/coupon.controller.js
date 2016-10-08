@@ -17,6 +17,9 @@ import q from 'q';
 var mysql_pool = db_config.mysql_pool;
 var mysql_config = db_config.mysql_config;
 
+var Order = require('../order/order.controller.js');
+
+
 function respondWithResult(res, entity, statusCode) {
   statusCode = statusCode || 200;
   if (entity) {
@@ -99,12 +102,29 @@ var getCoupon = function(code, customer_id) {
         coupon.customer_id = parseInt(coupon.customer_id);
         if(coupon.customer_id !== 0 && coupon.customer_id !== customer_id) {
           defer.reject({data:'此張優惠券屬於某位顧客'});
+        }
+      }
+
+      // 檢查此Coupon是否為新客專用
+      if('new_customer_only' in coupon) {
+        if(coupon.new_customer_only) {
+          Order.isFirstTimePurchased(customer_id).then(function(result) {
+            if(result == 'no') {
+              defer.reject({data: '此張優惠券僅限新加入會員使用，謝謝您'});
+            } else {
+              defer.resolve(rows);
+            } 
+          }, function(err) {
+            defer.resolve(rows);
+          });
         } else {
           defer.resolve(rows);
         }
       } else {
         defer.resolve(rows);
       }
+
+
     });
   });
   return defer.promise;
