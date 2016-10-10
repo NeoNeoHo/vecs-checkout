@@ -166,7 +166,13 @@ var getSession = function(session_id) {
 			if(err) defer.reject(err);
 			// 1. Unserialize PHP Session To readable JSON format
 			if(reply){
-				sess_obj = PHPUnserialize.unserializeSession(reply);
+				try {
+					sess_obj = PHPUnserialize.unserializeSession(reply);
+				}
+				catch (e) {
+					console.log(e);
+					defer.reject('no session');
+				}
 				// console.log(sess_obj);
 				defer.resolve(sess_obj);
 			} else {
@@ -192,7 +198,13 @@ export function getSession(req, res) {
 			// console.log(reply);
 			// 1. Unserialize PHP Session To readable JSON format
 			if(reply){
-				sess_obj = PHPUnserialize.unserializeSession(reply);
+				try {
+					sess_obj = PHPUnserialize.unserializeSession(reply);
+				}
+				catch (e) {
+					console.log(e);
+					res.status(400).send('no session');
+				}
 				// 2. Unserialize cart string to cart JSON
 				UnserializeToCartColl(sess_obj.cart).then(function(data) {
 					var cart_coll = data;
