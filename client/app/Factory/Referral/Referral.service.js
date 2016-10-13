@@ -75,11 +75,35 @@ angular.module('webApp')
 			}
 			return defer.promise;			
 		};
+
+		var smsFraudCheck = function(telephone) {
+			var defer = $q.defer();
+			$http.get('/api/referrals/smsFraudCheck/'+telephone).then(function(response) {
+				var result = response.data;
+				defer.resolve(result);
+			}, function(err) {
+				defer.reject(err);
+			});
+			return defer.promise;
+		};
+
+		var verifyTelSms = function(telephone, code) {
+			var defer = $q.defer();
+			$http.post('/api/referrals/verifyTelSms/', {telephone: telephone, code: code}).then(function(response) {
+				var result = response.data;
+				defer.resolve(result);
+			}, function(err) {
+				defer.reject(err);
+			});
+			return defer.promise;
+		};
 		// Public API here
 		return {
 			getRC: getRC,
 			getReferralResult: getReferralResult,
 			withReferralQualified: withReferralQualified,
-			sendInviteMail: sendInviteMail
+			sendInviteMail: sendInviteMail,
+			smsFraudCheck: smsFraudCheck,
+			verifyTelSms: verifyTelSms
 		};
 	});

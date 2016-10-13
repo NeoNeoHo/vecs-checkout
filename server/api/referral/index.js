@@ -9,6 +9,10 @@ var router = express.Router();
 router.get('/rc', auth.isAuthenticated(), controller.getRC);
 router.get('/result', auth.isAuthenticated(), controller.getReferralResult);
 router.get('/hasRC', auth.isAuthenticated(), controller.hasReferralCodeHttp);
+
+router.get('/smsFraudCheck/:telephone', auth.isAuthenticated(), controller.smsFraudCheck);
+router.post('/verifyTelSms/', auth.isAuthenticated(), controller.verifyTelSms);
+
 router.get('/isFirstPurchase', auth.isAuthenticated(), controller.isFirstTimePurchasedHttp);
 router.post('/referral_list/', auth.isAuthenticated(), controller.isMailInvitedToday);
 

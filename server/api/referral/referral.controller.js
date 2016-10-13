@@ -22,9 +22,10 @@ var Order = require('../order/order.controller.js');
 var Mail = require('../mandrill/mandrill.controller.js');
 var Reward = require('../reward/reward.controller.js');
 var Coupon = require('../coupon/coupon.controller.js');
+var Sms = require('../sms/sms.controller.js');
 
-var SUCCESS_ORDER_STATUS_IDS = [20, 29, 54, 57, 60]; // ONLY CREDIT PAY IS COUNTED
-
+var REFERRAL_SUCCESS_ORDER_STATUS_IDS = [20, 29, 54, 57, 60]; // ONLY CREDIT PAY IS COUNTED
+var TOTAL_SUCCESS_ORDER_STATUS_IDS = [60, 58, 57, 55, 54, 34, 32, 29, 28, 21, 17];
 var ConvertBase = function (num) {
 	return {
 		from : function (baseFrom) {
@@ -106,7 +107,9 @@ var insertBulkSql = function(table, insert_coll) {
 	return sqls;
 };
 
-
+// ############### 
+// When Referee meets the criteria, run this function to check and to reward
+// ###############
 export function startRewarding(customer_id, order_id) {
 	var defer = q.defer();
 	var date = new Date();
@@ -164,7 +167,54 @@ export function startRewarding(customer_id, order_id) {
 	return defer.promise;
 };
 
-// To Be Done, by Johny, not sure what to do it effectively
+
+// ############### 
+// When Referee meets the criteria, run this function to check and to reward
+// ###############
+export function smsFraudCheck(req, res) {
+	var customer_id = req.user._id;
+	var referral_code = req.user.referral_code;
+	var telephone = req.params.telephone;
+	if (referral_code) {
+		isTelOnReferralTelCheckList(telephone).then(function(result) {
+			if (result === 'no') {
+				upsertReferralTelCheckRecord(customer_id, telephone).then(function(create_result) {
+					var sms_body = 'Vecs Gardenia Verification Code: ' + create_result.code + '';
+					Sms.sendSMS(telephone, sms_body).then(function(sms_result) {
+						res.status(200).json({status: 'send', msg: '已發送驗證碼'});
+					}, function(err) {
+						res.status(400).json(err);
+					});
+				}, function(err) {
+					res.status(400).json(err);
+				});
+			} else {
+				var customer = result[0] || result;
+				if (customer.customer_id !== customer_id) {
+					res.status(200).json({status: 'duplicate', msg: '此電話號碼已經他人認證，若有疑問，請撥打客服電話:02-23623827'});
+				} else {
+					res.status(200).json({status: 'pass', msg: '已驗證成功'});
+				}
+			}
+		}, function(err) {
+			res.status(400).json(err);
+		});
+	} else {
+		res.status(200);
+	}
+};
+
+export function verifyTelSms(req, res) {
+	var customer_id = req.user._id;
+	var code = req.body.code;
+	var telephone = req.body.telephone;
+	isSmsCorrect(customer_id, telephone, code).then(function(result) {
+		res.status(200).json(result);
+	}, function(err) {
+		res.status(400).send('no tel sms verification code');
+	});
+};
+
 export function isMailInvitedToday(req, res) {
 	var email = req.body.email || '';
 	var name = req.body.name || '';
@@ -242,7 +292,7 @@ export function getReferralResult(req, res) {
 			res_result.registered_coll = result;
 			if(result.length) {
 				var customer_ids = _.pluck(result, 'customer_id');
-				connection.query('select distinct(customer_id) from oc_order where customer_id in (?) and order_status_id in (?);', [customer_ids, SUCCESS_ORDER_STATUS_IDS], function(err, customer_result) {
+				connection.query('select distinct(customer_id) from oc_order where customer_id in (?) and order_status_id in (?);', [customer_ids, REFERRAL_SUCCESS_ORDER_STATUS_IDS], function(err, customer_result) {
 					connection.release();
 					if(err) {
 						res.status(400).json(err);
@@ -282,6 +332,7 @@ var hasReferralCode = function(customer_id) {
 	var defer = q.defer();
 	mysql_pool.getConnection(function(err, connection) {
 		if (err) {
+			connection.release();
 			defer.reject(err);
 		}
 		connection.query('select referral_code, firstname from oc_customer where customer_id = ?', [customer_id], function(err, results) {
@@ -304,9 +355,10 @@ var isFirstTimePurchased = function(customer_id, order_id) {
 	var defer = q.defer();
 	mysql_pool.getConnection(function(err, connection) {
 		if (err) {
+			connection.release();
 			defer.reject(err);
 		}
-		connection.query('select * from oc_order where order_id < ? and customer_id = ? and order_status_id in (?)', [order_id, customer_id, SUCCESS_ORDER_STATUS_IDS], function(err, results) {
+		connection.query('select * from oc_order where order_id < ? and customer_id = ? and order_status_id in (?)', [order_id, customer_id, TOTAL_SUCCESS_ORDER_STATUS_IDS], function(err, results) {
 			connection.release();
 			if (err) {
 				defer.reject(err);
@@ -315,6 +367,132 @@ var isFirstTimePurchased = function(customer_id, order_id) {
 				defer.resolve('yes');
 			} else {
 				defer.resolve('no');
+			}
+		});
+	});
+	return defer.promise;	
+};
+
+
+// ############### 
+// Check if the telephone number has been used and verified 
+// ###############
+var isTelOnReferralTelCheckList = function(telephone) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if (err) {
+			connection.release();
+			defer.reject(err);
+		}
+		connection.query('select * from oc_referral_tel_check where telephone = ? and status = 1;', [telephone], function(err, results) {
+			connection.release();
+			if (err) {
+				defer.reject(err);
+			}
+			if(_.size(results) == 0) {
+				defer.resolve('no');
+			} else {
+				defer.resolve(results);
+			}
+		});
+	});
+	return defer.promise;	
+};
+
+var isSmsCorrect = function(customer_id, telephone, code) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if (err) {
+			connection.release();
+			defer.reject(err);
+		}
+		connection.query('select * from oc_referral_tel_check where customer_id = ? and telephone = ? and verification_code = ?;', [customer_id, telephone, code], function(err, results) {
+			connection.release();
+			if (err) {
+				defer.reject(err);
+			}
+			if(_.size(results) == 0) {
+				defer.resolve('no');
+			} else {
+				updateReferralTelCheckRecordSucceed(customer_id, telephone).then(function(result) {
+					defer.resolve('yes');
+				}, function(err) {
+					defer.resolve('yes');
+				});
+			}
+		});
+	});
+	return defer.promise;	
+};
+
+var upsertReferralTelCheckRecord = function(customer_id, telephone) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if (err) {
+			connection.release();
+			defer.reject(err);
+		}
+		connection.query('select * from oc_referral_tel_check where customer_id = ?',[customer_id] , function(err, results) {
+			if (err) {
+				connection.release();
+				defer.reject(err);
+			}
+			var verification_code = Math.floor((Math.random() * 10000) + 1);
+			var sql = '';
+			// update
+			if (_.size(results) > 0) {
+				var condiction_dict = {
+					customer_id: customer_id,
+					status: 0
+				};
+				var update_dict = {
+					telephone: telephone,
+					verification_code: verification_code
+				};
+				sql = updateDictSql('oc_referral_tel_check', update_dict, condiction_dict);
+			} else {
+				var insert_dict = {
+					customer_id: customer_id,
+					telephone: telephone,
+					verification_code: verification_code,
+					status: 0
+				};
+				sql = insertDictSql('oc_referral_tel_check', insert_dict);		
+			}
+			connection.query(sql, function(err, upsert_result) {
+				connection.release();
+				if(err) {
+					defer.reject(err);
+				} else {
+					defer.resolve({tel: telephone, code: verification_code});
+				}
+			});
+		});
+	});
+	return defer.promise;	
+};
+
+var updateReferralTelCheckRecordSucceed = function(customer_id, telephone) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if (err) {
+			connection.release();
+			defer.reject(err);
+		}
+		var condiction_dict = {
+			customer_id: customer_id,
+			telephone: telephone
+		};
+		var update_dict = {
+			status: 1
+		}
+		var sql = updateDictSql('oc_referral_tel_check', update_dict, condiction_dict);
+		connection.query(sql, function(err, results) {
+			connection.release();
+			if (err) {
+				defer.reject(err);
+			} else {
+				defer.resolve();
 			}
 		});
 	});

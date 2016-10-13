@@ -199,6 +199,7 @@ export function createCoupon(coupon_option){
   };
   mysql_pool.getConnection(function(err, connection) {
     if(err) {
+      connection.release();
       defer.reject(err);
     }
     var sql = insertDictSql('oc_coupon', insert_dict);

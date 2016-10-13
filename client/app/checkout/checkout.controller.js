@@ -36,7 +36,11 @@ angular.module('webApp')
 			telephone: '',
 			country_id: 206,
 			payment_sel_str: null,
-			shipment_sel_str: null
+			shipment_sel_str: null,
+			verification: {
+				status: '',
+				code: ''
+			}
 		};
 
 		Cart.getCart().then(function(cart) {
@@ -80,11 +84,49 @@ angular.module('webApp')
 			// $state.go('failure');
 		});
 
+		$scope.is_passed_tel_check = true;
 		Referral.withReferralQualified().then(function(result) {
-			$scope.referral_reminder_text = '首次購物結帳滿千輸入『 NM15off 』，即可享有15%的專屬優惠喔';
+			$scope.referral_reminder_text = '首次好友購物結帳滿千輸入『 NM15off 』，即可享有15%的專屬優惠喔';
+			$scope.is_needed_to_check_tel = true;
+			$scope.is_passed_tel_check = false;  // default : fail
 		}, function(err) {
 			$scope.referral_reminder_text = '';
 		});
+
+		$scope.wait_30_s = false;
+		$scope.smsFraudCheck = function(telephone) {
+			$scope.wait_30_s = true;
+			setTimeout(function(){
+				$scope.wait_30_s = false;
+			}, 30*1000);
+			Referral.smsFraudCheck(telephone).then(function(result) {
+				console.log(result);
+				if(result.status === 'pass') {
+					$scope.shipping_info.verification.status = 'pass';
+					$scope.is_needed_to_check_tel = false;
+					$scope.is_passed_tel_check = true;
+				}
+				$scope.sent_sms_code_msg = result;
+			}, function(err) {
+
+			});
+		};
+		$scope.verifyTelSms = function() {
+			Referral.verifyTelSms($scope.shipping_info.telephone, $scope.shipping_info.verification.code).then(function(result) {
+				if(result === 'yes') {
+					console.log('verify yes');
+					$scope.shipping_info.verification.status = 'pass';
+					$scope.is_needed_to_check_tel = false;
+					$scope.is_passed_tel_check = true;
+				}
+				if(result === 'no') {
+					console.log('verify no');
+					$scope.shipping_info.verification.status = 'fail';
+				}
+			}, function(err) {
+
+			});
+		};
 
 		$scope.checkout_first_step = function() {
 			$state.go('checkout.product_check');

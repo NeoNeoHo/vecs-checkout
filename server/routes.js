@@ -23,6 +23,7 @@ export default function(app) {
 	app.use('/api/products', require('./api/product'));
 	app.use('/api/payment', require('./api/payment'));
 	app.use('/api/referrals', require('./api/referral'));
+	app.use('/api/smss', require('./api/sms'));
 	app.use('/api/things', require('./api/thing'));
 	app.use('/api/vouchers', require('./api/voucher'));
 	app.use('/api/users', require('./api/user'));
