@@ -355,7 +355,7 @@ var createOrderTotal = function(order_id = 0, shipping_info, cart) {
 };
 
 
-var createCutomerReward = function(order_id = 0, customer_id = 0, description = '', points = 0) {
+var createCustomerReward = function(order_id = 0, customer_id = 0, description = '', points = 0) {
 	var defer = q.defer();
 	var insert_dict = {
 		order_id: order_id,
@@ -513,7 +513,7 @@ export function create(req, res) {
 			promises.push(reduceProductQuantity(cart));
 
 			// Step 3. Create "Customer Reward" and "Coupon History" and "Voucher History" if Used
-			if(cart.discount.reward.saved_amount > 0) promises.push(createCutomerReward(order_id, customer_id, '使用於訂單 #'+order_id, -cart.discount.reward.saved_amount));
+			if(cart.discount.reward.saved_amount > 0) promises.push(createCustomerReward(order_id, customer_id, '使用於訂單 #'+order_id, -cart.discount.reward.saved_amount));
 			if(cart.discount.coupon.saved_amount > 0) promises.push(createCouponHistory(order_id, customer_id, cart.discount.coupon.id, -cart.discount.coupon.saved_amount));
 			if(cart.discount.voucher.saved_amount > 0) promises.push(createVoucherHistory(order_id, cart.discount.voucher.id, -cart.discount.voucher.saved_amount));
 		}

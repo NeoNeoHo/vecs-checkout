@@ -117,7 +117,7 @@ export function sendOrder(req, res) {
 				order_amount: (order_type == 1) ? order.total : 0,
 				rv_name: order.firstname,
 				rv_email: order.email,
-				rv_mobile: order.telephone,
+				rv_mobile: order.telephone.replace('-', ''),
 				st_code: order.shipping_country,
 				rtn_url: HOST_PATH + '/api/ezships/receiveOrder/',
 				web_para: 'fjdofijasdifosdjf'
