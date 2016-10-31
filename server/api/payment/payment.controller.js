@@ -245,3 +245,4 @@ export function redirectFailure(req, res) {
 	}
 };
 
+// Referral.startRewarding(16589, 38193);

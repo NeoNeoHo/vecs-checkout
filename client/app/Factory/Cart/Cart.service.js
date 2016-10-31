@@ -160,7 +160,7 @@ angular.module('webApp')
 					};
 
 					Product.getProductsDetail(_cart.products).then(function(db_products) {
-						_cart.products = _.map(_cart.products, function(product) {
+						_cart.products = _.reduce(_cart.products, function(product_detail, product) {
 							var db_product = _.find(db_products, {product_id: product.product_id});
 							if(db_product) {
 								product.price = db_product.price;
@@ -174,11 +174,10 @@ angular.module('webApp')
 								product.option_price = _.reduce(_.pluck(product.option, 'price'), function(sum, num){return sum+num;}, 0);
 								
 								product.total = (product.spot_price + product.option_price) * product.quantity;
-							} else {
-								product = {};
+								product_detail.push(product);
 							}
-							return product;
-						});
+							return product_detail;
+						}, []);
 						updateCartTotal();
 						Promotion.getReward().then(function(reward) {
 							_cart.rewards_customer_has_pts = (reward.points) ? reward.points : 0;

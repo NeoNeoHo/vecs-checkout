@@ -153,7 +153,7 @@ var sendOrderSuccess = function(order_id) {
 	return defer.promise;
 };
 
-var sendReferralSuccessMail = function(referer_id, referee_id, coupon) {
+var sendReferralSuccessMail = function(referer_id, referee_id, coupon, reward_points, complete_amount) {
 	var defer = q.defer();
 	var promises = [];
 	promises.push(Customer.lget(referer_id));
@@ -184,13 +184,19 @@ var sendReferralSuccessMail = function(referer_id, referee_id, coupon) {
 					{
 						"name": "FRIEND_NAME",
 						"content": referee.firstname
+					},{
+						"name": "REWARD_POINTS",
+						"content": reward_points
+					},{
+						"name": "COMPLETED_AMOUNT",
+						"content": complete_amount
 					}
 				]
 			}];
 			var message_info_1 = {
 				from_name: "嘉丹妮爾的好友分享",
 				from_email: "customer@vecsgardenia.com",
-				subject: "您的好友首次購物成功，讓我們一同恭喜他"
+				subject: "恭喜您獲得，好友分享紅利加倍送"
 			};
 			var message_1 = mandrill_message_template(message_info_1, to_coll_1, merge_vars_coll_1, "md_referral_success", ['referral_success']);
 			// 2. PREPARATION OF REFEREE MAIL
@@ -204,15 +210,15 @@ var sendReferralSuccessMail = function(referer_id, referee_id, coupon) {
 				"rcpt": referee.email,
 				"vars": [
 					{
-						"name": "COUPON",
-						"content": coupon
+						"name": "REWARD_POINTS",
+						"content": api_config.REFERRAL.referee_reward
 					}
 				]
 			}];
 			var message_info_2 = {
 				from_name: "嘉丹妮爾的好友分享",
 				from_email: "customer@vecsgardenia.com",
-				subject: "恭喜您購物成功，這是" + referer.firstname + "分享給您的優惠碼"
+				subject: "恭喜您購物成功，這是" + referer.firstname + "回饋給您的紅利點數"
 			};
 			var message_2 = mandrill_message_template(message_info_2, to_coll_2, merge_vars_coll_2, "md_referral_success", ['referral_success']);
 			var async = false;
