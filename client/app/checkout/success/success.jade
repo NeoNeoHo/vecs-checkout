@@ -5,18 +5,15 @@
 		div.col-xs-12
 			div.jumbotron.text-center.text-white.hidden-xs(style="background-image: url('../assets/images/checkout/03.jpg'); background-size: 100% auto;", ng-click="backToHome()")
 				h1 謝謝您的購買
-				p 我們的出貨小組已經收到您的訂單
-				button.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="backToHome()", role="button") 回到官網首頁
-					span.glyphicon.glyphicon-home.pull-right
+				p 我們已經收到您的訂單囉
 			div.text-center.visible-xs(style="border:0px solid black;")
 				h2 謝謝您的購買
-				p 我們的出貨小組已經收到您的訂單，將會認真處理
-				a.btn.btn-default.btn-lg(ng-click="backToHome()", role="button") 回到官網首頁
+				p 我們已經收到您的訂單囉
+				//- a.btn.btn-default.btn-lg(ng-click="backToHome()", role="button") 回到官網首頁
 			.row
 				.col-xs-12
-
 					a(href="https://member.vecsgardenia.com/invite")
-						button.btn.btn-danger.bg-orange.btn-sharp.btn-lg.pull-right 分享給好友，推薦成功，立即獲得200購物金
+						button.btn.btn-danger.bg-orange.btn-sharp.btn-lg(style="width:100%") 分享給好友，推薦成功，立即獲得200購物金
 			.page-header.h4 
 				| 訂單資訊 （訂單編號：{{order.order_id}}）
 			.row
@@ -73,5 +70,5 @@
 					li 若當次訂購享有跨產品或滿額贈禮優惠者，有需要取消或退貨時，需將當次訂購之商品全部取消或退貨。
 					li 辦理退換貨時，您需要負擔商品寄至本公司的郵資。
 
-			button.col-md-3.col-xs-10.btn.btn-danger.btn-sharp.btn-lg.pull-right.text-justify(ng-click="backToHome()", role="button") 回到官網首頁
+			button.col-md-3.col-xs-12.btn.btn-danger.bg-orange.btn-sharp.btn-lg.pull-right.text-justify(ng-click="backToHome()", role="button") 回到官網首頁
 				span.glyphicon.glyphicon-home.pull-right

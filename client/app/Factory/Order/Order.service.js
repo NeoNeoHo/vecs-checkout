@@ -95,7 +95,6 @@ angular.module('webApp')
 
 		var sendOrderSucessMail = function(order_id) {
 			var defer = $q.defer();
-			console.log('#####@@@@@@#######');
 			$http.post('/api/mandrills/order/success/', {order_id: order_id})
 			.then(function(result) {
 				defer.resolve(result);
@@ -107,7 +106,6 @@ angular.module('webApp')
 
 		var addPurchasedMailchimpList = function() {
 			var defer = $q.defer();
-			console.log('#####@@@@@@#######');
 			$http.get('/api/mailchimps/addlist/'+'purchased_list')
 			.then(function(result) {
 				defer.resolve(result);

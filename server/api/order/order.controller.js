@@ -126,7 +126,7 @@ var createOrder = function(shipping_info, customer_id, customer_group_id, email,
 		'shipping_country_id': shipping_info.country_id,
 		'shipping_city': shipping_info.city_d ? shipping_info.city_d.name : '',
 		'shipping_zone': shipping_info.city_d ? shipping_info.city_d.name : '',
-		'shipping_zone_id': shipping_info.city_d ? shipping_info.city_d.zone_id : 0,
+		'shipping_zone_id': shipping_info.city_d ? shipping_info.city_d.city_id : 0,
 		'shipping_district': shipping_info.district_d ? shipping_info.district_d.name : '',
 		'shipping_district_id': shipping_info.district_d ? shipping_info.district_d.district_id : 0,
 		'shipping_postcode': shipping_info.district_d ? shipping_info.district_d.postcode : '',
@@ -142,7 +142,7 @@ var createOrder = function(shipping_info, customer_id, customer_group_id, email,
 		'payment_country_id': shipping_info.country_id,
 		'payment_city': shipping_info.city_d ? shipping_info.city_d.name : '',
 		'payment_zone': shipping_info.city_d ? shipping_info.city_d.name : '',
-		'payment_zone_id': shipping_info.city_d ? shipping_info.city_d.zone_id : 0,
+		'payment_zone_id': shipping_info.city_d ? shipping_info.city_d.city_id : 0,
 		'payment_district': shipping_info.district_d ? shipping_info.district_d.name : '',
 		'payment_district_id': shipping_info.district_d ? shipping_info.district_d.district_id : 0,
 		'payment_postcode': shipping_info.district_d ? shipping_info.district_d.postcode : '',
@@ -499,7 +499,7 @@ export function create(req, res) {
 	var cart = req.body.cart;
 	var shipping_info = req.body.shipping_info;
 
-	shipping_info.total = cart.product_total_price + cart.shipment_fee - cart.discount.coupon.saved_amount - cart.discount.reward.saved_amount - cart.discount.voucher.saved_amount;
+	shipping_info.total = cart.product_total_price + shipping_info.shipment_fee - cart.discount.coupon.saved_amount - cart.discount.reward.saved_amount - cart.discount.voucher.saved_amount;
 	
 	// Step 1. Create "Order"
 	createOrder(shipping_info, customer_id, customer_group_id, email, customer_ip).then(function(data) {
@@ -557,6 +557,27 @@ export function create(req, res) {
 	});
 };
 
+export function lupdate(order_id, customer_id, update_dict) {
+	var defer = q.defer();
+	update_dict.date_modified = new Date();
+	var sql = updateDictSql('oc_order', update_dict, {order_id: order_id, customer_id: customer_id});
+	mysql_pool.getConnection(function(err, connection) {
+		if(err) {
+			connection.release();
+			defer.reject(err);
+		}
+		connection.query(sql, function(err, rows) {
+			connection.release();
+			if(err) {
+				console.log(err);
+				defer.reject(err);
+			}
+			defer.resolve(rows);
+		});
+	});
+	return defer.promise;
+};
+
 export function updateOrder(req, res) {
 	var customer_id = req.user._id;
 	var order_id = req.params.order_id;
@@ -567,7 +588,6 @@ export function updateOrder(req, res) {
 	console.log(sql);
 	mysql_pool.getConnection(function(err, connection) {
 		if(err) {
-			console.log(err);
 			connection.release();
 			res.status(400).send(err);
 		}

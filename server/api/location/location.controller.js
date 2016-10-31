@@ -61,7 +61,7 @@ export function cities(req, res) {
 			connection.release();
 			handleError(res, err);
 		}
-		var sql = 'select zone_id, name from '+ mysql_config.db_prefix+'zone where status = 1 and country_id = ' + country_id;
+		var sql = 'select zone_id as city_id, name from '+ mysql_config.db_prefix+'zone where status = 1 and country_id = ' + country_id;
 		connection.query(sql,[], function(err, rows) {
 			connection.release();
 			if(err) handleError(res, err);
@@ -106,13 +106,16 @@ export function getAddress(req, res) {
 		if(address_id){
 			sql = 'select a.*, b.name as city_name,  c.name as country_name, d.name as district_name, d.postcode as postcode from '+ mysql_config.db_prefix+'address a, ' + mysql_config.db_prefix + 'zone b, ' + mysql_config.db_prefix + 'country c, ' + mysql_config.db_prefix + 'district d where a.address_id = ' + address_id + ' and a.customer_id = ' + customer_id + ' and a.zone_id = b.zone_id and a.country_id = c.country_id and a.district_id = d.district_id';
 		}
-		connection.query(sql,[], function(err, rows) {
+		console.log(sql);
+		connection.query(sql, function(err, rows) {
 			connection.release();
 			if(err) handleError(res, err);
-			if(!(rows[0]||rows)) {
+			var ret_address = rows[0] || rows;
+			if(!ret_address) {
 				res.status(404).end();
 			} else {
-				res.status(200).json(rows);
+				ret_address.city_id = ret_address.zone_id;
+				res.status(200).json(ret_address);
 			}
 		});
 	});

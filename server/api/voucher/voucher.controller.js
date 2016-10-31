@@ -51,7 +51,8 @@ export function show(req, res) {
 		var lresponse = {
 			'status': true,
 			'available_amount': 0,
-			'voucher_id': voucher.voucher_id
+			'voucher_id': voucher.voucher_id,
+			'code': voucher.code
 		};
 		if (voucher.length == 0) { lresponse.status = false}
 		else {

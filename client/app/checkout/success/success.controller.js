@@ -44,7 +44,6 @@ angular.module('webApp')
 			console.log(err);
 		});
 		Customer.updateCustomer({cart: ''}).then(function(result) {
-			console.log(result);
 		}, function(err) {
 			console.log(err);
 		});

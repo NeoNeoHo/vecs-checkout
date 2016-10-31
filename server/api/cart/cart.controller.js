@@ -117,7 +117,7 @@ var UnserializeToCartColl = function(cart_obj) {
 		obj.product_key = lkey;
 		obj.key = lkey;
 		obj.href = api_config.DIR_PATH + 'index.php?route=product/product&product_id=' + obj.product_id;
-		if(obj.option){
+		if(_.has(obj, 'option')){
 			_.forEach(_.keys(obj.option), function(option_key) {
 				option_promises.push(getProductOptions(option_key, obj.option[option_key], lkey));
 			});
@@ -206,19 +206,19 @@ export function getSession(req, res) {
 			if(reply){
 				try {
 					sess_obj = PHPUnserialize.unserializeSession(reply);
+					// 2. Unserialize cart string to cart JSON
+					UnserializeToCartColl(sess_obj.cart).then(function(data) {
+						var cart_coll = data;
+						// 3. Assign cart JSON back to sess_obj
+						sess_obj.cart = cart_coll;
+						// 4. Return JSON
+						res.status(200).json(sess_obj);
+					});
 				}
 				catch (e) {
 					console.log(e);
 					res.status(400).send('no session');
-				}
-				// 2. Unserialize cart string to cart JSON
-				UnserializeToCartColl(sess_obj.cart).then(function(data) {
-					var cart_coll = data;
-					// 3. Assign cart JSON back to sess_obj
-					sess_obj.cart = cart_coll;
-					// 4. Return JSON
-					res.status(200).json(sess_obj);
-				});
+				}	
 				
 			} else {
 				res.status(400).send('no session');

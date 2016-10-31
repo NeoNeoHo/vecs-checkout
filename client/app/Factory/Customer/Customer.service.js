@@ -1,11 +1,24 @@
 'use strict';
 
 angular.module('webApp')
-	.factory('Customer', function ($q, $http) {
-		// Service logic
-		// ...
+	.factory('Customer', function ($q, $http, Auth) {
+		var _customer = '';
 
-		var meaningOfLife = 42;
+		var getCustomer = function() {
+			var defer = $q.defer();
+			if(_customer !== '') {
+				defer.resolve(_customer);
+			} else {
+				Auth.getCurrentUser().$promise.then(function(data) {
+					_customer = data;
+					defer.resolve(_customer);
+				}, function(err) {
+					_customer = '';
+					defer.reject(err);
+				});
+			}
+			return defer.promise;
+		};
 		var updateCustomer = function(info) {
 			var defer = $q.defer();
 			$http.put('/api/customers/', info)
@@ -18,9 +31,7 @@ angular.module('webApp')
 		};
 		// Public API here
 		return {
-			someMethod: function () {
-				return meaningOfLife;
-			},
+			getCustomer: getCustomer,
 			updateCustomer: updateCustomer
 		};
 	});

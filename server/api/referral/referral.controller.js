@@ -25,7 +25,7 @@ var Coupon = require('../coupon/coupon.controller.js');
 var Sms = require('../sms/sms.controller.js');
 
 var REFERRAL_SUCCESS_ORDER_STATUS_IDS = [20, 29, 54, 57, 60]; // ONLY CREDIT PAY IS COUNTED
-var TOTAL_SUCCESS_ORDER_STATUS_IDS = [60, 58, 57, 55, 54, 34, 32, 29, 28, 21, 17];
+// var TOTAL_SUCCESS_ORDER_STATUS_IDS = [60, 58, 57, 55, 54, 34, 32, 29, 28, 21, 17];
 var ConvertBase = function (num) {
 	return {
 		from : function (baseFrom) {
@@ -167,53 +167,6 @@ export function startRewarding(customer_id, order_id) {
 	return defer.promise;
 };
 
-
-// ############### 
-// When Referee meets the criteria, run this function to check and to reward
-// ###############
-export function smsFraudCheck(req, res) {
-	var customer_id = req.user._id;
-	var referral_code = req.user.referral_code;
-	var telephone = req.params.telephone;
-	if (referral_code) {
-		isTelOnReferralTelCheckList(telephone).then(function(result) {
-			if (result === 'no') {
-				upsertReferralTelCheckRecord(customer_id, telephone).then(function(create_result) {
-					var sms_body = 'Vecs Gardenia Verification Code: ' + create_result.code + '';
-					Sms.sendSMS(telephone, sms_body).then(function(sms_result) {
-						res.status(200).json({status: 'send', msg: '已發送驗證碼'});
-					}, function(err) {
-						res.status(400).json(err);
-					});
-				}, function(err) {
-					res.status(400).json(err);
-				});
-			} else {
-				var customer = result[0] || result;
-				if (customer.customer_id !== customer_id) {
-					res.status(200).json({status: 'duplicate', msg: '此電話號碼已經他人認證，若有疑問，請撥打客服電話:02-23623827'});
-				} else {
-					res.status(200).json({status: 'pass', msg: '已驗證成功'});
-				}
-			}
-		}, function(err) {
-			res.status(400).json(err);
-		});
-	} else {
-		res.status(200);
-	}
-};
-
-export function verifyTelSms(req, res) {
-	var customer_id = req.user._id;
-	var code = req.body.code;
-	var telephone = req.body.telephone;
-	isSmsCorrect(customer_id, telephone, code).then(function(result) {
-		res.status(200).json(result);
-	}, function(err) {
-		res.status(400).send('no tel sms verification code');
-	});
-};
 
 export function isMailInvitedToday(req, res) {
 	var email = req.body.email || '';
@@ -358,7 +311,7 @@ var isFirstTimePurchased = function(customer_id, order_id) {
 			connection.release();
 			defer.reject(err);
 		}
-		connection.query('select * from oc_order where order_id < ? and customer_id = ? and order_status_id in (?)', [order_id, customer_id, TOTAL_SUCCESS_ORDER_STATUS_IDS], function(err, results) {
+		connection.query('select * from oc_order where order_id < ? and customer_id = ? and order_status_id in (?)', [order_id, customer_id, REFERRAL_SUCCESS_ORDER_STATUS_IDS], function(err, results) {
 			connection.release();
 			if (err) {
 				defer.reject(err);
@@ -374,10 +327,58 @@ var isFirstTimePurchased = function(customer_id, order_id) {
 };
 
 
+
+// ############### 
+// When Referee meets the criteria, run this function to check and to reward
+// ###############
+export function smsFraudCheck(req, res) {
+	var customer_id = req.user._id;
+	var referral_code = req.user.referral_code;
+	var telephone = req.params.telephone;
+	if (!referral_code) {
+		res.status(200).json({status: 'pass', msg: '已驗證成功'});
+	} else {
+		isTelOnReferralTelCheckListAndQualified(telephone).then(function(result) {
+			if (result === 'no') {
+				addReferralTelCheckRecord(customer_id, telephone).then(function(create_result) {
+					var sms_body = 'Vecs Gardenia Verification Code: ' + create_result.code + '';
+					Sms.sendSMS(telephone, sms_body).then(function(sms_result) {
+						res.status(200).json({status: 'send', msg: '已發送驗證碼'});
+					}, function(err) {
+						res.status(400).json(err);
+					});
+				}, function(err) {
+					res.status(400).json(err);
+				});
+			} else {
+				var customer = result[0] || result;
+				if (customer.customer_id !== customer_id) {
+					res.status(200).json({status: 'duplicate', msg: '此電話號碼已經他人認證，若有疑問，請撥打客服電話:02-23623827'});
+				} else {
+					res.status(200).json({status: 'pass', msg: '已驗證成功'});
+				}
+			}
+		}, function(err) {
+			res.status(400).json(err);
+		});		
+	}
+};
+
+export function verifyTelSms(req, res) {
+	var customer_id = req.user._id;
+	var code = req.body.code;
+	var telephone = req.body.telephone;
+	isSmsCorrect(customer_id, telephone, code).then(function(result) {
+		res.status(200).json(result);
+	}, function(err) {
+		res.status(400).send('no tel sms verification code');
+	});
+};
+
 // ############### 
 // Check if the telephone number has been used and verified 
 // ###############
-var isTelOnReferralTelCheckList = function(telephone) {
+var isTelOnReferralTelCheckListAndQualified = function(telephone) {
 	var defer = q.defer();
 	mysql_pool.getConnection(function(err, connection) {
 		if (err) {
@@ -394,6 +395,46 @@ var isTelOnReferralTelCheckList = function(telephone) {
 			} else {
 				defer.resolve(results);
 			}
+		});
+	});
+	return defer.promise;	
+};
+
+
+var addReferralTelCheckRecord = function(customer_id, telephone) {
+	var defer = q.defer();
+	mysql_pool.getConnection(function(err, connection) {
+		if (err) {
+			connection.release();
+			defer.reject(err);
+		}
+		connection.query('select * from oc_referral_tel_check where customer_id = ? and telephone = ?',[customer_id, telephone] , function(err, results) {
+			if (err) {
+				connection.release();
+				defer.reject(err);
+			}
+			var verification_code = Math.floor((Math.random() * 10000) + 1);
+			var sql = '';
+			// update
+			if (_.size(results) > 0) {
+				defer.resolve({tel: telephone, code: verification_code});
+			} else {
+				var insert_dict = {
+					customer_id: customer_id,
+					telephone: telephone,
+					verification_code: verification_code,
+					status: 0
+				};
+				sql = insertDictSql('oc_referral_tel_check', insert_dict);		
+			}
+			connection.query(sql, function(err, upsert_result) {
+				connection.release();
+				if(err) {
+					defer.reject(err);
+				} else {
+					defer.resolve({tel: telephone, code: verification_code});
+				}
+			});
 		});
 	});
 	return defer.promise;	
@@ -425,52 +466,6 @@ var isSmsCorrect = function(customer_id, telephone, code) {
 	return defer.promise;	
 };
 
-var upsertReferralTelCheckRecord = function(customer_id, telephone) {
-	var defer = q.defer();
-	mysql_pool.getConnection(function(err, connection) {
-		if (err) {
-			connection.release();
-			defer.reject(err);
-		}
-		connection.query('select * from oc_referral_tel_check where customer_id = ?',[customer_id] , function(err, results) {
-			if (err) {
-				connection.release();
-				defer.reject(err);
-			}
-			var verification_code = Math.floor((Math.random() * 10000) + 1);
-			var sql = '';
-			// update
-			if (_.size(results) > 0) {
-				var condiction_dict = {
-					customer_id: customer_id,
-					status: 0
-				};
-				var update_dict = {
-					telephone: telephone,
-					verification_code: verification_code
-				};
-				sql = updateDictSql('oc_referral_tel_check', update_dict, condiction_dict);
-			} else {
-				var insert_dict = {
-					customer_id: customer_id,
-					telephone: telephone,
-					verification_code: verification_code,
-					status: 0
-				};
-				sql = insertDictSql('oc_referral_tel_check', insert_dict);		
-			}
-			connection.query(sql, function(err, upsert_result) {
-				connection.release();
-				if(err) {
-					defer.reject(err);
-				} else {
-					defer.resolve({tel: telephone, code: verification_code});
-				}
-			});
-		});
-	});
-	return defer.promise;	
-};
 
 var updateReferralTelCheckRecordSucceed = function(customer_id, telephone) {
 	var defer = q.defer();

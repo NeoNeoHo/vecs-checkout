@@ -112,7 +112,7 @@ export function me(req, res, next) {
 			connection.release();
 			handleError(res)(err);
 		}
-		connection.query('select * from oc_customer where customer_id = ?',[userId], function(err, rows) {
+		connection.query('select customer_id, firstname, address_id, email, telephone, customer_group_id, referral_code from oc_customer where customer_id = ?',[userId], function(err, rows) {
 			connection.release();
 			if(err) next(err);
 			if(!rows) return res.status(401).end();

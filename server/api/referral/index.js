@@ -13,7 +13,7 @@ router.get('/hasRC', auth.isAuthenticated(), controller.hasReferralCodeHttp);
 router.get('/smsFraudCheck/:telephone', auth.isAuthenticated(), controller.smsFraudCheck);
 router.post('/verifyTelSms/', auth.isAuthenticated(), controller.verifyTelSms);
 
-router.get('/isFirstPurchase', auth.isAuthenticated(), controller.isFirstTimePurchasedHttp);
+router.get('/isFirstCreditPurchase', auth.isAuthenticated(), controller.isFirstTimePurchasedHttp);
 router.post('/referral_list/', auth.isAuthenticated(), controller.isMailInvitedToday);
 
 // router.put('/address', auth.isAuthenticated(), controller.updateAddress);

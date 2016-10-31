@@ -2,57 +2,72 @@
 
 angular.module('webApp')
 	.factory('Location', function ($q, $http) {
-		// Service logic
-		// ...
-		var countries_dict_cache = null;
-		var cities_dict_cache = {
-			country_id: null,
-			cities: null
-		};
-		var districts_dict_cache = {
-			city_id: null,
-			districts: null
-		};
-		var meaningOfLife = 42;
+		var _country_coll = [];		// [{country_id, name} ...]
+		var _city_coll = [];		// [{country_id, cities_coll} ...]
+		var _district_coll = [];	// [{city_id, districts_coll} ...]
 
+		// return: [{country_id, name} ...]
 		var getCountries = function() {
 			var defer = $q.defer();
-			if(countries_dict_cache) defer.resolve(countries_dict_cache);
-			$http.get('/api/locations/countries/')
-			.then(function(result) {
-				countries_dict_cache = result.data;
-				defer.resolve(countries_dict_cache);
-			}, function(err) {
-				defer.reject(err);
-			});
+			if(_.size(_country_coll) > 0) {
+				defer.resolve(_country_coll);
+			} else {
+				$http.get('/api/locations/countries/')
+				.then(function(result) {
+					_country_coll = result.data;
+					defer.resolve(_country_coll);
+				}, function(err) {
+					defer.reject(err);
+				});
+			}
 			return defer.promise;
 		};
 
+		// return: {country_id, cities_coll}
 		var getCities = function(country_id) {
 			var defer = $q.defer();
-			if(cities_dict_cache.country_id == country_id) defer.resolve(cities_dict_cache);
-			$http.get('/api/locations/cities/'+country_id)
-			.then(function(result) {
-				cities_dict_cache.cities = result.data;
-				cities_dict_cache.country_id  = country_id;
-				defer.resolve(cities_dict_cache);
-			}, function(err) {
-				defer.reject(err);
-			});
+			var result_city = _.find(_city_coll, {'country_id' : country_id});
+			if(result_city) {
+				defer.resolve(result_city);
+			} else {
+				$http.get('/api/locations/cities/'+country_id)
+				.then(function(result) {
+					_city_coll.push({
+						cities : result.data,
+						country_id: country_id
+					});
+					defer.resolve({
+						country_id: country_id,
+						cities: result.data
+					});
+				}, function(err) {
+					defer.reject(err);
+				});				
+			}
 			return defer.promise;
 		};
 
+		// return: {city_id, districts_coll}
 		var getDistricts = function(city_id) {
 			var defer = $q.defer();
-			if(districts_dict_cache.city_id == city_id) defer.resolve(districts_dict_cache);
-			$http.get('/api/locations/districts/'+city_id)
-			.then(function(result) {
-				districts_dict_cache.districts = result.data;
-				districts_dict_cache.city_id  = city_id;
-				defer.resolve(districts_dict_cache);
-			}, function(err) {
-				defer.reject(err);
-			});
+			var result_district = _.find(_district_coll, {'city_id': city_id});
+			if(result_district) {
+				defer.resolve(result_district);
+			} else {
+				$http.get('/api/locations/districts/'+city_id)
+				.then(function(result) {
+					_district_coll.push({
+						districts : result.data,
+						city_id : city_id
+					});
+					defer.resolve({
+						districts : result.data,
+						city_id : city_id
+					});
+				}, function(err) {
+					defer.reject(err);
+				});				
+			}
 			return defer.promise;
 		};
 
@@ -60,7 +75,7 @@ angular.module('webApp')
 			var defer = $q.defer();
 			$http.get('/api/locations/customer/')
 			.then(function(result) {
-				defer.resolve(result.data[0]);
+				defer.resolve(result.data);
 			}, function(err) {
 				defer.reject(err);
 			});
@@ -92,11 +107,9 @@ angular.module('webApp')
 			});
 			return defer.promise;
 		};
+
 		// Public API here
 		return {
-			someMethod: function () {
-				return meaningOfLife;
-			},
 			getCountries: getCountries,
 			getCities: getCities,
 			getDistricts: getDistricts,

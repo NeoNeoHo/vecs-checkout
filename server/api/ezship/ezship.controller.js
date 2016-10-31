@@ -15,11 +15,13 @@ import db_config from '../../config/db_config.js';
 import api_config from '../../config/api_config.js';
 import request from 'request';
 import url from 'url';
+import q from 'q';
 import request_retry from 'requestretry';
 
 var mysql_pool = db_config.mysql_pool;
 var mysql_config = db_config.mysql_config;  
 var HOST_PATH = api_config.HOST_PATH;
+var Order = require('../order/order.controller.js');
 
 function respondWithResult(res, entity, statusCode) {
 	statusCode = statusCode || 200;
@@ -84,10 +86,12 @@ export function getHistory(req, res) {
 			// Handle Query Process Error.
 			if(err) handleError(res, err);
 			// Handle Empty Query Result.
-			if(_.size(result_coll) == 0) res.status(404).end();
+			if(_.size(result_coll) == 0) res.status(200).json({status: false});
 			// Query Successfully.
-			else { 
-				res.status(200).json(result_coll);
+			else {
+				var result = result_coll[0] || result_coll;
+				result.status = true;
+				res.status(200).json(result);
 			}
 		});
 	});
@@ -129,7 +133,14 @@ export function sendOrder(req, res) {
 					console.log('######### ezship request fails , order_id: ###########');
 					console.log(err);
 					console.log(order_dict);
-					res.status(400).json(err);
+					var order_delete_promises = [];
+					order_delete_promises.push(Order.lupdate(order_id, customer_id, {'order_status_id': 10}));
+					order_delete_promises.push(Order.deleteOrderResidual(order_id));
+					q.all(order_delete_promises).then(function(results) {
+						res.status(400).json(err);
+					}, function(err) {
+						res.status(400).json(err);
+					});
 				} else {
 					console.log('The number of request attempts: ' + lhttpResponse.attempts);
 					console.log(order_dict);

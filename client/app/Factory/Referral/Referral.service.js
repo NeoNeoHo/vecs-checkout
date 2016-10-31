@@ -2,37 +2,52 @@
 
 angular.module('webApp')
 	.factory('Referral', function ($q, $http) {
+		var _rc = '';
+		var _qualified = '';
+
 		var getRC = function() {
 			var defer = $q.defer();
-			$http.get('/api/referrals/rc')
-			.then(function(result) {
-				// console.log(result.data);
-				defer.resolve(result.data);
-			}, function(err) {
-				defer.reject(err);
-			});
+			if(_rc !== '') {
+				defer.resolve(_rc);
+			} else {
+				$http.get('/api/referrals/rc')
+				.then(function(result) {
+					// console.log(result.data);
+					_rc = result.data;
+					defer.resolve(result.data);
+				}, function(err) {
+					defer.reject(err);
+				});
+			}
 			return defer.promise;
 		};
 		var withReferralQualified = function() {
 			var defer = $q.defer();
-			$http.get('/api/referrals/hasRC')
-			.then(function(result) {
-				var data = result.data;
-				if(!data.referral_code) {
-					defer.reject();
-				}
-				$http.get('/api/referrals/isFirstPurchase').then(function(result) {
-					if (result.data === 'no') {
-						defer.reject();
+			if(_qualified !== '') {
+				defer.resolve(_qualified);
+			} else {
+				$http.get('/api/referrals/hasRC').then(function(result) {
+					var data = result.data;
+					if(!data.referral_code) {
+						_qualified = false;
+						defer.resolve(_qualified);
 					} else {
-						defer.resolve(result);
+						$http.get('/api/referrals/isFirstCreditPurchase').then(function(result) {
+							if (result.data === 'no') {
+								_qualified = false;
+								defer.resolve(_qualified);
+							} else {
+								_qualified = true;
+								defer.resolve(_qualified);
+							}
+						}, function(err) {
+							defer.reject(err);
+						});
 					}
 				}, function(err) {
 					defer.reject(err);
 				});
-			}, function(err) {
-				defer.reject(err);
-			});
+			}
 			return defer.promise;
 		};
 

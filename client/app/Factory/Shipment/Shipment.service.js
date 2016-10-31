@@ -14,7 +14,9 @@ angular.module('webApp')
 		var SHIP_TO_EZSHIP_ORDER_STATUS_ID = 50;
 
 		var checkoutToken = $cookies.get('vecs_token');
-		
+
+		var _ezship_data = {flag: false};
+
 		var setEzshipStore = function(order_id) {
 			var url = 'https://map.ezship.com.tw/ezship_map_web.jsp';
 			var suID = '?suID=' + $filter('encodeURI')('shipping@vecsgardenia.com');
@@ -27,11 +29,17 @@ angular.module('webApp')
 
 		var getEzshipStore = function() {
 			var defer = $q.defer();
-			$http.get('/api/ezships/history/').then(function(data) {
-				defer.resolve(data.data[0]);
-			}, function(err) {
-				defer.reject(err);
-			});
+			if(_ezship_data.flag == true) {
+				defer.resolve(_ezship_data);
+			} else {
+				$http.get('/api/ezships/history/').then(function(result) {
+					_ezship_data = result.data;
+					_ezship_data.flag = true;
+					defer.resolve(result.data);
+				}, function(err) {
+					defer.reject(err);
+				});				
+			}
 			return defer.promise;
 		};
 
@@ -53,10 +61,7 @@ angular.module('webApp')
 			promises.push(Order.createOrder(cart, shipping_info));
 
 			$q.all(promises).then(function(datas) {
-				// console.log('shipping: "Ship to Home" done !');
-				// console.log(datas);
 				var order_id = datas[1].order_id
-
 				// Shipment Method Should Return "Order Id" For Later Use (Payment Method)
 				defer.resolve(order_id);
 			}, function(err) {
@@ -126,7 +131,7 @@ angular.module('webApp')
 			};
 			shipping_info.city_d = {
 				name: '超商電話: ' + shipping_info.ezship_store_info.stTel,
-				zone_id: 0
+				city_id: 0
 			};
 			shipping_info.country_d = {
 				name: shipping_info.ezship_store_info.stCate + shipping_info.ezship_store_info.stCode,
@@ -137,22 +142,6 @@ angular.module('webApp')
 			promises.push(Order.createOrder(cart, shipping_info));
 			$q.all(promises).then(function(datas) {
 				var order_id = datas[0].order_id;
-				// Order.getOrder(order_id).then(function(data){
-				// 	var lorder = data[0] || data;
-				// 	console.log(lorder);
-				// 	document.getElementById("rv_name").value = lorder.firstname;
-				// 	document.getElementById("rv_email").value = lorder.email;
-				// 	document.getElementById("rv_mobil").value = lorder.telephone;
-				// 	document.getElementById("order_id").value = order_id;
-				// 	document.getElementById("order_status").value = 'A01';
-				// 	document.getElementById("order_type").value = order_type;
-				// 	document.getElementById("rv_amount").value = (order_type == 1) ? lorder.total : 0;
-				// 	document.getElementById("su_id").value = 'shipping@vecsgardenia.com';
-				// 	document.getElementById("st_code").value = lorder.shipping_country;
-				// 	document.getElementById("rturl").value = Config.DIR_NODE_SUBDOMAIN + '/api/ezships/receiveOrder/';
-				// 	document.getElementById("webtemp").value = 'cmxziorwLUrwqrW';
-				// 	document.getElementById("ezship_order_form").submit();			
-				// }, function(err) {});
 
 				postEzshipOrder(order_id, order_type).then(function(ezship_order_status_resp) {
 					console.log('shipping: "Ship to Ezship" done !');
@@ -169,8 +158,8 @@ angular.module('webApp')
 					});
 				}, function(err) {
 					console.log(err);
-					Order.cancelDiscount(order_id);
-					Order.sendErrorLogMail(order_id, err);
+					// Order.cancelDiscount(order_id);
+					// Order.sendErrorLogMail(order_id, err);
 					defer.reject(err);					
 				});
 			}, function(err) {

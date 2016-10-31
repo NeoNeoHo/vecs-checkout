@@ -14,16 +14,17 @@ angular.module('webApp')
 		$scope.isLoggedIn = Auth.isLoggedIn;
 		$scope.isAdmin = Auth.isAdmin;
 		$scope.getCurrentUser = Auth.getCurrentUser;
-		Referral.withReferralQualified().then(function(result) {
-			Promotion.getModule('checkout', 'referral_notification').then(function(result) {
-				$scope.notification = $sce.trustAsHtml(result.setting);
-			}, function(err) {
-				$scope.notification = '';
-			});
-			
-		}, function(err) {
-			$scope.notification = '';
-		});
+		// Referral.withReferralQualified().then(function(result) {
+		// 	if(result) {
+		// 		Promotion.getModule('checkout', 'referral_notification').then(function(result) {
+		// 			$scope.notification = $sce.trustAsHtml(result.setting);
+		// 		}, function(err) {
+		// 			$scope.notification = '';
+		// 		});
+		// 	}
+		// }, function(err) {
+		// 	$scope.notification = '';
+		// });
 		$scope.trustAsHtml = function(string) {
     		return $sce.trustAsHtml(string);
 		};

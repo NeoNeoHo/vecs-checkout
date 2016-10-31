@@ -6,7 +6,7 @@ angular.module('webApp')
 	  .state('checkout.product_check', {
 		url: '/product_check',
 		templateUrl: 'app/checkout/product_check/product_check.html',
-		// controller: 'CheckoutController',
+		controller: 'ProductCheckController',
 		authenticate: true,
 		resolve: {
 			// Constant title
