@@ -121,6 +121,8 @@ angular.module('webApp')
 			var defer = $q.defer();
 			if(_cart.flag == true) {
 				if(_.size(_cart.products) == 0) {
+					$cookies.remove('vecs_token',{domain: '.vecsgardenia.com'});
+					$cookies.remove('vecs_token',{domain: 'checkout.vecsgardenia.com'});
 					defer.reject();
 				} else {
 					defer.resolve(_cart);
