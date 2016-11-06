@@ -14,7 +14,8 @@ import db_config from '../../config/db_config.js';
 import api_config from '../../config/api_config.js';
 import request from 'request';
 import q from 'q';
-import iconv from 'iconv-lite';
+import https from 'https';
+
 
 var Customer = require('../customer/customer.controller.js');
 
@@ -51,3 +52,4 @@ var createSMSRequestUrl = function(tel, sms_body) {
 	}
 	return encodeURI(url);
 };
+

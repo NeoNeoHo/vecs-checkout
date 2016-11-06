@@ -167,6 +167,7 @@ var sendReferralSuccessMail = function(referer_id, referee_id, coupon, reward_po
 			console.log('either referer or referee customer info not valid');
 			defer.reject('either referer or referee customer info not valid');
 		} else {
+			
 			// 1. PREPARATION OF REFERER MAIL
 			var template_name_1 = api_config.mandrill_template.invite_friend.success_to_referer;
 			var template_content = [{
@@ -194,11 +195,12 @@ var sendReferralSuccessMail = function(referer_id, referee_id, coupon, reward_po
 				]
 			}];
 			var message_info_1 = {
-				from_name: "嘉丹妮爾的好友分享",
+				from_name: "謝謝你分享嘉丹妮爾",
 				from_email: "customer@vecsgardenia.com",
-				subject: "恭喜您獲得，好友分享紅利加倍送"
+				subject: "恭喜你獲得『好友回饋紅利』"
 			};
 			var message_1 = mandrill_message_template(message_info_1, to_coll_1, merge_vars_coll_1, "md_referral_success", ['referral_success']);
+			
 			// 2. PREPARATION OF REFEREE MAIL
 			var template_name_2 = api_config.mandrill_template.invite_friend.success_to_referee;
 			var to_coll_2 = [{
@@ -216,15 +218,56 @@ var sendReferralSuccessMail = function(referer_id, referee_id, coupon, reward_po
 				]
 			}];
 			var message_info_2 = {
-				from_name: "嘉丹妮爾的好友分享",
+				from_name: "謝謝您喜歡嘉丹妮爾",
 				from_email: "customer@vecsgardenia.com",
 				subject: "恭喜您購物成功，這是" + referer.firstname + "回饋給您的紅利點數"
 			};
 			var message_2 = mandrill_message_template(message_info_2, to_coll_2, merge_vars_coll_2, "md_referral_success", ['referral_success']);
+			
+
+			// 3. 若有特殊紅利加倍活動，則於此處修改
+			var template_name_special = api_config.mandrill_template.invite_friend.success_to_referer;
+			switch (complete_amount) {
+				case 3:
+					template_name_special = 3;
+					break;
+				case 6:
+					template_name_special = 6;
+					break;
+				default:
+					template_name_special = api_config.mandrill_template.invite_friend.success_to_referer;
+					break;
+			}
+			var to_coll_special = [{
+				"email": referer.email,
+				"name": referer.firstname,
+				"type": "to"
+			}];
+			var merge_vars_coll_special = [{
+				"rcpt": referer.email,
+				"vars": [
+					{
+						"name": "REWARD_POINTS",
+						"content": reward_points
+					},{
+						"name": "FNAME",
+						"content": referer.firstname
+					}
+				]
+			}];
+			var message_info_special = {
+				from_name: "嘉丹妮爾好友分享第" + complete_amount + '位成功!!',
+				from_email: "customer@vecsgardenia.com",
+				subject: "恭喜你獲得『好友加碼回饋紅利』"
+			};
+			var message_special = mandrill_message_template(message_info_special, to_coll_special, merge_vars_coll_special, "md_referral_success", ['referral_success']);
+			
+
 			var async = false;
 			var mandrill_promises = [];
 			mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_1, "template_content": template_content, "message": message_1, "async": async}));
 			mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_2, "template_content": template_content, "message": message_2, "async": async}));
+			mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_special, "template_content": template_content, "message": message_special, "async": async}));
 			q.all(mandrill_promises).then(function(results) {
 				console.log(results);
 				defer.resolve();

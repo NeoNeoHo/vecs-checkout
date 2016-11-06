@@ -236,22 +236,22 @@ export function startRewarding(customer_id, order_id) {
 					var comment = '與好友'+ referee.firstname +'(' + customer_id + ')分享的回饋紅利，第'+complete_amount+'次分享好友！！';
 					var comment2 = '謝謝您加入嘉丹妮爾，這是給您的回饋紅利';
 					var coupon_code = referee.referral_code + ConvertBase.dec2hex(customer_id);
-					var coupon_option = {
-						name: 'ReferralCoupon_NewMember[' + customer_id + ']',
-						code: coupon_code,
-						type: api_config.REFERRAL.referee_coupon._type,
-						discount: api_config.REFERRAL.referee_coupon.discount,
-						logged: 1,
-						shipping: 0,
-						total: api_config.REFERRAL.referee_coupon.total,
-						date_start: date,
-						date_end:  '2030-01-01',
-						uses_total: 1,
-						uses_customer: 1,
-						status: 1,
-						date_added: new Date(),
-						customer_id: customer_id
-					};
+					// var coupon_option = {
+					// 	name: 'ReferralCoupon_NewMember[' + customer_id + ']',
+					// 	code: coupon_code,
+					// 	type: api_config.REFERRAL.referee_coupon._type,
+					// 	discount: api_config.REFERRAL.referee_coupon.discount,
+					// 	logged: 1,
+					// 	shipping: 0,
+					// 	total: api_config.REFERRAL.referee_coupon.total,
+					// 	date_start: date,
+					// 	date_end:  '2030-01-01',
+					// 	uses_total: 1,
+					// 	uses_customer: 1,
+					// 	status: 1,
+					// 	date_added: new Date(),
+					// 	customer_id: customer_id
+					// };
 					complete_amount = (complete_amount > 10) ? 10 : complete_amount;
 						// 根據不同的推薦成功人次，給予不同級距的紅利
 					var reward_points = api_config.REFERRAL.referer_reward_list[complete_amount-1];

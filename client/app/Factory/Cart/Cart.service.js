@@ -169,7 +169,7 @@ angular.module('webApp')
 								product.discount = db_product.discount || [];
 								product.reward = db_product.reward;
 								product.model = db_product.model;
-								product.maximum = (db_product.maximum > 0) ? _.range(1,db_product.maximum) : _.range(1,20); 
+								product.maximum = (db_product.maximum > 0) ? _.range(1,db_product.maximum+1) : _.range(1,20); 
 								product.name = db_product.name;
 								product.image = db_product.image;
 								product.spot_price = product.price.special_price;
