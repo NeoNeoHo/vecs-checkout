@@ -86,7 +86,10 @@ angular.module('webApp')
 
 		$scope.checkout_third_step = function() {
 			$scope.checkShipmentFee();
-			if(lstrcmp([SHIPPING_NAME.ship_to_home,SHIPPING_NAME.ship_to_overseas], $scope.shipping_info.shipment_sel_str)) {
+			if($scope.shipping_info.shipment_sel_str === SHIPPING_NAME.ship_to_home) {
+				$scope.is_address_valid = $scope.shipping_info.city_d && $scope.shipping_info.district_d && $scope.shipping_info.address;
+			}
+			if($scope.shipping_info.shipment_sel_str === SHIPPING_NAME.ship_to_overseas) {
 				$scope.is_address_valid = $scope.shipping_info.city_d && $scope.shipping_info.address;
 			}
 			if($scope.shipping_info.shipment_sel_str === SHIPPING_NAME.ship_to_store) {

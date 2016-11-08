@@ -227,12 +227,15 @@ var sendReferralSuccessMail = function(referer_id, referee_id, coupon, reward_po
 
 			// 3. 若有特殊紅利加倍活動，則於此處修改
 			var template_name_special = api_config.mandrill_template.invite_friend.success_to_referer;
+			var matched_special_flag = false;
 			switch (complete_amount) {
 				case 3:
 					template_name_special = 3;
+					matched_special_flag = true;
 					break;
 				case 6:
 					template_name_special = 6;
+					matched_special_flag = true;
 					break;
 				default:
 					template_name_special = api_config.mandrill_template.invite_friend.success_to_referer;
@@ -267,7 +270,9 @@ var sendReferralSuccessMail = function(referer_id, referee_id, coupon, reward_po
 			var mandrill_promises = [];
 			mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_1, "template_content": template_content, "message": message_1, "async": async}));
 			mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_2, "template_content": template_content, "message": message_2, "async": async}));
-			mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_special, "template_content": template_content, "message": message_special, "async": async}));
+			if (matched_special_flag) {
+				mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_special, "template_content": template_content, "message": message_special, "async": async}));
+			}
 			q.all(mandrill_promises).then(function(results) {
 				console.log(results);
 				defer.resolve();

@@ -241,8 +241,9 @@ export function redirectFailure(req, res) {
 	}
 	catch (e) {
 		console.log(e);
-		res.redirect('/checkout/failure?msg=please_contact_cs');
+		res.redirect('/checkout/failure?msg=please_contact_us');
 	}
 };
 
-// Referral.startRewarding(16589, 38193);
+// Referral.startRewarding(17126, 39139);
+// Referral.startRewarding(17584, 40179);

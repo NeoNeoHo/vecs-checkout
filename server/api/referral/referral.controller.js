@@ -516,7 +516,14 @@ var addReferralTelCheckRecord = function(customer_id, telephone) {
 			var sql = '';
 			// update
 			if (_.size(results) > 0) {
-				defer.resolve({tel: telephone, code: verification_code});
+				var update_dict = {
+					verification_code: verification_code
+				};
+				var condiction_dict = {
+					customer_id: customer_id,
+					telephone: telephone
+				}
+				sql = updateDictSql('oc_referral_tel_check', update_dict, condiction_dict);
 			} else {
 				var insert_dict = {
 					customer_id: customer_id,

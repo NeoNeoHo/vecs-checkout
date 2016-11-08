@@ -197,4 +197,4 @@ form.form-horizontal(name="shipment_payment_form", novalidate)
 						button.col-xs-12.btn.btn-vecs.btn-sharp.btn-lg.text-justify(ng-click="checkout_third_step()", ng-disabled="shipment_payment_form.$invalid || !is_passed_tel_check", ng-class="{'btn-danger': shipment_payment_form.$invalid || !is_passed_tel_check}") 最後確認
 							span.glyphicon.glyphicon-circle-arrow-right.pull-right
 					.row(ng-show="shipment_payment_form.$invalid || !is_address_valid || !is_passed_tel_check")
-						p.text-danger --請檢查以上填寫的送貨資料有無漏填
+						p.text-danger --您的地址或是配送方式填寫不完整喔 :)
