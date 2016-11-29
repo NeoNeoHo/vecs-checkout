@@ -150,7 +150,13 @@ angular.module('webApp')
 			$scope.payment_btn.store_pay = (lstrcmp([SHIPPING_NAME.ship_to_store], lmethod)) ? true : false;
 			$scope.payment_btn.hand_pay = (lstrcmp([SHIPPING_NAME.ship_to_home], lmethod)) ? true : false;
 			$scope.payment_btn.credit_pay = (lstrcmp([SHIPPING_NAME.ship_to_home,SHIPPING_NAME.ship_to_overseas, SHIPPING_NAME.ship_to_store], lmethod)) ? true : false;
-
+			
+			// IF customer is in black list => mulitiple records of not picking her orders
+			if ($scope.shipping_info.customer_group_id == 10) {
+				$scope.payment_btn.store_pay = false;
+				$scope.payment_btn.hand_pay = false;
+				$scope.payment_btn.credit_pay = true;
+			}
 			
 			var total_price_with_discount = Cart.getPriceWithDiscount();
 			switch (lmethod) {

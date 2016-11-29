@@ -270,9 +270,11 @@ var sendReferralSuccessMail = function(referer_id, referee_id, coupon, reward_po
 			var mandrill_promises = [];
 			mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_1, "template_content": template_content, "message": message_1, "async": async}));
 			mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_2, "template_content": template_content, "message": message_2, "async": async}));
-			if (matched_special_flag) {
-				mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_special, "template_content": template_content, "message": message_special, "async": async}));
-			}
+
+				// 若有特殊紅利加倍活動，則於此處修改
+			// if (matched_special_flag) {
+			// 	mandrill_promises.push(mandrill_client.messages.sendTemplate({"template_name": template_name_special, "template_content": template_content, "message": message_special, "async": async}));
+			// }
 			q.all(mandrill_promises).then(function(results) {
 				console.log(results);
 				defer.resolve();

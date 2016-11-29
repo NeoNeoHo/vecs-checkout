@@ -11,11 +11,11 @@ function authInterceptor($rootScope, $q, $cookies, $injector, Util, $location) {
       config.headers = config.headers || {};
       $cookies.remove('vecs_token', {domain: 'checkout.vecsgardenia.com'});
       // if ($cookies.get('vecs_token') && Util.isSameOrigin(config.url)) {
-      if ($cookies.get('vecs_token')) {
-        config.headers.Authorization = 'Bearer ' + $cookies.get('vecs_token');
-      } else if (searchUrlObject['vecs_t']) {
+      if (searchUrlObject['vecs_t']) {
         $cookies.put('vecs_token', searchUrlObject['vecs_t'],{domain: '.vecsgardenia.com'});
         config.headers.Authorization = 'Bearer ' + searchUrlObject['vecs_t'];
+      } else if ($cookies.get('vecs_token')) {
+        config.headers.Authorization = 'Bearer ' + $cookies.get('vecs_token');
       }
       return config;
     },

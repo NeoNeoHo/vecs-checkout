@@ -245,5 +245,5 @@ export function redirectFailure(req, res) {
 	}
 };
 
-// Referral.startRewarding(17426, 40107);
-// Referral.startRewarding(17584, 40179);
+// Referral.startRewarding(17353, 41393);
+// Referral.startRewarding(17419, 39736);
