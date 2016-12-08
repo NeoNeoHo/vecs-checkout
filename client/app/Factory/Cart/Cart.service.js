@@ -185,7 +185,23 @@ angular.module('webApp')
 							_cart.rewards_customer_has_pts = (reward.points) ? reward.points : 0;
 							_cart.rewards_available = (_cart.total_price_with_discount > _cart.rewards_customer_has_pts) ? _cart.rewards_customer_has_pts : _cart.total_price_with_discount;
 							_cart.flag = true;
-							defer.resolve(_cart);
+
+							if($cookies.get('vecs_reward') && $cookies.get('vecs_reward') <= _cart.rewards_available) {
+								_cart.discount.reward.name = $cookies.get('vecs_reward');
+								_calcRewardSaved($cookies.get('vecs_reward'));
+							}
+							
+							if($cookies.get('vecs_coupon')) {
+								_cart.discount.coupon.name = $cookies.get('vecs_coupon');
+								Promotion.getCoupon($cookies.get('vecs_coupon')).then(function(data) {
+									_calcCouponSaved();
+									defer.resolve(_cart);
+								}, function(err) {
+									defer.resolve(_cart);
+								});
+							} else {
+								defer.resolve(_cart);
+							}
 						}, function(err) {
 							_cart.rewards_customer_has_pts = 0;
 							_cart.rewards_available = 0;

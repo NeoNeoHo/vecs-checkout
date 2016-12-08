@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('webApp')
-	.controller('ProductCheckController', function ($rootScope, $scope, $window, $state, $document, $location, $q, Promotion, Cart, Reward, Product, Config, Referral) {
+	.controller('ProductCheckController', function ($rootScope, $scope, $window, $state, $document, $location, $q, $cookies, Promotion, Cart, Reward, Product, Config, Referral) {
 
 		$scope.DIR_DOMAIN = Config.DIR_DOMAIN;
 
@@ -48,7 +48,14 @@ angular.module('webApp')
 		};
 
 		$scope.calcRewardSaved = function() {
+			var reward_expire_date = new Date();
+			reward_expire_date.setMinutes(reward_expire_date.getMinutes() + 5);
+			$cookies.put('vecs_reward', $scope.cart.discount.reward.name, {expires: reward_expire_date});
+			
 			$scope.cart = Cart.calcRewardSaved($scope.cart.discount.reward.name);
+		};
+		$scope.removeReward = function() {
+			$cookies.remove('vecs_reward');
 		};
 
 		$scope.calcVoucherSaved = function() {
@@ -65,7 +72,11 @@ angular.module('webApp')
 
 		$scope.applyCoupon = function() {
 			var defer = $q.defer();
+			var coupon_expire_date = new Date();
+			coupon_expire_date.setMinutes(coupon_expire_date.getMinutes() + 5);
+			
 			Promotion.getCoupon($scope.cart.discount.coupon.name).then(function(data) {
+				$cookies.put('vecs_coupon', $scope.cart.discount.coupon.name, {expires: coupon_expire_date});
 				$scope.cart = Cart.calcCouponSaved();
 				defer.resolve();
 			}, function(err) {
@@ -76,6 +87,7 @@ angular.module('webApp')
 		};
 
 		$scope.removeCoupon = function() {
+			$cookies.remove('vecs_coupon');
 			Promotion.removeCoupon();
 		};
 	});

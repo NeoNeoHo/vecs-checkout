@@ -101,7 +101,7 @@ form.form-horizontal(name="product_check_form", novalidate)
 						.form-group(ng-show="cart.rewards_available > 0")
 							label.col-md-4.col-xs-12.control-label(for="input_rewards") 使用紅利點數折抵
 							.col-md-5.col-xs-8
-								input.form-control(name="input_rewards", id="input_rewards",  ng-model="cart.discount.reward.name", type='number', aria-label="...", ng-change="cart.discount.reward.saved_amount = 0", placeholder='您可使用{{cart.rewards_available}}點', max="{{cart.rewards_available}}", min="0")
+								input.form-control(name="input_rewards", id="input_rewards",  ng-model="cart.discount.reward.name", type='number', aria-label="...", ng-change="cart.discount.reward.saved_amount = 0;removeReward()", placeholder='您可使用{{cart.rewards_available}}點', max="{{cart.rewards_available}}", min="0")
 							.col-md-3.col-xs-4
 								button.form-control.btn.btn-vecs(ng-click="calcRewardSaved()", ng-disabled="product_check_form.input_rewards.$error.max") 確認
 							div.help-block(ng-messages="product_check_form.input_rewards.$error", ng-show="product_check_form.input_rewards.$error.max")
